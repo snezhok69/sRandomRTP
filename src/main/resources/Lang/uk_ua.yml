@@ -1,0 +1,121 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cУ вас немає прав для перезавантаження плагіна.'
+  reloading-wait:
+    - '&a[sRandomRTP] &cПлагін перезавантажується, будь ласка, зачекайте...'
+  reloading-start:
+    - '&a[sRandomRTP] &6Йде перезавантаження плагіна, будь ласка, зачекайте...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aПлагін успішно перезавантажено. %mc% мс'
+  no-permission:
+    - '&a[sRandomRTP] &cУ вас немає прав для використання цієї команди.'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cВи повинні зачекати &6%time% &cсекунд перед наступним використанням команди.'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cТелепортацію було скасовано через отримання пошкоджень.'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cТелепортацію було скасовано.'
+  teleported:
+    - '&a[sRandomRTP] &fВи були телепортовані до координат &aX: %x% Z: %z%.'
+  loading:
+    - '&a[sRandomRTP] &6Шукаємо для вас підходяще місце...'
+  locationNotFound:
+    - '&a[sRandomRTP] &cНе вдалося знайти підходячу локацію!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6Доступна нова версія плагіна: &6%new-CommandVersion%. &aВаша поточна версія: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &6Ви можете завантажити її за посиланням: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&bТелепортація через &6%time% &bсекунд'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6Перевірка нової версії плагіна...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aВаш плагін оновлено до останньої версії: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &cСталася помилка під час перевірки нової версії: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cМісце для телепортації вже шукається!'
+  no-searching:
+    - '&a[sRandomRTP] &6В даний момент ви не телепортуєтеся.'
+  titleMessage: "&aТелепортація успішна!"
+  subtitleMessage: "&eВи були переміщені в нове місце."
+  noplayerservenear:
+    - '&a[sRandomRTP] &6На сервері немає людей для використання команди /rtp near.'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6У світі &4%world% &6немає людей для використання команди /rtp near.'
+  actionBarMessage: 'Телепортація через: %d секунд.'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6У вас недостатньо коштів для телепортації. Необхідно: %money%.'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6Сталася помилка під час спроби зняття валюти.'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6У вас недостатньо рівня голоду для телепортації. Необхідно: %hunger%.'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6У вас недостатньо рівнів досвіду для телепортації. Необхідно: %level%.'
+  banned_world:
+    - "&a[sRandomRTP] &6Телепортація до світу %world% заборонена."
+  insufficient_health:
+    - "&a[sRandomRTP] &6У вас недостатньо здоров'я для телепортації! Потрібен мінімум %health% здоров'я."
+  insufficient_items:
+    - '&a[sRandomRTP] &6У вас недостатньо %items% для телепортації!'
+  player_nearby:
+    - "&a[sRandomRTP] &6Занадто близько до іншого гравця."
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &cВи рухались! Телепортацію було скасовано.'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cВи не маєте досягнення &6''Палаючий Незер'' &cдля виконання цієї команди.'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cВи не маєте досягнення &6''Кінець?'' &cдля виконання цієї команди.'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6Вас повернуто на початкову позицію.'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6Немає збереженої початкової позиції для повернення.'
+  regionsempty:
+    - '&a[sRandomRTP] &6На сервері або у світі немає відповідних регіонів WorldGuard.'
+  regionManager:
+    - '&a[sRandomRTP] &6Не вдалося отримати менеджера регіонів.'
+  bannedbiome:
+    - '&a[sRandomRTP] &6Біом %biome% заборонено, ви не можете телепортуватися до цього біома.'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6Ви успішно телепортували гравця %target%!'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6Гравець %sender% телепортував вас!'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6Гравець %initiator% хоче телепортувати вас. Щоб прийняти, введіть /rtp accept. Щоб відхилити, введіть /rtp deny.'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6Ви не підтвердили телепортацію вчасно.'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6Телепортацію скасовано.'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6Гравець %target-player% скасував телепортацію.'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6Немає активного запиту на телепортацію для скасування.'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6Гравець вже має активний запит на телепортацію.'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6Ви успішно надіслали запит на телепортацію гравцю &a%player%'
+  commandhelp:
+    - ' '
+    - '&cДопомога з командами плагіну:'
+    - ' '
+    - '&a/rtp - &6випадкова телепортація.'
+    - '&a/rtp world <ваш світ> - &6телепортація до вказаного світу.'
+    - '&a/rtp near - &6телепортуватися до гравців.'
+    - '&a/rtp help - &6показати допомогу з командами.'
+    - '&a/rtp version - &6перевірити наявність нової версії плагіну.'
+    - '&a/rtp reload - &6перезавантажити плагін.'
+    - '&a/rtp cancel - &6скасувати телепортацію під час смуги боса.'
+    - '&a/rtp back - &6повернення на місце перед телепортацією.'
+    - '&a/rtp base - &6телепортуватися біля регіонів WorldGuard.'
+    - '&a/rtp player <ім''я гравця> - &6телепортувати вказаного гравця.'
+    - '&a/rtp accept - &6прийняти телепортацію від іншого гравця.'
+    - '&a/rtp deny - &6відхилити телепортацію від іншого гравця.'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aПлагін увімкнено! &b%mc% &aмс'
+    - '&a[sRandomRTP] &6- &aВерсія сервера: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aВерсія Java: &b%java-version-server% &8| &aХост: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cПлагін вимкнено! %mc% мс'
+    - ''

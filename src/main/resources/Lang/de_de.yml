@@ -1,0 +1,123 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cSie haben keine Berechtigung, das Plugin neu zu laden.'
+  reloading-wait:
+    - '&a[sRandomRTP] &cDas Plugin wird neu geladen, bitte warten...'
+  reloading-start:
+    - '&a[sRandomRTP] &cDas Plugin wird neu geladen, bitte warten...'
+  reloading-process:
+    - '&a[sRandomRTP] &6Das Plugin wird neu geladen, bitte warten...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aPlugin erfolgreich neu geladen. %mc% ms'
+  no-permission:
+    - '&a[sRandomRTP] &cSie haben keine Berechtigung, diesen Befehl zu verwenden.'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cSie müssen &6%time% &cSekunden warten, bevor Sie diesen Befehl erneut verwenden können.'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cDie Teleportation wurde aufgrund von Schaden abgebrochen.'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cDie Teleportation wurde abgebrochen.'
+  teleported:
+    - '&a[sRandomRTP] &fSie wurden zu den Koordinaten &aX: %x% Z: %z% teleportiert.'
+  loading:
+    - '&a[sRandomRTP] &6Suche nach einem geeigneten Ort...'
+  locationNotFound:
+    - '&a[sRandomRTP] &cEs konnte kein geeigneter Ort gefunden werden!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6Eine neue Version des Plugins ist verfügbar: &6%new-CommandVersion%. &aIhre aktuelle Version: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &6Sie können sie unter folgendem Link herunterladen: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&bTeleportation in &6%time% &bSekunden'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6Überprüfen auf eine neue Plugin-Version...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aIhr Plugin ist auf die neueste Version aktualisiert: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &cEs gab einen Fehler beim Überprüfen auf eine neue Version: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cEs wird bereits nach einem Ort für die Teleportation gesucht!'
+  no-searching:
+    - '&a[sRandomRTP] &6Sie teleportieren sich momentan nicht.'
+  titleMessage: "&aTeleportation erfolgreich!"
+  subtitleMessage: "&eSie wurden an einen neuen Ort versetzt."
+  noplayerservenear:
+    - '&a[sRandomRTP] &6Es gibt keine Spieler auf dem Server, um den Befehl /rtp near zu verwenden.'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6Es gibt keine Spieler in der Welt &4%world% &6, um den Befehl /rtp near zu verwenden.'
+  actionBarMessage: 'Teleportieren in: %d Sekunden.'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6Du hast nicht genug Geld, um zu teleportieren. Erforderlich: %money%.'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6Ein Fehler ist beim Abheben der Währung aufgetreten.'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6Du hast nicht genug Hunger, um zu teleportieren. Erforderlich: %hunger%.'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6Du hast nicht genug Erfahrungspunkte, um zu teleportieren. Erforderlich: %level%.'
+  banned_world:
+    - "&a[sRandomRTP] &6Die Teleportation zur Welt %world% ist verboten."
+  insufficient_health:
+    - "&a[sRandomRTP] &6Du hast nicht genug Gesundheit, um zu teleportieren! Mindestens %health% Gesundheit erforderlich."
+  insufficient_items:
+    - '&a[sRandomRTP] &6Du hast nicht genug %items%, um zu teleportieren!'
+  player_nearby:
+    - "&a[sRandomRTP] &6Zu nah an einem anderen Spieler."
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &cDu hast dich bewegt! Teleportation wurde abgebrochen.'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cSie haben nicht die Errungenschaft &6''Feurige Unterwelt'' &cum diesen Befehl auszuführen.'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cSie haben nicht die Errungenschaft &6''Das Ende?'' &cum diesen Befehl auszuführen.'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6Sie wurden an den Ausgangspunkt zurückversetzt.'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6Kein gespeicherter Ausgangspunkt zum Zurückkehren vorhanden.'
+  regionsempty:
+    - '&a[sRandomRTP] &6Keine geeigneten WorldGuard-Regionen auf dem Server oder in der Welt vorhanden.'
+  regionManager:
+    - '&a[sRandomRTP] &6Konnte den Regions-Manager nicht abrufen.'
+  bannedbiome:
+    - '&a[sRandomRTP] &6Das Biom %biome% ist gesperrt, Sie können nicht in dieses Biom teleportieren.'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6Sie haben den Spieler %target% erfolgreich teleportiert!'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6Der Spieler %sender% hat Sie teleportiert!'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6Der Spieler %initiator% möchte Sie teleportieren. Um die Teleportation zu bestätigen, schreiben Sie /rtp accept, um die Teleportation abzulehnen, schreiben Sie /rtp deny.'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6Sie haben die Teleportation nicht rechtzeitig bestätigt.'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6Die Teleportation wurde abgebrochen.'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6Der Spieler %target-player% hat die Teleportation abgebrochen.'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6Kein aktives Teleportationsanfrage zum Abbrechen.'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6Der Spieler hat bereits eine aktive Teleportationsanfrage.'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6Sie haben die Teleportationsanfrage erfolgreich an den Spieler &a%player% gesendet.'
+  commandhelp:
+    - ' '
+    - '&cPlugin-Befehlshilfe:'
+    - ' '
+    - '&a/rtp - &6zufällige Teleportation.'
+    - '&a/rtp world <Ihre Welt> - &6Teleportation in die angegebene Welt.'
+    - '&a/rtp near - &6Teleportiert zu Spielern.'
+    - '&a/rtp help - &6zeigt die Befehle-Hilfe an.'
+    - '&a/rtp version - &6überprüft die neue Version des Plugins.'
+    - '&a/rtp reload - &6lädt das Plugin neu.'
+    - '&a/rtp cancel - &6bricht die Teleportation während der Bossbar ab.'
+    - '&a/rtp back - &6kehrt an den Ort zurück, an dem Sie vor der Teleportation waren.'
+    - '&a/rtp base - &6teleportiert in die Nähe von WorldGuard-Regionen.'
+    - '&a/rtp player <Spielername> - &6teleportiert den angegebenen Spieler.'
+    - '&a/rtp accept - &6akzeptiert die Teleportation von einem anderen Spieler.'
+    - '&a/rtp deny - &6lehnt die Teleportation von einem anderen Spieler ab.'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aPlugin aktiviert! &b%mc% &ams'
+    - '&a[sRandomRTP] &6- &aServer-Version: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aJava-Version: &b%java-version-server% &8| &aHost: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cPlugin deaktiviert! %mc% ms'
+    - ''
