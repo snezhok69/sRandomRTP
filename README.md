@@ -1,5 +1,5 @@
 <p align="center">
-  <b><a>Welcome to sRandomRTP's repository!</a></b>
+  <b><a>Welcome to sRandomRTP repository!</a></b>
 </p>
 
 
