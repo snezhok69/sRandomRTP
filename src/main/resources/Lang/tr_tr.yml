@@ -1,0 +1,121 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cEklentiyi yeniden yüklemek için izniniz yok.'
+  reloading-wait:
+    - '&a[sRandomRTP] &cEklenti yeniden yükleniyor, lütfen biraz bekleyin...'
+  reloading-start:
+    - '&a[sRandomRTP] &6Eklenti yeniden yükleniyor, lütfen biraz bekleyin...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aEklenti başarıyla yeniden yüklendi. %mc% ms'
+  no-permission:
+    - '&a[sRandomRTP] &cBu komutu kullanmak için izniniz yok.'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cBir sonraki komut kullanımına kadar &6%time% &csaniye beklemelisiniz.'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cHasar aldığınız için ışınlanma iptal edildi.'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cIşınlanma iptal edildi.'
+  teleported:
+    - '&a[sRandomRTP] &fAşağıdaki koordinatlara ışınlandınız &aX: %x% Y: %y% Z: %z%.'
+  loading:
+    - '&a[sRandomRTP] &6Sizin için uygun bir yer aranıyor...'
+  locationNotFound:
+    - '&a[sRandomRTP] &cUygun bir konum bulunamadı!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &4Yeni bir sürüm mevcut &6%new-CommandVersion%! &8Eski sürüm &6%old-CommandVersion%. &1Yeni sürümü indir &6%new-CommandVersion%: &fhttps://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&bIşınlanma &6%time% &bsaniye içinde'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6Yeni eklenti sürümü kontrol ediliyor...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aEklentiniz en son sürüme güncellendi: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &cYeni sürüm kontrol edilirken hata oluştu: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cIşınlanacak yer aranıyor!'
+  no-searching:
+    - '&a[sRandomRTP] &6Şu anda ışınlanma gerçekleştirmiyorsunuz.'
+  titleMessage: "&aIşınlanma başarılı!"
+  subtitleMessage: "&eAşağıdaki koordinatlara taşındınız &aX: %x% Y: %y% Z: %z%."
+  noplayerservenear:
+    - '&a[sRandomRTP] &6Sunucuda /rtp near komutunu kullanabileceğiniz oyuncu yok.'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6%world% dünyasında /rtp near komutunu kullanabileceğiniz oyuncu yok.'
+  actionBarMessage: 'Işınlanma: %d saniye içinde.'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6Işınlanma için yeterli paranız yok. Gerekli: %money%.'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6Para çekme sırasında bir hata oluştu.'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6Işınlanmak için yeterli açlık seviyeniz yok. Gerekli: %hunger%.'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6Işınlanmak için yeterli deneyim seviyeniz yok. Gerekli: %level%.'
+  banned_world:
+    - "&a[sRandomRTP] &6%world% dünyasına ışınlanma yasaklandı."
+  insufficient_health:
+    - "&a[sRandomRTP] &6Işınlanmak için yeterli sağlık seviyeniz yok! Minimum gereken sağlık: %health%."
+  insufficient_items:
+    - '&a[ssRandomRTP] &6Işınlanmak için yeterli %items% eşyalarınız yok!'
+  player_nearby:
+    - "&a[sRandomRTP] &6Başka bir oyuncuya çok yakınsınız."
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &cHareket ettiniz! Işınlanma iptal edildi.'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cBu komutu çalıştırmak için &6''Ateşli Nether'' &cbecerisini elde etmelisiniz.'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cBu komutu çalıştırmak için &6''Son mu?'' &cbecerisini elde etmelisiniz.'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6Başlangıç konumunuza geri taşındınız.'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6Geri dönmek için kaydedilmiş başlangıç konumu yok.'
+  regionsempty:
+    - '&a[sRandomRTP] &6Sunucuda veya dünyada uygun WorldGuard bölgeleri yok.'
+  regionManager:
+    - '&a[sRandomRTP] &6Bölge yöneticisi alınamıyor.'
+  bannedbiome:
+    - '&a[sRandomRTP] &6%biome% biyomu yasaklandı, bu biyoma ışınlanamazsınız.'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6%target% oyuncusunu başarıyla ışınladınız!'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6%sender% oyuncusu sizi ışınladı!'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6%initiator% oyuncusu sizi ışınlamak istiyor. Kabul etmek için /rtp accept yazın. Reddetmek için /rtp deny yazın.'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6Işınlanmayı zamanında onaylamadınız.'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6Işınlanma iptal edildi.'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6%target-player% oyuncusu ışınlanmayı iptal etti.'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6İptal edilecek aktif ışınlanma talebi yok.'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6Oyuncunun zaten aktif bir ışınlanma talebi var.'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6Başarıyla %player% oyuncusuna ışınlanma talebi gönderildi'
+  commandhelp:
+    - ' '
+    - '&cEklenti komutları yardımı:'
+    - ' '
+    - '&a/rtp - &6rastgele ışınlanma.'
+    - '&a/rtp world <dünyanız> - &6belirtilen dünyaya ışınlanma.'
+    - '&a/rtp near - &6oyuncuların yanına ışınlanma.'
+    - '&a/rtp help - &6komut yardımı gösterme.'
+    - '&a/rtp version - &6eklentinin yeni sürümünü kontrol etme.'
+    - '&a/rtp reload - &6eklentiyi yeniden yükleme.'
+    - '&a/rtp cancel - &6boss sırasında ışınlanmayı iptal etme.'
+    - '&a/rtp back - &6ışınlanmadan önceki yere dönme.'
+    - '&a/rtp base - &6WorldGuard bölgelerinin yakınına ışınlanma.'
+    - '&a/rtp player <oyuncu adı> - &6belirtilen oyuncuyu ışınlama.'
+    - '&a/rtp accept - &6başka bir oyuncunun ışınlanmasını kabul etme.'
+    - '&a/rtp deny - &6başka bir oyuncunun ışınlanmasını reddetme.'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aEklenti etkin! &b%mc% &ams'
+    - '&a[sRandomRTP] &6- &aSunucu sürümü: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aJava sürümü: &b%java-version-server% &8| &aHost: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cEklenti devre dışı! %mc% ms'
+    - ''
+

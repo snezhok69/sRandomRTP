@@ -1,0 +1,123 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &c你没有权限重载本插件。'
+  reloading-wait:
+    - '&a[sRandomRTP] &c插件正在重新加载，请稍候...'
+  reloading-start:
+    - '&a[sRandomRTP] &c插件正在重载，请稍等...'
+  reloading-process:
+    - '&a[sRandomRTP] &6插件正在重载，请稍等...'
+  successfully-reload:
+    - '&a[sRandomRTP] &a插件重载完毕，耗时 %mc% ms'
+  no-permission:
+    - '&a[sRandomRTP] &c你没有权限使用该命令。'
+  cooldownMessage:
+    - '&a[sRandomRTP] &c你需要等待 &6%time% &c秒才可再次使用该命令。'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &c传送时受到伤害，待处理的传送请求已取消。'
+  teleport-cancel:
+    - '&a[sRandomRTP] &c待处理的传送请求已取消。'
+  teleported:
+    - '&a[sRandomRTP] &f你已被传送至 &aX: %x% Z: %z%。'
+  loading:
+    - '&a[sRandomRTP] &6正在搜寻合适的位置...'
+  locationNotFound:
+    - '&a[sRandomRTP] &c无法找到合适的传送位置!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6插件的新版本可用: &6%new-CommandVersion%. &a您当前的版本: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &6您可以在以下链接下载: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&b将在 &6%time% &b秒内传送'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6正在检查版本更新...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &a插件已是最新版: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &c检查更新时遇到错误: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &c你已经发起了随机传送请求！'
+  no-searching:
+    - '&a[sRandomRTP] &6你尚未发起随机传送请求。'
+  titleMessage: "&a传送完毕！"
+  subtitleMessage: "&e你已传送到了新的位置。"
+  noplayerservenear:
+    - '&a[sRandomRTP] &6服务器上没有合适的玩家可以使用 /rtp near 命令。'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6世界 &4%world% &6中没有合适的玩家可以使用 /rtp near 命令。'
+  actionBarMessage: '传送中: %d 秒。'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6你没有足够的资金进行传送。需要: %money%。'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6尝试提取货币时发生错误。'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6你没有足够的饥饿值进行传送。需要: %hunger%。'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6你没有足够的经验等级进行传送。需要: %level%。'
+  banned_world:
+    - "&a[sRandomRTP] &6禁止传送到世界 %world%。"
+  insufficient_health:
+    - "&a[sRandomRTP] &6你没有足够的健康值进行传送！至少需要 %health% 健康值。"
+  insufficient_items:
+    - '&a[sRandomRTP] &6你没有足够的 %items% 进行传送！'
+  player_nearby:
+    - "&a[sRandomRTP] &6离其他玩家太近。"
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &c你移动了！传送已取消。'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &c你需要成就 &6''火热地狱'' &c才能执行此命令。'
+  no-advancement-end:
+    - '&a[sRandomRTP] &c你需要成就 &6''末地？'' &c才能执行此命令。'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6你已被传送回初始位置。'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6没有保存的初始位置以返回。'
+  regionsempty:
+    - '&a[sRandomRTP] &6服务器或世界中没有合适的WorldGuard区域。'
+  regionManager:
+    - '&a[sRandomRTP] &6无法获取区域管理器。'
+  bannedbiome:
+    - '&a[sRandomRTP] &6生物群系 %biome% 被禁止，你不能传送到此生物群系。'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6你已成功传送玩家 %target%！'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6玩家 %sender% 已传送你！'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6玩家 %initiator% 想要传送你。接受请求请输入 /rtp accept。拒绝请求请输入 /rtp deny。'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6你未能及时确认传送请求。'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6传送已取消。'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6玩家 %target-player% 已取消传送。'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6没有可取消的传送请求。'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6玩家已有一个活动的传送请求。'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6你已成功向玩家 &a%player% 发送传送请求'
+  commandhelp:
+    - ' '
+    - '&c插件命令帮助：'
+    - ' '
+    - '&a/rtp - &6随机传送。'
+    - '&a/rtp world <你的世界> - &6传送到指定世界。'
+    - '&a/rtp near - &6传送到玩家附近。'
+    - '&a/rtp help - &6显示命令帮助。'
+    - '&a/rtp version - &6检查插件的新版本。'
+    - '&a/rtp reload - &6重新加载插件。'
+    - '&a/rtp cancel - &6取消boss进度条上的传送。'
+    - '&a/rtp back - &6返回传送前的位置。'
+    - '&a/rtp base - &6传送到WorldGuard区域附近。'
+    - '&a/rtp player <玩家名字> - &6传送指定玩家。'
+    - '&a/rtp accept - &6接受其他玩家的传送请求。'
+    - '&a/rtp deny - &6拒绝其他玩家的传送请求。'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &a插件已启用! &b%mc% &ams'
+    - '&a[sRandomRTP] &6- &a服务器版本: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aJava版本: &b%java-version-server% &8| &a主机: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &c插件已禁用! %mc% ms'
+    - ''

@@ -1,0 +1,13 @@
+name: sRandomRTP
+version: 2.9
+main: org.sRandomRTP.Main
+api-version: 1.13
+softdepend:
+  - WorldGuard
+  - LuckPerms
+  - WordEdit
+  - Vault
+  - PlaceholderAPI
+authors: [snezhok69_, Snon_S]
+commands:
+  rtp: {}
