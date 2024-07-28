@@ -1,0 +1,25 @@
+teleport:
+  particles:
+    # If true, particles on successful teleportation are enabled.
+    # If false, the particles are disabled on successful teleportation.
+    enabled: true
+    # If true, the particles are only for the player.
+    # If false, the particles are for everyone.
+    visibleToPlayerOnly: true
+    # All particles https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+    # Particle type. For example, FLAME, SMOKE, HEART, etc.
+    types:
+    - HEART
+    - FLAME
+    # The number of particles created at one time.
+    count: 30
+    # Offset of particles in the X direction. Defines the spread of particles in the X direction.
+    offsetX: 0.5
+    # Particle offset on the Y axis. Specifies the spread of particles in the Y direction.
+    offsetY: 0.5
+    # Z-axis particle offset. Specifies the spread of particles in the Z direction.
+    offsetZ: 0.5
+    # Optional parameter. In some cases used for particle velocity.
+    extra: 0.01
+    # Duration of particle display in seconds
+    duration: 5

@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="sRandomRTP-2.9">
+    <output-path>$USER_HOME$/Desktop</output-path>
+    <root id="archive" name="sRandomRTP-2.9.jar">
+      <element id="module-output" name="sRandomRTP" />
+      <element id="library" level="project" name="VaultAPI1" />
+    </root>
+  </artifact>
+</component>

@@ -1,0 +1,20 @@
+teleport:
+  # Enables or disables effects after teleportation.
+  Enabled: true
+  # Here you can specify the effect that will be given by default (11-resistance)
+  # Check the effect numbers here: https://www.digminecraft.com/lists/effect_list_pc.php
+  Effect:
+  - "11"
+  - "12"
+  - "13"
+  # This is the duration of the effect in seconds
+  effectDuration: 15
+  # Strength of the effect.
+  effectAmplifier: 255
+  # Freeze effect function.
+  Freeze:
+    # if true, then after teleportation a freezing effect will be given.
+    # if false, no freezing effect will be given after teleportation.
+    enabled: true
+    # Freezing time in seconds.
+    time: 10

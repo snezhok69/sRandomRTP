@@ -1,0 +1,23 @@
+teleport:
+  # Sounds when waiting for the boss-bar
+  boss-bar-teleport-sound:
+    # If true, sounds when the boss-bar timer is timed out will be played.
+    # If false, the boss-bar timer sounds will not be played.
+    enabled: true
+    # The sound that will be played. The link to all sounds is https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
+    sound: 'BLOCK_NOTE_BLOCK_BIT'
+    # Change the tone of the sound.
+    pitch: 1.0
+    # Change the volume of the sound.
+    volume: 1.0
+  # Sound after successful teleportation.
+  completed-teleport-sound:
+    # If true, sounds at boss-bar timer will be played.
+    # If false, the boss-bar timer sounds will not be played.
+    enabled: true
+    # The sound that will be played. The link to all sounds is https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
+    sound: 'BLOCK_NOTE_BLOCK_XYLOPHONE'
+    # Change the tone of the sound.
+    pitch: 1.0
+    # Change the volume of the sound.
+    volume: 1.0
