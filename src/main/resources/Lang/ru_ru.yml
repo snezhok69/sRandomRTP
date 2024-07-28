@@ -1,0 +1,122 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cУ вас нет прав на перезагрузку плагина.'
+  reloading-wait:
+    - '&a[sRandomRTP] &cПлагин перезагружается немного подождите...'
+  reloading-start:
+    - '&a[sRandomRTP] &6Идет перезагрузка плагина немного подождите...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aПлагин успешно перезагружен. %mc% мс'
+  no-permission:
+    - '&a[sRandomRTP] &cУ вас нет прав на использование команды.'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cВы должны подождать &6%time% &cсекунд перед следующим использованием команды.'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cТелепортация была отменена из-за полученного урона.'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cТелепортация была отменена.'
+  teleported:
+    - '&a[sRandomRTP] &fВы были телепортированы на координаты &aX: %x% Y: %y% Z: %z%.'
+  loading:
+    - '&a[sRandomRTP] &6Ищем для вас подходящее место...'
+  locationNotFound:
+    - '&a[sRandomRTP] &cНе удалось найти подходящую локацию!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6Доступна новая версия плагина: &6%new-CommandVersion%. &aВаша текущая версия: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &6Вы можете скачать её по ссылке: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&bТелепортация через &6%time% &bсекунд'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6Проверка новой версии плагина...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aВаш плагин обновлен до последней версии: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &cПроизошла ошибка при проверке новой версии: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cМесто для телепортации уже ищется!'
+  no-searching:
+    - '&a[sRandomRTP] &6В данный момент вы не телепортируетесь.'
+  # %x% %z% %y% can also be used in regular title and subtitle.
+  titleMessage: "&aТелепортация успешна!"
+  subtitleMessage: "&eВы были перемещены в новое место по координатам &aX: %x% Y: %y% Z: %z%."
+  noplayerservenear:
+    - '&a[sRandomRTP] &6На сервере нет людей для использования команды /rtp near.'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6В мире &4%world% &6нет людей для использования команды /rtp near.'
+  actionBarMessage: 'Телепортация через: %d секунд.'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6У вас недостаточно средств для телепортации. Необходимо: %money%.'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6Произошла ошибка при попытке снять валюту.'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6У вас недостаточно уровня голода для телепортации. Необходимо: %hunger%.'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6У вас недостаточно уровней опыта для телепортации. Необходимо: %level%.'
+  banned_world:
+    - "&a[sRandomRTP] &6Телепортация в мир %world% запрещена."
+  insufficient_health:
+    - "&a[sRandomRTP] &6У вас недостаточно здоровья для телепортации! Требуется минимум %health% здоровья."
+  insufficient_items:
+    - '&a[ssRandomRTP] &6У вас недостаточно %items% для телепортации!'
+  player_nearby:
+    - "&a[sRandomRTP] &6Слишком близко к другому игроку."
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &cВы подвигались! Телепортация была отменена.'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cУ вас нет достижения &6''Огненные недра'' &cдля выполнения этой команды.'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cУ вас нет достижения &6''Конец?'' &cдля выполнения этой команды.'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6Вы были возвращены на начальную позицию.'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6Нет сохраненной начальной позиции для возвращения.'
+  regionsempty:
+    - '&a[sRandomRTP] &6На сервере или в мире нет подходящих регионов WorldGuard.'
+  regionManager:
+    - '&a[sRandomRTP] &6Не удалось получить менеджер регионов.'
+  bannedbiome:
+    - '&a[sRandomRTP] &6Биом %biome% заблокирован, вы не можете совершить телепортацию в этот биом.'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6Вы успешно телепортировали игрока %target%!'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6Игрок %sender% телепортировал вас!'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6Вас хочет телепортировать игрок, %initiator% чтобы подтвердить телепортацию, напишите /rtp accept, а что отменить телепортацию напишите /rtp deny.'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6Вы не успели подтвердить телепортацию.'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6Телепортация отменена.'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6Игрок %target-player% отменил телепортацию.'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6Нет активного запроса на телепортацию для отмены.'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6Игрок уже имеет активный запрос на телепортацию.'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6Вы успешно отправили запрос на телепортацию игроку &a%player%'
+  commandhelp:
+    - ' '
+    - '&cПомощь по командам плагина:'
+    - ' '
+    - '&a/rtp - &6рандомная телепортация.'
+    - '&a/rtp world <ваш мир> - &6телепортация в указанном мире.'
+    - '&a/rtp near - &6телепортирует к игрокам.'
+    - '&a/rtp help - &6выводит помощь по командам.'
+    - '&a/rtp version - &6проверка новой версии плагина.'
+    - '&a/rtp reload - &6перезагрузка плагина.'
+    - '&a/rtp cancel - &6отменить телепортацию во время bossbar.'
+    - '&a/rtp back - &6вернутся на место которое было до телепортации.'
+    - '&a/rtp base - &6телепортироваться рядом с регионами worldguard.'
+    - '&a/rtp player <ник игрока> - &6телепортировать указанного игрока.'
+    - '&a/rtp accept  - &6принять телепортацию от другого игрока.'
+    - '&a/rtp deny - &6отменить телепортацию от другого игрока.'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aПлагин включен! &b%mc% &aмс'
+    - '&a[sRandomRTP] &6- &aВерсия сервера: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aВерсия Java: &b%java-version-server% &8| &aХост: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cПлагин отключен! %mc% мс'
+    - ''

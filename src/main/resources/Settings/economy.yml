@@ -1,0 +1,35 @@
+teleport:
+  Money:
+   # If true, money will be deducted after successful teleportation. (Need Vault)
+   # If false, no money will be deducted after successful teleportation. (Need Vault)
+   enabled: false
+    # The amount of money that will be deducted after teleportation.
+   money: 100
+  Levels:
+   # If true, experience will be deducted after successful teleportation.
+   # If false, no experience will be deducted after successful teleportation.
+   enabled: false
+    # The number of levels that will be deducted after teleportation.
+   level: 10
+  Hunger:
+   # If true, food will be deducted after successful teleportation.
+   # If false, no food (hunger) will be deducted after successful teleportation.
+   enabled: false
+   # If it says 1, then it will write off not 1 "hunger", but half of it (0.5). That is, to write off 1 "hunger" it is necessary to write the value 2.
+   hunger: 10
+  Health:
+   # If true, then after successful teleportation will be written off lives.
+   # If false, after successful teleportation no lives will be deducted.
+   enabled: false
+   # If it says 1, it will not write off 1 life, but half of it (0.5). That is, to write off 1 life you should write the value 2.
+   health: 2
+  Items:
+    # If true, then after successful teleportation will write off items.
+    # If false, items will not be deducted after successful teleportation.
+    enabled: false
+    # This is a list of items that will be deducted after teleportation.
+    # Be sure to write as written in the example, or items may not be deducted.
+    # List of all items in minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+    requiredItems:
+    - 'DIAMOND: 5'
+    - 'GOLD_INGOT: 1'

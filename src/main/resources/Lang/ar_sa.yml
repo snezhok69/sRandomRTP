@@ -1,0 +1,125 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cليس لديك إذن لإعادة تحميل المكون الإضافي.'
+  reloading-wait:
+    - '&a[sRandomRTP] &cيتم إعادة تحميل المكون الإضافي، يرجى الانتظار قليلاً...'
+  reloading-start:
+    - '&a[sRandomRTP] &cالبرنامج الإضافي يعيد التحميل، يرجى الانتظار...'
+  reloading-process:
+    - '&a[sRandomRTP] &6البرنامج الإضافي يعيد التحميل، يرجى الانتظار...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aتم إعادة تحميل البرنامج الإضافي بنجاح. %mc% مللي ثانية'
+  no-permission:
+    - '&a[sRandomRTP] &cليس لديك إذن لاستخدام هذا الأمر.'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cيجب عليك الانتظار &6%time% &cثوانٍ قبل استخدام هذا الأمر مرة أخرى.'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cتم إلغاء النقل الفوري بسبب تلقي ضرر.'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cتم إلغاء النقل الفوري.'
+  teleported:
+    - '&a[sRandomRTP] &fتم نقلك إلى الإحداثيات &aX: %x% Z: %z%.'
+  loading:
+    - '&a[sRandomRTP] &6جارٍ البحث عن مكان مناسب...'
+  locationNotFound:
+    - '&a[sRandomRTP] &cفشل في العثور على موقع مناسب!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6الإصدار الجديد من الإضافة متاح%new-CommandVersion%. &aإصدارك الحالي: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &6يمكنك تحميله من الرابطhttps://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&bالنقل الفوري خلال &6%time% &bثوانٍ'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6جارٍ التحقق من إصدار المكون الإضافي الجديد...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aتم تحديث المكون الإضافي إلى أحدث إصدار: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &cحدث خطأ أثناء التحقق من إصدار جديد: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cيتم البحث عن موقع للنقل الفوري بالفعل!'
+  no-searching:
+    - '&a[sRandomRTP] &6أنت لا تنتقل الآن.'
+  titleMessage: "&aتمت عملية النقل بنجاح!"
+  subtitleMessage: "&eلقد تم نقلك إلى موقع جديد."
+  noplayerservenear:
+    - '&a[sRandomRTP] &6لا يوجد أحد على الخادم لاستخدام الأمر /rtp near.'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6لا يوجد أحد في العالم &4%world% &6لاستخدام الأمر /rtp near.'
+  actionBarMessage: 'الانتقال الآني خلال: %d ثانية.'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6لا تملك الأموال الكافية للانتقال الآني. مطلوب: %money%.'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6حدث خطأ أثناء محاولة سحب العملة.'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6مستوى الجوع لديك غير كافٍ للانتقال الآني. مطلوب: %hunger%.'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6مستوى الخبرة لديك غير كافٍ للانتقال الآني. مطلوب: %level%.'
+  banned_world:
+    - "&a[sRandomRTP] &6الانتقال الآني إلى عالم %world% ممنوع."
+  insufficient_health:
+    - "&a[sRandomRTP] &6مستوى الصحة لديك غير كافٍ للانتقال الآني! مطلوب على الأقل %health% من الصحة."
+  insufficient_items:
+    - '&a[sRandomRTP] &6لا تملك %items% كافية للانتقال الآني!'
+  player_nearby:
+    - "&a[sRandomRTP] &6أنت قريب جداً من لاعب آخر."
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &cلقد تحركت! تم إلغاء عملية الانتقال الفوري.'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cلا يمكنك تنفيذ هذا الأمر بدون إنجاز &6''الجحيم الناري''.'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cلا يمكنك تنفيذ هذا الأمر بدون إنجاز &6''النهاية؟''.'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6تم إعادتك إلى الموقع الأصلي.'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6لا يوجد موقع أصلي محفوظ للعودة.'
+  regionsempty:
+    - '&a[sRandomRTP] &6لا توجد مناطق مناسبة في WorldGuard على الخادم أو في العالم.'
+  regionManager:
+    - '&a[sRandomRTP] &6فشل في الحصول على مدير المناطق.'
+  bannedbiome:
+    - '&a[sRandomRTP] &6الموطن %biome% محظور، لا يمكنك الانتقال إلى هذا الموطن.'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6لقد قمت بنقل اللاعب %target% بنجاح!'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6اللاعب %sender% قد نقلك!'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6اللاعب %initiator% يريد نقلك. لتأكيد الانتقال، اكتب /rtp accept. لإلغاء الانتقال، اكتب /rtp deny.'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6لقد نفد وقت تأكيد الانتقال.'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6تم إلغاء الانتقال.'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6اللاعب %target-player% قد ألغى الانتقال.'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6لا يوجد طلب انتقال نشط للإلغاء.'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6اللاعب لديه طلب انتقال نشط بالفعل.'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6لقد قمت بإرسال طلب انتقال إلى اللاعب &a%player%'
+  commandhelp:
+    - ' '
+    - '&cمساعدة أوامر الإضافة:'
+    - ' '
+    - '&a/rtp - &6انتقال عشوائي.'
+    - '&a/rtp world <عالمك> - &6الانتقال إلى العالم المحدد.'
+    - '&a/rtp near - &6ينتقل إلى اللاعبين.'
+    - '&a/rtp help - &6يعرض مساعدة الأوامر.'
+    - '&a/rtp version - &6التحقق من الإصدار الجديد للإضافة.'
+    - '&a/rtp reload - &6إعادة تحميل الإضافة.'
+    - '&a/rtp cancel - &6إلغاء الانتقال أثناء bossbar.'
+    - '&a/rtp back - &6العودة إلى الموقع الذي كنت فيه قبل الانتقال.'
+    - '&a/rtp base - &6الانتقال بالقرب من مناطق worldguard.'
+    - '&a/rtp player <اسم اللاعب> - &6نقل اللاعب المحدد.'
+    - '&a/rtp accept - &6قبول انتقال من لاعب آخر.'
+    - '&a/rtp deny - &6إلغاء انتقال من لاعب آخر.'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aتم تفعيل الإضافة! &b%mc% &aمللي ثانية'
+    - '&a[sRandomRTP] &6- &aإصدار الخادم: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aإصدار جافا: &b%java-version-server% &8| &aنظام التشغيل: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cتم تعطيل الإضافة! %mc% مللي ثانية'
+    - ''
+
+

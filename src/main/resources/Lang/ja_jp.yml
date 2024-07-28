@@ -1,0 +1,123 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cプラグインをリロードする権限がありません。'
+  reloading-wait:
+    - '&a[sRandomRTP] &cプラグインを再読み込み中です。しばらくお待ちください...'
+  reloading-start:
+    - '&a[sRandomRTP] &cプラグインをリロードしています。しばらくお待ちください...'
+  reloading-process:
+    - '&a[sRandomRTP] &6プラグインをリロードしています。しばらくお待ちください...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aプラグインが正常にリロードされました。%mc% ミリ秒'
+  no-permission:
+    - '&a[sRandomRTP] &cこのコマンドを使用する権限がありません。'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cこのコマンドを再度使用するには &6%time% &c秒待つ必要があります。'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cダメージを受けたため、テレポートはキャンセルされました。'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cテレポートはキャンセルされました。'
+  teleported:
+    - '&a[sRandomRTP] &f座標 &aX: %x% Z: %z% にテレポートしました。'
+  loading:
+    - '&a[sRandomRTP] &6適切な場所を探しています...'
+  locationNotFound:
+    - '&a[sRandomRTP] &c適切な場所が見つかりませんでした！'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6プラグインの新しいバージョンが利用可能です: &6%new-CommandVersion%. &a現在のバージョン: &6%old-CommandVersion%。'
+    - '&a[sRandomRTP] &6以下のリンクからダウンロードできます: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&b%time% 秒でテレポート'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6新しいプラグインバージョンをチェックしています...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aプラグインは最新バージョンに更新されました: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &c新しいバージョンのチェック中にエラーが発生しました: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cすでにテレポート場所を探しています！'
+  no-searching:
+    - '&a[sRandomRTP] &6現在テレポートしていません。'
+  titleMessage: "&aテレポートが成功しました！"
+  subtitleMessage: "&e新しい場所に移動されました。"
+  noplayerservenear:
+    - '&a[sRandomRTP] &6サーバーに/rtp nearコマンドを使用するプレイヤーはいません。'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6ワールド&4%world% &6に/rtp nearコマンドを使用するプレイヤーはいません。'
+  actionBarMessage: 'テレポート中: %d 秒。'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6テレポートするための資金が不足しています。必要: %money%。'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6通貨を引き出す際にエラーが発生しました。'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6テレポートするための空腹度が不足しています。必要: %hunger%。'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6テレポートするための経験値レベルが不足しています。必要: %level%。'
+  banned_world:
+    - "&a[sRandomRTP] &6ワールド %world% へのテレポートは禁止されています。"
+  insufficient_health:
+    - "&a[sRandomRTP] &6テレポートするための体力が不足しています！最低 %health% 体力が必要です。"
+  insufficient_items:
+    - '&a[sRandomRTP] &6テレポートするための%items%が不足しています！'
+  player_nearby:
+    - "&a[sRandomRTP] &6他のプレイヤーが近すぎます。"
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &c動いた！テレポートがキャンセルされました。'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cこのコマンドを実行するには実績 &6''火のネザー'' &cが必要です。'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cこのコマンドを実行するには実績 &6''エンド？'' &cが必要です。'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6初期位置に戻されました。'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6戻るための保存された初期位置がありません。'
+  regionsempty:
+    - '&a[sRandomRTP] &6サーバーやワールドには適切なWorldGuardのリージョンがありません。'
+  regionManager:
+    - '&a[sRandomRTP] &6リージョンマネージャーを取得できませんでした。'
+  bannedbiome:
+    - '&a[sRandomRTP] &6バイオーム %biome% は禁止されています。このバイオームにテレポートすることはできません。'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6プレイヤー %target% を正常にテレポートしました！'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6プレイヤー %sender% があなたをテレポートしました！'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6プレイヤー %initiator% があなたをテレポートしたがっています。承認するには /rtp accept を、拒否するには /rtp deny を入力してください。'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6テレポートを確認する時間が切れました。'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6テレポートがキャンセルされました。'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6プレイヤー %target-player% がテレポートをキャンセルしました。'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6キャンセルするアクティブなテレポートリクエストがありません。'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6プレイヤーにはすでにアクティブなテレポートリクエストがあります。'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6プレイヤー &a%player% にテレポートリクエストを正常に送信しました'
+  commandhelp:
+    - ' '
+    - '&cプラグインコマンドのヘルプ：'
+    - ' '
+    - '&a/rtp - &6ランダムテレポート。'
+    - '&a/rtp world <あなたの世界> - &6指定された世界にテレポート。'
+    - '&a/rtp near - &6プレイヤーの近くにテレポート。'
+    - '&a/rtp help - &6コマンドヘルプを表示。'
+    - '&a/rtp version - &6新しいプラグインバージョンを確認。'
+    - '&a/rtp reload - &6プラグインをリロード。'
+    - '&a/rtp cancel - &6ボスバー中のテレポートをキャンセル。'
+    - '&a/rtp back - &6テレポート前の場所に戻る。'
+    - '&a/rtp base - &6WorldGuardリージョンの近くにテレポート。'
+    - '&a/rtp player <プレイヤー名> - &6指定されたプレイヤーをテレポート。'
+    - '&a/rtp accept - &6他のプレイヤーからのテレポートを承認。'
+    - '&a/rtp deny - &6他のプレイヤーからのテレポートを拒否。'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aプラグインが有効になりました! &b%mc% &ams'
+    - '&a[sRandomRTP] &6- &aサーバーバージョン: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aJavaバージョン: &b%java-version-server% &8| &aホスト: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cプラグインが無効になりました! %mc% ms'
+    - ''

@@ -1,0 +1,15 @@
+teleport:
+  # Is it necessary to include the title when teleporting successfully?
+  # true - yes
+  # false - no
+  titleEnabled: true
+  # Is it necessary to turn on the subtitle when teleporting successfully?
+  # true - yes
+  # false - no
+  subtitleEnabled: true
+  # The time of the title appearance in seconds.
+  titleFadeIn: 1
+  # Time in seconds during which the title stays on the screen.
+  titleStay: 1
+  # the time the title disappears in seconds.
+  titleFadeOut: 1

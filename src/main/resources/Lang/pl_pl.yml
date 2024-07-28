@@ -1,0 +1,121 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cNie masz uprawnień do przeładowania wtyczki.'
+  reloading-wait:
+    - '&a[sRandomRTP] &cWtyczka jest przeładowywana, proszę chwilę poczekać...'
+  reloading-start:
+    - '&a[sRandomRTP] &6Trwa przeładowywanie wtyczki, proszę chwilę poczekać...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aWtyczka została pomyślnie przeładowana. %mc% ms'
+  no-permission:
+    - '&a[sRandomRTP] &cNie masz uprawnień do użycia tej komendy.'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cMusisz poczekać &6%time% &csekund przed ponownym użyciem tej komendy.'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cTeleportacja została anulowana z powodu otrzymania obrażeń.'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cTeleportacja została anulowana.'
+  teleported:
+    - '&a[sRandomRTP] &fZostałeś przeteleportowany na współrzędne &aX: %x% Z: %z%.'
+  loading:
+    - '&a[sRandomRTP] &6Szukamy dla ciebie odpowiedniego miejsca...'
+  locationNotFound:
+    - '&a[sRandomRTP] &cNie udało się znaleźć odpowiedniej lokalizacji!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6Dostępna jest nowa wersja wtyczki: &6%new-CommandVersion%. &aTwoja aktualna wersja: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &6Możesz ją pobrać z: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&bTeleportacja za &6%time% &bsekund'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6Sprawdzanie nowej wersji wtyczki...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aTwoja wtyczka jest aktualna do najnowszej wersji: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &cWystąpił błąd podczas sprawdzania nowej wersji: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cTrwa już wyszukiwanie miejsca do teleportacji!'
+  no-searching:
+    - '&a[sRandomRTP] &6W tej chwili nie jesteś teleportowany.'
+  titleMessage: "&aTeleportacja udana!"
+  subtitleMessage: "&eZostałeś przeniesiony w nowe miejsce."
+  noplayerservenear:
+    - '&a[sRandomRTP] &6Na serwerze nie ma graczy do użycia komendy /rtp near.'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6W świecie &4%world% &6 nie ma graczy do użycia komendy /rtp near.'
+  actionBarMessage: 'Teleportacja za: %d sekund.'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6Nie masz wystarczających środków na teleportację. Wymagane: %money%.'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6Wystąpił błąd podczas próby wypłaty waluty.'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6Nie masz wystarczającego poziomu głodu na teleportację. Wymagane: %hunger%.'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6Nie masz wystarczającego poziomu doświadczenia na teleportację. Wymagane: %level%.'
+  banned_world:
+    - "&a[sRandomRTP] &6Teleportacja do świata %world% jest zabroniona."
+  insufficient_health:
+    - "&a[sRandomRTP] &6Nie masz wystarczającej ilości zdrowia na teleportację! Wymagane minimum zdrowia: %health%."
+  insufficient_items:
+    - '&a[sRandomRTP] &6Nie masz wystarczającej ilości %items% na teleportację!'
+  player_nearby:
+    - "&a[sRandomRTP] &6Zbyt blisko innego gracza."
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &cRuszyłeś się! Teleportacja została anulowana.'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cNie masz osiągnięcia &6''Ogniste Nether'' &caby wykonać tę komendę.'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cNie masz osiągnięcia &6''Koniec?'' &caby wykonać tę komendę.'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6Zostałeś przeniesiony do początkowej pozycji.'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6Brak zapisanej początkowej pozycji do powrotu.'
+  regionsempty:
+    - '&a[sRandomRTP] &6Na serwerze lub w świecie nie ma odpowiednich regionów WorldGuard.'
+  regionManager:
+    - '&a[sRandomRTP] &6Nie udało się uzyskać menedżera regionów.'
+  bannedbiome:
+    - '&a[sRandomRTP] &6Biom %biome% jest zabroniony, nie możesz się do niego teleportować.'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6Pomyślnie teleportowałeś gracza %target%!'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6Gracz %sender% teleportował cię!'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6Gracz %initiator% chce cię teleportować. Aby zaakceptować, wpisz /rtp accept. Aby odmówić, wpisz /rtp deny.'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6Nie potwierdziłeś teleportacji na czas.'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6Teleportacja została anulowana.'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6Gracz %target-player% anulował teleportację.'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6Brak aktywnej prośby o teleportację do anulowania.'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6Gracz już ma aktywną prośbę o teleportację.'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6Pomyślnie wysłałeś prośbę o teleportację do gracza &a%player%'
+  commandhelp:
+    - ' '
+    - '&cPomoc w używaniu komend pluginu:'
+    - ' '
+    - '&a/rtp - &6losowa teleportacja.'
+    - '&a/rtp world <twój świat> - &6teleportacja w wybranym świecie.'
+    - '&a/rtp near - &6teleportuj się do graczy.'
+    - '&a/rtp help - &6wyświetl pomoc dotyczącą komend.'
+    - '&a/rtp version - &6sprawdź, czy jest nowa wersja pluginu.'
+    - '&a/rtp reload - &6przeładuj plugin.'
+    - '&a/rtp cancel - &6anuluj teleportację podczas paska bossa.'
+    - '&a/rtp back - &6wróć do miejsca przed teleportacją.'
+    - '&a/rtp base - &6teleportuj się w pobliże regionów WorldGuard.'
+    - '&a/rtp player <nazwa gracza> - &6teleportuj wybranego gracza.'
+    - '&a/rtp accept - &6zaakceptuj teleportację od innego gracza.'
+    - '&a/rtp deny - &6odmów teleportacji od innego gracza.'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aPlugin włączony! &b%mc% &ams'
+    - '&a[sRandomRTP] &6- &aWersja serwera: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aWersja Java: &b%java-version-server% &8| &aHost: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cPlugin wyłączony! %mc% ms'
+    - ''

@@ -1,0 +1,121 @@
+messages:
+  no-permission-reload:
+    - '&a[sRandomRTP] &cBạn không có quyền để tải lại plugin.'
+  reloading-wait:
+    - '&a[sRandomRTP] &cPlugin đang được tải lại, vui lòng chờ một chút...'
+  reloading-start:
+    - '&a[sRandomRTP] &6Đang tải lại plugin, vui lòng chờ một chút...'
+  successfully-reload:
+    - '&a[sRandomRTP] &aPlugin đã được tải lại thành công. %mc% ms'
+  no-permission:
+    - '&a[sRandomRTP] &cBạn không có quyền sử dụng lệnh này.'
+  cooldownMessage:
+    - '&a[sRandomRTP] &cBạn phải chờ &6%time% &cgiây trước khi sử dụng lại lệnh này.'
+  teleport-damaged-cancel:
+    - '&a[sRandomRTP] &cDịch chuyển đã bị hủy do nhận sát thương.'
+  teleport-cancel:
+    - '&a[sRandomRTP] &cDịch chuyển đã bị hủy.'
+  teleported:
+    - '&a[sRandomRTP] &fBạn đã được dịch chuyển đến tọa độ &aX: %x% Z: %z%.'
+  loading:
+    - '&a[sRandomRTP] &6Đang tìm vị trí phù hợp cho bạn...'
+  locationNotFound:
+    - '&a[sRandomRTP] &cKhông tìm thấy vị trí phù hợp!'
+  newVersionMessage:
+    - '&a[sRandomRTP] &6Phiên bản mới của plugin đã có sẵn: &6%new-CommandVersion%. &aPhiên bản hiện tại của bạn: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &6Bạn có thể tải xuống tại: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+  boss-bar: '&bDịch chuyển sau &6%time% &bgiây'
+  CheckingVersion:
+    - '&a[sRandomRTP] &6Đang kiểm tra phiên bản mới của plugin...'
+  Latest-Version-Message:
+    - '&a[sRandomRTP] &aPlugin của bạn đã được cập nhật lên phiên bản mới nhất: &6%latest-CommandVersion%'
+  Error-Checking-Version-Message:
+    - '&a[sRandomRTP] &cĐã xảy ra lỗi khi kiểm tra phiên bản mới: %error%'
+  teleportation-in-progress:
+    - '&a[sRandomRTP] &cVị trí dịch chuyển đang được tìm!'
+  no-searching:
+    - '&a[sRandomRTP] &6Hiện tại bạn không đang được dịch chuyển.'
+  titleMessage: "&aDịch chuyển thành công!"
+  subtitleMessage: "&eBạn đã được chuyển đến một địa điểm mới."
+  noplayerservenear:
+    - '&a[sRandomRTP] &6Không có người chơi nào trên máy chủ để sử dụng lệnh /rtp near.'
+  noplayerworldnear:
+    - '&a[sRandomRTP] &6Không có người chơi nào trong thế giới &4%world% &6 để sử dụng lệnh /rtp near.'
+  actionBarMessage: 'Dịch chuyển trong: %d giây.'
+  insufficient_funds:
+    - '&a[sRandomRTP] &6Bạn không đủ tiền để dịch chuyển. Cần thiết: %money%.'
+  error_withdrawing:
+    - '&a[sRandomRTP] &6Đã xảy ra lỗi khi cố gắng rút tiền tệ.'
+  insufficient_hunger:
+    - '&a[sRandomRTP] &6Bạn không đủ cấp độ đói để dịch chuyển. Cần thiết: %hunger%.'
+  insufficient_levels:
+    - '&a[sRandomRTP] &6Bạn không đủ cấp độ kinh nghiệm để dịch chuyển. Cần thiết: %level%.'
+  banned_world:
+    - "&a[sRandomRTP] &6Cấm dịch chuyển đến thế giới %world%."
+  insufficient_health:
+    - "&a[sRandomRTP] &6Bạn không đủ sức khỏe để dịch chuyển! Cần ít nhất %health% sức khỏe."
+  insufficient_items:
+    - '&a[sRandomRTP] &6Bạn không đủ %items% để dịch chuyển!'
+  player_nearby:
+    - "&a[sRandomRTP] &6Quá gần người chơi khác."
+  teleport-move-cancel:
+    - '&a[sRandomRTP] &cBạn đã di chuyển! Dịch chuyển đã bị hủy.'
+  no-advancement-nether:
+    - '&a[sRandomRTP] &cBạn chưa có thành tựu &6''Địa ngục rực lửa'' &cđể thực hiện lệnh này.'
+  no-advancement-end:
+    - '&a[sRandomRTP] &cBạn chưa có thành tựu &6''Kết thúc?'' &cđể thực hiện lệnh này.'
+  teleportBackSuccess:
+    - '&a[sRandomRTP] &6Bạn đã được trở lại vị trí ban đầu.'
+  teleportBackFailure:
+    - '&a[sRandomRTP] &6Không có vị trí ban đầu để quay lại.'
+  regionsempty:
+    - '&a[sRandomRTP] &6Không có khu vực WorldGuard phù hợp trên máy chủ hoặc trong thế giới.'
+  regionManager:
+    - '&a[sRandomRTP] &6Không thể lấy quản lý khu vực.'
+  bannedbiome:
+    - '&a[sRandomRTP] &6Quần xã sinh vật %biome% bị cấm, bạn không thể dịch chuyển đến đó.'
+  rtp-player-teleport-success-sender:
+    - '&a[sRandomRTP] &6Bạn đã dịch chuyển người chơi %target% thành công!'
+  rtp-player-teleport-success-target:
+    - '&a[sRandomRTP] &6Người chơi %sender% đã dịch chuyển bạn!'
+  rtp-player-request-initiator:
+    - '&a[sRandomRTP] &6Người chơi %initiator% muốn dịch chuyển bạn. Để xác nhận dịch chuyển, hãy viết /rtp accept, để hủy dịch chuyển, hãy viết /rtp deny.'
+  rtp-player-timeout:
+    - '&a[sRandomRTP] &6Bạn đã không kịp xác nhận dịch chuyển.'
+  rtp-player-canceled:
+    - '&a[sRandomRTP] &6Dịch chuyển đã bị hủy.'
+  rtp-player-sender-notified:
+    - '&a[sRandomRTP] &6Người chơi %target-player% đã hủy dịch chuyển.'
+  rtp-player-no-active-teleport:
+    - '&a[sRandomRTP] &6Không có yêu cầu dịch chuyển nào đang hoạt động để hủy.'
+  rtp-player-already-requested:
+    - '&a[sRandomRTP] &6Người chơi đã có yêu cầu dịch chuyển đang hoạt động.'
+  rtp-player-teleport-request-sent:
+    - '&a[sRandomRTP] &6Bạn đã gửi yêu cầu dịch chuyển đến người chơi &a%player% thành công.'
+  commandhelp:
+    - ' '
+    - '&cHướng dẫn lệnh plugin:'
+    - ' '
+    - '&a/rtp - &6dịch chuyển ngẫu nhiên.'
+    - '&a/rtp world <thế giới của bạn> - &6dịch chuyển đến thế giới đã chỉ định.'
+    - '&a/rtp near - &6dịch chuyển đến người chơi.'
+    - '&a/rtp help - &6hiển thị hướng dẫn lệnh.'
+    - '&a/rtp version - &6kiểm tra phiên bản mới của plugin.'
+    - '&a/rtp reload - &6tải lại plugin.'
+    - '&a/rtp cancel - &6hủy dịch chuyển khi đang trong bossbar.'
+    - '&a/rtp back - &6quay lại vị trí trước khi dịch chuyển.'
+    - '&a/rtp base - &6dịch chuyển gần khu vực worldguard.'
+    - '&a/rtp player <tên người chơi> - &6dịch chuyển người chơi đã chỉ định.'
+    - '&a/rtp accept - &6chấp nhận dịch chuyển từ người chơi khác.'
+    - '&a/rtp deny - &6từ chối dịch chuyển từ người chơi khác.'
+    - ' '
+  Plugin-Enabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &aPlugin đã được bật! &b%mc% &ams'
+    - '&a[sRandomRTP] &6- &aPhiên bản máy chủ: &b%server-version%'
+    - '&a[sRandomRTP] &6- &aPhiên bản Java: &b%java-version-server% &8| &aHệ điều hành: &b%os-version%'
+    - ''
+  Plugin-Disabled-Message:
+    - ''
+    - '&a[sRandomRTP] &6- &cPlugin đã được tắt! %mc% ms'
+    - ''

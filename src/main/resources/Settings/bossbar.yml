@@ -1,0 +1,26 @@
+teleport:
+  # If true, there will be a bossbar delay.
+  # If false, there will be no bossbar delay.
+  bossbarEnabled: true
+  # Duration of the teleportation
+  bossbar-time: 7
+  # If true, the actionbar is on.
+  # If false, the actionbar is off.
+  actionBarEnabled: true
+  # Determines the color of the boss bar.
+  # The value can be one of the predefined colors, for example:
+  # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  bar-color: BLUE
+  # Determines the style of the boss bar.
+  # The value can be one of the predefined styles, for example:
+  # SOLID (solid) means that the boss's health progress will be displayed
+  # as a continuous bar or filled color.
+  # SEGMENTED_6 (segmented with 6 segments) means that
+  # the health progress will be divided into 6 equal segments,
+  # and each segment will be displayed separately.
+  # SEGMENTED_10 (segmented with 10 segments) works similarly,
+  # but with 10 segments instead of 6.
+  # SEGMENTED_12 (segmented with 12 segments) displays the boss's health progress with 12 segments.
+  # SEGMENTED_20 (segmented with 20 segments) uses 20 segments
+  # to display the boss's health progress.
+  bar-style: SOLID
