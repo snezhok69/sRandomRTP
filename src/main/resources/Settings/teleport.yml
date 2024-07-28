@@ -8,6 +8,7 @@ teleport:
   radius: 1000
   # Radius to the nearest teleportation point to the region by command /rtp base. The recommended minimum number is 10, if you set the number lower the /rtp base command may stop working.
   regionradius: 10
+  # Enable or disable teleportation request message on /rtp player <player> command.
   rtp-player-messages: false
   # Here you can specify the blocks to which the plugin will not teleport.
   # These are default blocks, better not to change them!
