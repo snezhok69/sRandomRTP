@@ -34,7 +34,7 @@
 # (sRandomRTP.Command.Base - allows you to use the command - /rtp base.);
 # (sRandomRTP.Command.Biome - allows you to use the command - /rtp player.);
 # (sRandomRTP.Command.Player - allows to use the command - /rtp biome.);
-# (sRandomRTP.Command.Deny - разрешает использовать команду /rtp deny(!!ЭТО КОМАНДА РАБОТАЕТ ИСКЛЮЧИТЕЛЬНО С КОМАНДОЙ /RTP PLAYER!!);
+# (sRandomRTP.Command.Deny - разрешает использовать команду /rtp deny(!!THIS COMMAND WORKS EXCLUSIVELY WITH THE /RTP PLAYER COMMAND!!);
 # (sRandomRTP.Command.Accept - allows to use the command - /rtp biome.);
 #
 #
@@ -51,5 +51,5 @@ Period-Checking-New-Version: 1800
 # This file custom_messages is created to be translated into any language you want
 # de_de - Deutsch (German) || en_us - English (United States) || es_es - Español (Spanish) || fr_fr - Français (French) || it_it - Italiano (Italian) ||
 # ja_jp - 日本語 (Japanese) || ko_kr - 한국어 (Korean) || pl_pl - Polski (Polish) || pt_br - Português (Brazilian Portuguese) || ru_ru - Русский (Russian) ||
-# uk_ua - Українська (Ukrainian) || vi_vn - Tiếng Việt (Vietnamese) || zh_cn - 中文 (Simplified Chinese) || ar_sa - العربية (Arabic)
+# uk_ua - Українська (Ukrainian) || vi_vn - Tiếng Việt (Vietnamese) || zh_cn - 中文 (Simplified Chinese) || ar_sa - العربية (Arabic) || tr_tr - Türkçe(Turkish)
 Language: en_us
