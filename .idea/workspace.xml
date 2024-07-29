@@ -9,8 +9,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c4ac92aa-a4da-4f3f-9ed5-a294fc61feb2" name="Changes" comment="Add project">
+    <list default="true" id="c4ac92aa-a4da-4f3f-9ed5-a294fc61feb2" name="Changes" comment="change teleport.yml">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/config.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +32,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;snezhok69&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/snezhok69/sRandomRTP.git&quot;,
+    &quot;accountId&quot;: &quot;948100ab-d09a-4c72-a5b1-7d7d1a7b9f96&quot;
+  }
+}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$USER_HOME$/AppData/Local/Temp/fc5f1e6d-b993-4bfd-b8be-38055e13da58_Новая сжатая ZIP-папка (2).zip.a58/sRTP/src/main/java/org/srtp/DifferentMethods/RtpRtp.java" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/main/java/org/srtp/DifferentMethods/CooldownBypassBossBarNear.java" root0="SKIP_INSPECTION" />
@@ -115,8 +128,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9f38398b9061-18abd8497189-intellij.indexing.shared.core-IU-241.14494.240" />
-        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-IU-241.14494.240" />
+        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.18034.62" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-IU-241.18034.62" />
       </set>
     </attachedChunks>
   </component>
@@ -389,6 +402,9 @@
       <workItem from="1722175950338" duration="145000" />
       <workItem from="1722176102736" duration="156000" />
       <workItem from="1722176275437" duration="460000" />
+      <workItem from="1722177832929" duration="12324000" />
+      <workItem from="1722252595110" duration="9418000" />
+      <workItem from="1722273855049" duration="4957000" />
     </task>
     <task id="LOCAL-00001" summary="Add project">
       <option name="closed" value="true" />
@@ -414,7 +430,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722176126593</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="change teleport.yml">
+      <option name="closed" value="true" />
+      <created>1722178017959</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1722178017959</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -425,7 +449,8 @@
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
     <MESSAGE value="Add project" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add project" />
+    <MESSAGE value="change teleport.yml" />
+    <option name="LAST_COMMIT_MESSAGE" value="change teleport.yml" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
