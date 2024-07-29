@@ -34,7 +34,7 @@
 # (sRandomRTP.Command.Base - allows you to use the command - /rtp base.);
 # (sRandomRTP.Command.Biome - allows you to use the command - /rtp player.);
 # (sRandomRTP.Command.Player - allows to use the command - /rtp biome.);
-# (sRandomRTP.Command.Deny - разрешает использовать команду /rtp deny(!!THIS COMMAND WORKS EXCLUSIVELY WITH THE /RTP PLAYER COMMAND!!);
+# (sRandomRTP.Command.Deny - enables the use of the command /rtp deny(!!THIS COMMAND WORKS EXCLUSIVELY WITH THE /RTP PLAYER COMMAND!!);
 # (sRandomRTP.Command.Accept - allows to use the command - /rtp biome.);
 #
 #
