@@ -57,7 +57,7 @@ public class Variables {
     public static Economy econ = null;
     public static HttpURLConnection connection = null;
     //
-    public static boolean isReload = false;
+    public static boolean isReloaded = false;
     public static boolean pluginToggle = false;
     //
 }

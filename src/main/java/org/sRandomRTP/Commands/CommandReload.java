@@ -16,7 +16,6 @@ import java.io.File;
 import java.util.*;
 
 public class CommandReload {
-    public static boolean isReloaded = false;
 
     public static void commandReload(CommandSender sender) {
         try {
@@ -41,7 +40,7 @@ public class CommandReload {
             YamlConfiguration langFile = loadLanguageFile.getLangFile();
             LoadMessages.loadMessages(langFile);
             //
-            if (isReloaded) {
+            if (Variables.isReloaded) {
                 List<String> formattedMessage = LoadMessages.reloadingwait;
                 for (String line : formattedMessage) {
                     String formattedLine = TranslateRGBColors.translateRGBColors(line);
@@ -91,7 +90,7 @@ public class CommandReload {
                                 if (Variables.commandReloadTask != null) {
                                     Variables.commandReloadTask.cancel();
                                 }
-                                isReloaded = false;
+                                Variables.isReloaded = false;
                                 return;
                         }
                         step++;
@@ -102,7 +101,7 @@ public class CommandReload {
                     }
                 }
             }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 8);
-            isReloaded = true;
+            Variables.isReloaded = true;
             Variables.commandReloadTask = task;
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
