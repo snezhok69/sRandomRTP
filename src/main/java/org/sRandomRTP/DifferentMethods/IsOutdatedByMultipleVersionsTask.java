@@ -10,7 +10,7 @@ public class IsOutdatedByMultipleVersionsTask {
                 @Override
                 public void run() {
                     String currentVersion = Variables.getInstance().getDescription().getVersion();
-                    String latestVersion = "2.9";
+                    String latestVersion = "3.0";
                     String[] currentVersionParts = currentVersion.split("\\.");
                     String[] latestVersionParts = latestVersion.split("\\.");
                     int majorCurrentVersion = Integer.parseInt(currentVersionParts[0]);
