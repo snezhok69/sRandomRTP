@@ -91,22 +91,22 @@ public class Main extends JavaPlugin {
             FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
             LoadKeys.loadKeys(config);
             //
-            //CheckingFile checkingFile = new CheckingFile();
-            //checkingFile.compareLanguageFiles("ar_sa.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("custom_messages.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("de_de.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("en_us.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("es_es.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("fr_fr.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("it_it.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("ja_jp.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("ko_kr.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("pl_pl.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("pt_br.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("uk_ua.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("vi_vn.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("zh_cn.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("tr_tr.yml", "ru_ru.yml");
+            CheckingFile checkingFile = new CheckingFile();
+            checkingFile.compareLanguageFiles("ar_sa.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("custom_messages.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("de_de.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("en_us.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("es_es.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("fr_fr.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("it_it.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("ja_jp.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("ko_kr.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("pl_pl.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("pt_br.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("uk_ua.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("vi_vn.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("zh_cn.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("tr_tr.yml", "ru_ru.yml");
             //
             LoadLanguageFile loadLanguageFile = new LoadLanguageFile();
             loadLanguageFile.loadLanguageFile();
