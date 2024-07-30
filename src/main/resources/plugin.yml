@@ -1,5 +1,5 @@
 name: sRandomRTP
-version: 2.9
+version: 3.0
 main: org.sRandomRTP.Main
 api-version: 1.13
 softdepend:
