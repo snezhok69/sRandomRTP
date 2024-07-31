@@ -31,6 +31,7 @@ public class RtpRtpBiome {
             Player player = (Player) sender;
             Variables.initialPositions.put(player, player.getLocation());
             World world = player.getWorld();
+            Location playerLocation = player.getLocation();
             List<String> formattedMessage = LoadMessages.loading;
             for (String line : formattedMessage) {
                 String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
@@ -41,9 +42,16 @@ public class RtpRtpBiome {
             boolean titleEnabled = Variables.titlefile.getBoolean("teleport.titleEnabled");
             boolean subtitleEnabled = Variables.titlefile.getBoolean("teleport.subtitleEnabled");
             boolean loggingEnabled = config.getBoolean("logs", false);
-            int centerX = (int) world.getWorldBorder().getCenter().getX();
-            int centerZ = (int) world.getWorldBorder().getCenter().getZ();
             int radius = Variables.teleportfile.getInt("teleport.radius");
+
+            // Новая проверка наличия биома от позиции игрока
+            if (!isBiomeInRadius(world, playerLocation, radius, targetBiome)) {
+                player.sendMessage(ChatColor.RED + "Указанный биом не найден в пределах радиуса. Телепортация отменена.");
+                return;
+            }
+
+            int centerX = playerLocation.getBlockX();
+            int centerZ = playerLocation.getBlockZ();
 
             BukkitTask task = new BukkitRunnable() {
                 int tries = 0;
@@ -305,13 +313,39 @@ public class RtpRtpBiome {
                         LoggerUtility.loggerUtility(callingClassName, e);
                     }
                 }
-            }.runTaskTimer(Variables.getInstance(), 0, 1);
+            }.runTaskTimer(Variables.getInstance(), 0L, 20L);
+
             Variables.teleportTasks.put(player, new BukkitTask[]{task});
             Variables.playerSearchStatus.put(player.getName(), true);
+
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);
         }
+    }
+
+    public static boolean isBiomeInRadius(World world, Location playerLocation, int radius, Biome targetBiome) {
+        int centerX = playerLocation.getBlockX();
+        int centerZ = playerLocation.getBlockZ();
+        int minX = centerX - radius;
+        int maxX = centerX + radius;
+        int minZ = centerZ - radius;
+        int maxZ = centerZ + radius;
+
+        for (int x = minX; x <= maxX; x += 16) { // Проверка по чанкам
+            for (int z = minZ; z <= maxZ; z += 16) {
+                Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
+                for (int cx = 0; cx < 16; cx++) {
+                    for (int cz = 0; cz < 16; cz++) {
+                        Biome biome = chunk.getBlock(cx, 0, cz).getBiome(); // Проверка на уровне земли
+                        if (biome == targetBiome) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
