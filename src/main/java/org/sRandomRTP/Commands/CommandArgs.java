@@ -122,20 +122,6 @@ public class CommandArgs implements CommandExecutor {
                         }
                     }
                     break;
-                // ARGUMENT BIOME \\
-                case "biome":
-                    if (args.length == 2) {
-                        String biomeArg = args[1].toUpperCase();
-                        try {
-                            Biome targetBiome = Biome.valueOf(biomeArg);
-                            CommandBiome.commandbiome(sender, String.valueOf(targetBiome));
-                        } catch (IllegalArgumentException e) {
-                            sender.sendMessage(Variables.pluginName + " §cInvalid biome specified!");
-                        }
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
-                    }
-                    break;
                 // ARGUMENT BACK \\
                 case "back":
                     if (args.length < 2) {
