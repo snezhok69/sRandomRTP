@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
-import org.sRandomRTP.BlockBiomes.LoadBlockListBiome;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadFiles;
 import org.sRandomRTP.Files.LoadKeys;
@@ -69,7 +68,6 @@ public class CommandReload {
                                 //
                                 LoadKeys.loadKeys(config);
                                 LoadBlockList.loadBlockList();
-                                LoadBlockListBiome.loadBlockList();
                                 //
                                 break;
                             case 2:

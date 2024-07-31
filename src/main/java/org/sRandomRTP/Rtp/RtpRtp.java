@@ -47,9 +47,15 @@ public class RtpRtp {
 
             BukkitTask task = new BukkitRunnable() {
                 int tries = 0;
+
                 @Override
                 public void run() {
                     try {
+                        // Добавить проверку состояния игрока перед выполнением телепортации
+                        if (Variables.playerSearchStatus.get(player.getName()) == null || !Variables.playerSearchStatus.get(player.getName())) {
+                            return;
+                        }
+
                         Player targetPlayer = null;
 
                         if (tries >= Variables.teleportfile.getInt("teleport.maxtries")) {
@@ -58,6 +64,7 @@ public class RtpRtp {
                                 String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                                 player.sendMessage(formattedLine);
                             }
+                            // Убедитесь, что задачи удаляются и состояние обновляется
                             if (Variables.teleportTasks.containsKey(player)) {
                                 BukkitTask[] tasks = Variables.teleportTasks.get(player);
                                 for (BukkitTask tasks1 : tasks) {
@@ -154,21 +161,43 @@ public class RtpRtp {
                                 return;
                             }
                         }
+
+                        if (Variables.teleportfile.getBoolean("teleport.checking-in-regions")) {
+                            if (IsInProtectedRegion.isInProtectedRegion(targetLocation)) {
+                                String regionName = GetProtectedRegionName.getProtectedRegionName(targetLocation);
+                                if (loggingEnabled) {
+                                    Bukkit.getConsoleSender().sendMessage("Attempted to teleport into protected region: " + regionName);
+                                }
+                                tries++;
+                                if (loggingEnabled) {
+                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to protected region.");
+                                }
+                                return;
+                            }
+                        }
                         if (!IsBlockBanned.isBlockBanned(targetBlock.getType())
                                 && !IsBiomeBanned.isBiomeBanned(targetBiome)
                                 && blockAbove.getType() == Material.AIR
                                 && blockTwoAbove.getType() == Material.AIR) {
+                            if (Variables.teleportTasks.containsKey(player)) {
+                                BukkitTask[] tasks = Variables.teleportTasks.get(player);
+                                for (BukkitTask tasks1 : tasks) {
+                                    tasks1.cancel();
+                                }
+                                Variables.teleportTasks.remove(player);
+                            }
+
+                            Variables.playerSearchStatus.put(player.getName(), false);
+
                             if (loggingEnabled) {
                                 ValidateConfigEntries.validateConfigEntries(config);
                             }
                             if (newY != -1) {
-                                Location teleportLocation;
-                                if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
-                                    teleportLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
-                                } else {
-                                    teleportLocation = new Location(world, newX + 0.5, newY + 2, newZ + 0.5);
-                                }
-                                player.teleportAsync(teleportLocation);
+                                    if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
+                                        player.teleportAsync(new Location(world, newX + 0.5, newY, newZ + 0.5));
+                                    } else {
+                                        player.teleportAsync(new Location(world, newX + 0.5, newY + 2, newZ + 0.5));
+                                    }
                                 List<String> formattedMessage = LoadMessages.teleportyes;
                                 for (String line : formattedMessage) {
                                     line = line.replace("%x%", String.valueOf(newX));
@@ -179,35 +208,37 @@ public class RtpRtp {
                                 }
                             }
                             //
-                            if (Variables.effectfile.getBoolean("teleport.Enabled")) {
-                                List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
-                                int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
-                                int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
-                                for (String effect : effectGive) {
-                                    try {
-                                        int effectId = Integer.parseInt(effect);
-                                        PotionEffectType effectType = PotionEffectType.getById(effectId);
-                                        if (effectType == null) {
-                                            if (loggingEnabled) {
-                                                Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
+                            Bukkit.getScheduler().runTask(Variables.getInstance(), () -> {
+                                if (Variables.effectfile.getBoolean("teleport.Enabled")) {
+                                    List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
+                                    int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
+                                    int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
+                                    for (String effect : effectGive) {
+                                        try {
+                                            int effectId = Integer.parseInt(effect);
+                                            PotionEffectType effectType = PotionEffectType.getById(effectId);
+                                            if (effectType == null) {
+                                                if (loggingEnabled) {
+                                                    Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
+                                                }
+                                                continue;
                                             }
-                                            continue;
-                                        }
-                                        player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true);
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
-                                        }
-                                    } catch (NumberFormatException e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
-                                        }
-                                    } catch (Exception e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
+                                            player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true);
+                                            if (loggingEnabled) {
+                                                Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
+                                            }
+                                        } catch (NumberFormatException e) {
+                                            if (loggingEnabled) {
+                                                Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
+                                            }
+                                        } catch (Exception e) {
+                                            if (loggingEnabled) {
+                                                Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
+                                            }
                                         }
                                     }
                                 }
-                            }
+                            });
                             //
                             if (Variables.teleportTasks.containsKey(player)) {
                                 BukkitTask[] tasks = Variables.teleportTasks.get(player);
@@ -224,18 +255,18 @@ public class RtpRtp {
                                     String formattedSubtitle = LoadMessages.subtitleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
                                     formattedSubtitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedSubtitle));
                                     player.sendTitle(formattedTitle, formattedSubtitle,
-                                            Variables.titlefile.getInt("teleport.titleFadeIn")*20,
-                                            Variables.titlefile.getInt("teleport.titleStay")*20,
-                                            Variables.titlefile.getInt("teleport.titleFadeOut")*20);
+                                            Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
+                                            Variables.titlefile.getInt("teleport.titleStay") * 20,
+                                            Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
                                 } else {
                                     player.sendTitle(formattedTitle, null,
-                                            Variables.titlefile.getInt("teleport.titleFadeIn")*20,
-                                            Variables.titlefile.getInt("teleport.titleStay")*20,
-                                            Variables.titlefile.getInt("teleport.titleFadeOut")*20);
+                                            Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
+                                            Variables.titlefile.getInt("teleport.titleStay") * 20,
+                                            Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
                                 }
                             }
                             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
-                            CommandRun.commandrun(player);
+                            Bukkit.getScheduler().runTask(Variables.getInstance(), () -> CommandRun.commandrun(player));
                             //
                             if (Variables.effectfile.getBoolean("teleport.Freeze.enabled")) {
                                 String version = Bukkit.getServer().getVersion();
@@ -305,7 +336,7 @@ public class RtpRtp {
                         LoggerUtility.loggerUtility(callingClassName, e);
                     }
                 }
-            }.runTaskTimer(Variables.getInstance(), 0, 1);
+            }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 1);
             Variables.teleportTasks.put(player, new BukkitTask[]{task});
             Variables.playerSearchStatus.put(player.getName(), true);
         } catch (Throwable e) {
