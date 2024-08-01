@@ -24,6 +24,7 @@ import org.sRandomRTP.GetYGet.GetSafeYCoordinateInNether;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class RtpRtp {
     public static void rtpRtp(CommandSender sender) {
@@ -77,32 +78,32 @@ public class RtpRtp {
                         int newX = centerX + (int) ((Math.random() * radius * 2) - radius);
                         int newZ = centerZ + (int) ((Math.random() * radius * 2) - radius);
 
-                        GetSafeYCoordinate.CoordinateWithBiome coordWithBiome;
-
+                        CompletableFuture<GetSafeYCoordinate.CoordinateWithBiome> coordFuture;
                         if (world.getEnvironment() == World.Environment.NETHER) {
                             int newY = GetSafeYCoordinateInNether.getSafeYCoordinateInNether(world, newX, newZ);
-                            coordWithBiome = new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ));
+                            coordFuture = CompletableFuture.completedFuture(new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
                         } else if (world.getEnvironment() == World.Environment.THE_END) {
                             int newY = GetSafeYCoordinateInEnd.getSafeYCoordinateInEnd(world, newX, newZ);
-                            coordWithBiome = new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ));
+                            coordFuture = CompletableFuture.completedFuture(new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
                         } else {
-                            coordWithBiome = GetSafeYCoordinate.getSafeYCoordinateWithAirCheck(world, newX, newZ);
+                            coordFuture = GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX, newZ);
                         }
 
-                        if (coordWithBiome == null || coordWithBiome.y == -1) {
-                            tries++;
-                            if (loggingEnabled) {
-                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to unsafe location.");
+                        coordFuture.thenAccept(coordWithBiome -> {
+                            if (coordWithBiome == null || coordWithBiome.y == -1) {
+                                tries++;
+                                if (loggingEnabled) {
+                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to unsafe location.");
+                                }
+                                return;
                             }
-                            return;
-                        }
 
-                        int newY = coordWithBiome.y;
-                        Biome targetBiome = coordWithBiome.biome;
+                            int newY = coordWithBiome.y;
+                            Biome targetBiome = coordWithBiome.biome;
 
-                        Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
-                        Block blockAbove = world.getBlockAt(newX, newY, newZ);
-                        Block blockTwoAbove = world.getBlockAt(newX, newY + 1, newZ);
+                            Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
+                            Block blockAbove = world.getBlockAt(newX, newY, newZ);
+                            Block blockTwoAbove = world.getBlockAt(newX, newY + 1, newZ);
 
                         if (loggingEnabled) {
                             Bukkit.getConsoleSender().sendMessage("Trying teleport to: X=" + newX + ", Y=" + newY + ", Z=" + newZ);
@@ -328,13 +329,14 @@ public class RtpRtp {
                                 Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to banned block, biome, or unsafe block above.");
                             }
                         }
+                        });
                     } catch (Throwable e) {
                         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                         String callingClassName = stackTrace[2].getClassName();
                         LoggerUtility.loggerUtility(callingClassName, e);
                     }
                 }
-            }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 1);
+            }.runTaskTimer(Variables.getInstance(), 0, 1);
             Variables.teleportTasks.put(player, new BukkitTask[]{task});
             Variables.playerSearchStatus.put(player.getName(), true);
         } catch (Throwable e) {
