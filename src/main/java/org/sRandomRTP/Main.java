@@ -13,10 +13,7 @@ import org.sRandomRTP.Commands.CommandArgs;
 import org.sRandomRTP.Commands.onTabCompletes;
 import org.sRandomRTP.Data.DataLoad;
 import org.sRandomRTP.DifferentMethods.*;
-import org.sRandomRTP.Events.PlayerDamage;
-import org.sRandomRTP.Events.PlayerMouseMove;
-import org.sRandomRTP.Events.PlayerMove;
-import org.sRandomRTP.Events.PlayerParticles;
+import org.sRandomRTP.Events.*;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Metrics.Metrics;
 import java.io.File;
@@ -64,6 +61,7 @@ public class Main extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new PlayerDamage(), this);
             getServer().getPluginManager().registerEvents(new PlayerMove(), this);
             getServer().getPluginManager().registerEvents(new PlayerMouseMove(), this);
+            getServer().getPluginManager().registerEvents(new PlayerBreak(), this);
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eCreating files...");
             FilesCreate filesCreate = new FilesCreate();
