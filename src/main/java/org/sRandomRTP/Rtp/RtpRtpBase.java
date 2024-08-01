@@ -91,14 +91,14 @@ public class RtpRtpBase {
                         boolean offsetXPositive = random.nextBoolean();
                         boolean offsetZPositive = random.nextBoolean();
                         if (offsetXPositive) {
-                            newX = max.getBlockX() + 10 + random.nextInt(regionradius);
+                            newX = max.getBlockX() + 1 + random.nextInt(regionradius);
                         } else {
-                            newX = min.getBlockX() - 10 - random.nextInt(regionradius);
+                            newX = min.getBlockX() - 1 - random.nextInt(regionradius);
                         }
                         if (offsetZPositive) {
-                            newZ = max.getBlockZ() + 10 + random.nextInt(regionradius);
+                            newZ = max.getBlockZ() + 1 + random.nextInt(regionradius);
                         } else {
-                            newZ = min.getBlockZ() - 10 - random.nextInt(regionradius);
+                            newZ = min.getBlockZ() - 1 - random.nextInt(regionradius);
                         }
                         if (newX == 0 && newZ == 0) {
                             tries++;
@@ -108,16 +108,37 @@ public class RtpRtpBase {
                             return;
                         }
 
-                        // Получение безопасной координаты Y снизу вверх (под регионом)
                         int newY = GetSafeYCoordinate.getSafeYCoordinateFromBottom(world, newX, newZ);
 
-                        // Если безопасная координата Y снизу вверх не найдена, пытаемся получить координату сверху вниз
-                        if (newY == -1) {
-                            GetSafeYCoordinate.CoordinateWithBiome coordWithBiome = GetSafeYCoordinate.getSafeYCoordinateWithAirCheck(world, newX, newZ);
-                            if (coordWithBiome != null) {
-                                newY = coordWithBiome.y;
+                        // Define the callback logic
+                        SafeYCoordinateCallback callback = new SafeYCoordinateCallback() {
+                            @Override
+                            public void onResult(int resultY) {
+                                // Handle the result here, for example, print it
+                                System.out.println("Processed Y coordinate: " + resultY);
                             }
+                        };
+
+                        if (newY == -1) {
+                            GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX, newZ)
+                                    .thenAccept(coordWithBiome -> {
+                                        if (coordWithBiome != null) {
+                                            callback.onResult(coordWithBiome.y);  // Use callback to handle the result
+                                        } else {
+                                            callback.onResult(-1);  // Handle case where no valid coordinate was found
+                                        }
+                                    })
+                                    .exceptionally(ex -> {
+                                        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                                        String callingClassName = stackTrace[2].getClassName();
+                                        LoggerUtility.loggerUtility(callingClassName, ex);
+                                        callback.onResult(-1);  // Handle exception case
+                                        return null;
+                                    });
+                        } else {
+                            callback.onResult(newY);  // Directly use the result if found synchronously
                         }
+
 
                         // Если безопасное место все еще не найдено
                         if (newY == -1) {
@@ -305,5 +326,9 @@ public class RtpRtpBase {
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);
         }
+    }
+
+    public interface SafeYCoordinateCallback {
+        void onResult(int newY);
     }
 }
