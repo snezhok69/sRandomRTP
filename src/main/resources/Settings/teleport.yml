@@ -41,6 +41,7 @@ teleport:
     # If true, cooldown will be issued after taking damage or canceling teleportation with /rtp cancel.
     # If false, cooldown will not be issued after taking damage or canceling teleportation with /rtp cancel.
     move-cancel-cooldown: false
+    break-block-cooldown: false
     # If true, cooldown will be issued on the command.
     # If false, cooldown will not be issued on the command.
     enabled: true
@@ -55,6 +56,7 @@ teleport:
   # If true - teleportation will be canceled if you move the mouse.
   # If false - teleportation will not be canceled if you move the mouse.
   mouse-move-cancel-rtp: false
+  break-block-cancel-rtp: false
   # Enables or disables the function for checking random teleportation in regions.
   # If true - the plugin will not teleport in regions.
   # If false - the plugin will teleport in regions.

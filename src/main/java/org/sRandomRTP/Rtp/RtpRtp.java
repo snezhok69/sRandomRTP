@@ -56,8 +56,6 @@ public class RtpRtp {
                             return;
                         }
 
-                        Player targetPlayer = null;
-
                         if (tries >= Variables.teleportfile.getInt("teleport.maxtries")) {
                             List<String> formattedMessage = LoadMessages.locationNotFound;
                             for (String line : formattedMessage) {
