@@ -16,6 +16,7 @@ import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Events.*;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Metrics.Metrics;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -131,11 +132,15 @@ public class Main extends JavaPlugin {
                 metrics.addCustomChart(new Metrics.DrilldownPie("lang", () -> {
                     Map<String, Map<String, Integer>> map = new HashMap<>();
                     String language = Variables.getInstance().getConfig().getString("Language");
+
                     if (language != null && !language.trim().isEmpty()) {
+                        // Извлекаем основной язык из формата ru_ru
+                        String[] parts = language.split("_");
+                        String mainLanguage = parts[0];
+
                         Map<String, Integer> entry = new HashMap<>();
-                        entry.put(language, 1);
-                        map.put(language, entry);
-                    } else {
+                        entry.put(mainLanguage, 1);
+                        map.put(mainLanguage, entry);
                     }
                     return map;
                 }));
