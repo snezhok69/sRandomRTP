@@ -1,5 +1,6 @@
 package org.sRandomRTP.Events;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -25,8 +26,8 @@ public class PlayerBreak implements Listener {
                 if (Variables.playerSearchStatus.get(player.getName()) != null && Variables.playerSearchStatus.get(player.getName())) {
                     // Отмените текущую телепортацию
                     if (Variables.teleportTasks.containsKey(player)) {
-                        BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                        for (BukkitTask task : tasks) {
+                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                        for (WrappedTask task : tasks) {
                             task.cancel();
                         }
                         Variables.teleportTasks.remove(player);
