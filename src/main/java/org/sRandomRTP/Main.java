@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
-//import org.sRandomRTP.Checkings.AutoCheckingVersion;
 import org.sRandomRTP.Checkings.AutoCheckingVersion;
 import org.sRandomRTP.Checkings.CheckingInstalledPlaceHolderAPI;
 import org.sRandomRTP.Checkings.CheckingServerVersion;
@@ -18,7 +17,6 @@ import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Events.*;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Metrics.Metrics;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -72,7 +70,7 @@ public class Main extends JavaPlugin {
             List<String> createdFiles = filesCreate.filesCreate();
             long createTime = System.currentTimeMillis();
             for (String message : createdFiles) {
-                if (message != null) {
+                if (message != null && !createdFiles.contains(message)) {
                     long elapsedTime = System.currentTimeMillis() - createTime;
                     String formattedLine = String.format(Variables.pluginName + " §8- §aFile %s successfully created §6(%d ms)", message, elapsedTime);
                     Bukkit.getConsoleSender().sendMessage(formattedLine);
