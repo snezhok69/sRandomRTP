@@ -212,7 +212,7 @@ public class RtpRtp {
                                             }
                                             continue;
                                         }
-                                        Variables.getFoliaLib().getImpl().runLater(() -> player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true), 0);
+                                        Variables.getFoliaLib().getImpl().runTimer(() -> player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true), 1, 1);
                                         if (loggingEnabled) {
                                             Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
                                         }
