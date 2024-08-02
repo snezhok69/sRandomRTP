@@ -20,24 +20,10 @@ public class CommandPlayer {
 
     public static void commandplayer(CommandSender sender, Player targetPlayer) {
         try {
-            if (targetPlayer.equals(sender)) {
-                sender.sendMessage(ChatColor.RED + "You cannot teleport yourself!");
-                return;
-            }
-
             Player player = (sender instanceof Player) ? (Player) sender : null;
             World world = targetPlayer.getWorld();
             FileConfiguration config = Variables.getInstance().getConfig();
             boolean loggingEnabled = config.getBoolean("logs", false);
-
-            if (player != null && !player.hasPermission("sRandomRTP.Command.Player")) {
-                List<String> formattedMessage = LoadMessages.nopermissioncommand;
-                for (String line : formattedMessage) {
-                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                    sender.sendMessage(formattedLine);
-                }
-                return;
-            }
 
             if (Variables.teleportfile.getBoolean("teleport.checking-in-regions")) {
                 try {
@@ -178,4 +164,3 @@ public class CommandPlayer {
         }
     }
 }
-

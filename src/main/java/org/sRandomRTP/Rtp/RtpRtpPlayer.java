@@ -18,6 +18,7 @@ import org.sRandomRTP.GetYGet.GetProtectedRegionName;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinate;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinateInEnd;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinateInNether;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -51,13 +52,11 @@ public class RtpRtpPlayer {
                             String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                             player.sendMessage(formattedLine);
                         }
-                        if (Variables.teleportTasks.containsKey(player)) {
-                            WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                            for (WrappedTask tasks1 : tasks) {
-                                tasks1.cancel();
-                            }
-                            Variables.teleportTasks.remove(player);
+                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                        for (WrappedTask tasks1 : tasks) {
+                            tasks1.cancel();
                         }
+                        Variables.teleportTasks.remove(player);
                         Variables.playerSearchStatus.put(player.getName(), false);
                         return;
                     }
@@ -146,6 +145,14 @@ public class RtpRtpPlayer {
                                 return;
                             }
                         }
+                        //
+                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                        for (WrappedTask tasks1 : tasks) {
+                            tasks1.cancel();
+                        }
+                        Variables.teleportTasks.remove(player);
+                        Variables.playerSearchStatus.put(player.getName(), false);
+                        //
                         if (!IsBlockBanned.isBlockBanned(targetBlock.getType())
                                 && !IsBiomeBanned.isBiomeBanned(targetBiome)
                                 && blockAbove.getType() == Material.AIR
@@ -203,14 +210,6 @@ public class RtpRtpPlayer {
                                 //
                                 EffectGivePlayer.effectGivePlayer(player);
                                 //
-                                if (Variables.teleportTasks.containsKey(player)) {
-                                    WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                                    for (WrappedTask tasks1 : tasks) {
-                                        tasks1.cancel();
-                                    }
-                                    Variables.teleportTasks.remove(player);
-                                }
-                                Variables.playerSearchStatus.put(player.getName(), false);
                                 if (titleEnabled && (!LoadMessages.titleMessage.isEmpty() || (subtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
                                     String formattedTitle = LoadMessages.titleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
                                     formattedTitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedTitle));
@@ -279,14 +278,6 @@ public class RtpRtpPlayer {
                                 if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
                                     PlayerParticles.playerParticles(player);
                                 }
-                                if (Variables.teleportTasks.containsKey(player)) {
-                                    WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                                    for (WrappedTask tasks1 : tasks) {
-                                        tasks1.cancel();
-                                    }
-                                    Variables.teleportTasks.remove(player);
-                                }
-                                Variables.playerSearchStatus.put(player.getName(), false);
                             } else {
                                 tries[0]++;
                                 if (loggingEnabled) {
