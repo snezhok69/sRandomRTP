@@ -42,6 +42,7 @@ public class PlayerMove implements Listener {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
                         RemoveBossBar.removeBossBar(player);
                         Variables.playerSearchStatus.put(player.getName(), false);
+                        Variables.playerConfirmStatus.put(player.getName(), false);
                     }
                 }
             }

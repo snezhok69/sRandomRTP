@@ -1,6 +1,7 @@
 package org.sRandomRTP.Rtp;
 
 import com.tcoded.folialib.wrapper.task.WrappedTask;
+import io.papermc.lib.PaperLib;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -52,14 +53,11 @@ public class RtpRtp {
                             String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                             player.sendMessage(formattedLine);
                         }
-                        // Убедитесь, что задачи удаляются и состояние обновляется
-                        if (Variables.teleportTasks.containsKey(player)) {
-                            WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                            for (WrappedTask tasks1 : tasks) {
-                                tasks1.cancel();
-                            }
-                            Variables.teleportTasks.remove(player);
+                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                        for (WrappedTask tasks1 : tasks) {
+                            tasks1.cancel();
                         }
+                        Variables.teleportTasks.remove(player);
                         Variables.playerSearchStatus.put(player.getName(), false);
                         return;
                     }
@@ -162,49 +160,46 @@ public class RtpRtp {
                                 return;
                             }
                         }
+                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                        for (WrappedTask tasks1 : tasks) {
+                            tasks1.cancel();
+                        }
+                        Variables.teleportTasks.remove(player);
+                        Variables.playerSearchStatus.put(player.getName(), false);
                         if (!IsBlockBanned.isBlockBanned(targetBlock.getType())
                                 && !IsBiomeBanned.isBiomeBanned(targetBiome)
                                 && blockAbove.getType() == Material.AIR
                                 && blockTwoAbove.getType() == Material.AIR) {
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                                for (WrappedTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
-                                Variables.teleportTasks.remove(player);
-                            }
-
-                            Variables.playerSearchStatus.put(player.getName(), false);
 
                             if (loggingEnabled) {
                                 ValidateConfigEntries.validateConfigEntries(config);
                             }
                             if (newY != -1) {
+                                Location teleportLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
+
                                 if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
-                                    player.teleportAsync(new Location(world, newX + 0.5, newY, newZ + 0.5));
+                                    teleportLocation.setY(newY);
                                 } else {
-                                    player.teleportAsync(new Location(world, newX + 0.5, newY + 2, newZ + 0.5));
+                                    teleportLocation.setY(newY + 2);
                                 }
-                                List<String> formattedMessage2 = LoadMessages.teleportyes;
-                                for (String line : formattedMessage2) {
-                                    line = line.replace("%x%", String.valueOf(newX));
-                                    line = line.replace("%z%", String.valueOf(newZ));
-                                    line = line.replace("%y%", String.valueOf(newY));
-                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                    player.sendMessage(formattedLine);
-                                }
+                                PaperLib.getChunkAtAsync(teleportLocation).thenAccept(chunk -> {
+                                    PaperLib.teleportAsync(player, teleportLocation).thenAccept(result -> {
+                                        if (result) {
+                                            List<String> formattedMessage2 = LoadMessages.teleportyes;
+                                            for (String line : formattedMessage2) {
+                                                line = line.replace("%x%", String.valueOf(newX));
+                                                line = line.replace("%z%", String.valueOf(newZ));
+                                                line = line.replace("%y%", String.valueOf(newY));
+                                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                                player.sendMessage(formattedLine);
+                                            }
+                                        }
+                                    });
+                                });
                             }
                             //
                             EffectGivePlayer.effectGivePlayer(player);
                             //
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                                for (WrappedTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
-                                Variables.teleportTasks.remove(player);
-                            }
-                            Variables.playerSearchStatus.put(player.getName(), false);
                             if (titleEnabled && (!LoadMessages.titleMessage.isEmpty() || (subtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
                                 String formattedTitle = LoadMessages.titleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
                                 formattedTitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedTitle));
@@ -273,14 +268,6 @@ public class RtpRtp {
                             if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
                                 PlayerParticles.playerParticles(player);
                             }
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                                for (WrappedTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
-                                Variables.teleportTasks.remove(player);
-                            }
-                            Variables.playerSearchStatus.put(player.getName(), false);
                         } else {
                             tries[0]++;
                             if (loggingEnabled) {

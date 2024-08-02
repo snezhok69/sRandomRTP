@@ -40,6 +40,12 @@ public class Main extends JavaPlugin {
             if (CheckingServerVersion.checkingServerVersion()) {
                 return;
             }
+            if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cUsed Folia there may be errors or bugs!...");
+                LoadFiles.loadFiles();
+            } else {
+                LoadFiles.loadFiles();
+            }
             //
            // if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
            //     Variables.pluginToggle = true;
