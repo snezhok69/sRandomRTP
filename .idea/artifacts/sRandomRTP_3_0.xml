@@ -4,7 +4,7 @@
     <root id="archive" name="sRandomRTP-3.0.jar">
       <element id="module-output" name="sRandomRTP" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/io/papermc/paperlib/1.0.8/paperlib-1.0.8.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/tcoded/FoliaLib/0.3.4/FoliaLib-0.3.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../NO DELETE NO/FoliaLibRANDOMRTP.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
