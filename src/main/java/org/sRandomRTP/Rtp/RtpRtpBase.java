@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 public class RtpRtpBase {
     public static void rtpRtpbase(CommandSender sender) {
@@ -108,14 +109,24 @@ public class RtpRtpBase {
                             return;
                         }
 
-                        int newY = GetSafeYCoordinate.getSafeYCoordinateFromBottom(world, newX, newZ);
+                        // Получаем координату Y асинхронно
+                        CompletableFuture<Integer> futureY = GetSafeYCoordinate.getSafeYCoordinateFromBottomAsync(world, newX, newZ);
+                        futureY.thenAccept(newY -> {
+                            if (newY == -1) {
+                                tries++;
+                                if (loggingEnabled) {
+                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to unsafe location.");
+                                }
+                                return;
+                            }
 
                         // Define the callback logic
                         SafeYCoordinateCallback callback = new SafeYCoordinateCallback() {
                             @Override
                             public void onResult(int resultY) {
-                                // Handle the result here, for example, print it
-                                System.out.println("Processed Y coordinate: " + resultY);
+                                if (loggingEnabled) {
+                                    Bukkit.getConsoleSender().sendMessage("Processed Y coordinate: " + resultY);
+                                }
                             }
                         };
 
@@ -149,169 +160,170 @@ public class RtpRtpBase {
                             return;
                         }
 
-                        Biome targetBiome = world.getBiome(newX, newY, newZ);
-                        Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
-                        Block blockAbove = world.getBlockAt(newX, newY, newZ);
-                        Block blockTwoAbove = world.getBlockAt(newX, newY + 1, newZ);
+                            Biome targetBiome = world.getBiome(newX, newY, newZ);
+                            Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
+                            Block blockAbove = world.getBlockAt(newX, newY, newZ);
+                            Block blockTwoAbove = world.getBlockAt(newX, newY + 1, newZ);
 
-                        if (loggingEnabled) {
-                            Bukkit.getConsoleSender().sendMessage("Trying teleport to: X=" + newX + ", Y=" + newY + ", Z=" + newZ);
-                            Bukkit.getConsoleSender().sendMessage("Target block: " + targetBlock.getType().name());
-                            Bukkit.getConsoleSender().sendMessage("Block above: " + blockAbove.getType().name());
-                            Bukkit.getConsoleSender().sendMessage("Block two above: " + blockTwoAbove.getType().name());
-                            Bukkit.getConsoleSender().sendMessage("Target biome: " + targetBiome.name());
-                            Bukkit.getConsoleSender().sendMessage("Banned blocks: " + Variables.blockList.toString());
-                            Bukkit.getConsoleSender().sendMessage("Banned biomes: " + Variables.teleportfile.getStringList("teleport.bannedBiomes").toString());
-                        }
-
-                        Location targetLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
-
-                        if (!IsBlockBanned.isBlockBanned(targetBlock.getType())
-                                && !IsBiomeBanned.isBiomeBanned(targetBiome)
-                                && blockAbove.getType() == Material.AIR
-                                && blockTwoAbove.getType() == Material.AIR) {
                             if (loggingEnabled) {
-                                ValidateConfigEntries.validateConfigEntries(config);
+                                Bukkit.getConsoleSender().sendMessage("Trying teleport to: X=" + newX + ", Y=" + newY + ", Z=" + newZ);
+                                Bukkit.getConsoleSender().sendMessage("Target block: " + targetBlock.getType().name());
+                                Bukkit.getConsoleSender().sendMessage("Block above: " + blockAbove.getType().name());
+                                Bukkit.getConsoleSender().sendMessage("Block two above: " + blockTwoAbove.getType().name());
+                                Bukkit.getConsoleSender().sendMessage("Target biome: " + targetBiome.name());
+                                Bukkit.getConsoleSender().sendMessage("Banned blocks: " + Variables.blockList.toString());
+                                Bukkit.getConsoleSender().sendMessage("Banned biomes: " + Variables.teleportfile.getStringList("teleport.bannedBiomes").toString());
                             }
-                            if (newY != -1) {
-                                Location teleportLocation;
-                                if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
-                                    teleportLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
-                                } else {
-                                    teleportLocation = new Location(world, newX + 0.5, newY + 2, newZ + 0.5);
-                                }
 
-                                player.teleportAsync(teleportLocation);
-                                List<String> formattedMessage = LoadMessages.teleportyes;
-                                for (String line : formattedMessage) {
-                                    line = line.replace("%x%", String.valueOf(newX));
-                                    line = line.replace("%z%", String.valueOf(newZ));
-                                    line = line.replace("%y%", String.valueOf(newY));
-                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                    player.sendMessage(formattedLine);
+                            Location targetLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
+
+                            if (!IsBlockBanned.isBlockBanned(targetBlock.getType())
+                                    && !IsBiomeBanned.isBiomeBanned(targetBiome)
+                                    && blockAbove.getType() == Material.AIR
+                                    && blockTwoAbove.getType() == Material.AIR) {
+                                if (loggingEnabled) {
+                                    ValidateConfigEntries.validateConfigEntries(config);
                                 }
-                            }
-                            //
-                            if (Variables.effectfile.getBoolean("teleport.Enabled")) {
-                                List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
-                                int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
-                                int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
-                                for (String effect : effectGive) {
-                                    try {
-                                        int effectId = Integer.parseInt(effect);
-                                        PotionEffectType effectType = PotionEffectType.getById(effectId);
-                                        if (effectType == null) {
-                                            if (loggingEnabled) {
-                                                Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
+                                if (newY != -1) {
+                                    Location teleportLocation;
+                                    if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
+                                        teleportLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
+                                    } else {
+                                        teleportLocation = new Location(world, newX + 0.5, newY + 2, newZ + 0.5);
+                                    }
+
+                                    player.teleportAsync(teleportLocation);
+                                    List<String> formattedMessage = LoadMessages.teleportyes;
+                                    for (String line : formattedMessage) {
+                                        line = line.replace("%x%", String.valueOf(newX));
+                                        line = line.replace("%z%", String.valueOf(newZ));
+                                        line = line.replace("%y%", String.valueOf(newY));
+                                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                        player.sendMessage(formattedLine);
+                                    }
+                                }
+                                //
+                                if (Variables.effectfile.getBoolean("teleport.Enabled")) {
+                                    List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
+                                    int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
+                                    int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
+                                    for (String effect : effectGive) {
+                                        try {
+                                            int effectId = Integer.parseInt(effect);
+                                            PotionEffectType effectType = PotionEffectType.getById(effectId);
+                                            if (effectType == null) {
+                                                if (loggingEnabled) {
+                                                    Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
+                                                }
+                                                continue;
                                             }
-                                            continue;
-                                        }
-                                        player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true);
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
-                                        }
-                                    } catch (NumberFormatException e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
-                                        }
-                                    } catch (Exception e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
+                                            player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true);
+                                            if (loggingEnabled) {
+                                                Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
+                                            }
+                                        } catch (NumberFormatException e) {
+                                            if (loggingEnabled) {
+                                                Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
+                                            }
+                                        } catch (Exception e) {
+                                            if (loggingEnabled) {
+                                                Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            //
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                                for (BukkitTask tasks1 : tasks) {
-                                    tasks1.cancel();
+                                //
+                                if (Variables.teleportTasks.containsKey(player)) {
+                                    BukkitTask[] tasks = Variables.teleportTasks.get(player);
+                                    for (BukkitTask tasks1 : tasks) {
+                                        tasks1.cancel();
+                                    }
+                                    Variables.teleportTasks.remove(player);
                                 }
-                                Variables.teleportTasks.remove(player);
-                            }
-                            Variables.playerSearchStatus.put(player.getName(), false);
-                            if (titleEnabled && (!LoadMessages.titleMessage.isEmpty() || (subtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
-                                String formattedTitle = LoadMessages.titleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
-                                formattedTitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedTitle));
-                                if (subtitleEnabled) {
-                                    String formattedSubtitle = LoadMessages.subtitleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
-                                    formattedSubtitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedSubtitle));
-                                    player.sendTitle(formattedTitle, formattedSubtitle,
-                                            Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
-                                            Variables.titlefile.getInt("teleport.titleStay") * 20,
-                                            Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
-                                } else {
-                                    player.sendTitle(formattedTitle, null,
-                                            Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
-                                            Variables.titlefile.getInt("teleport.titleStay") * 20,
-                                            Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
+                                Variables.playerSearchStatus.put(player.getName(), false);
+                                if (titleEnabled && (!LoadMessages.titleMessage.isEmpty() || (subtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
+                                    String formattedTitle = LoadMessages.titleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
+                                    formattedTitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedTitle));
+                                    if (subtitleEnabled) {
+                                        String formattedSubtitle = LoadMessages.subtitleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
+                                        formattedSubtitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedSubtitle));
+                                        player.sendTitle(formattedTitle, formattedSubtitle,
+                                                Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
+                                                Variables.titlefile.getInt("teleport.titleStay") * 20,
+                                                Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
+                                    } else {
+                                        player.sendTitle(formattedTitle, null,
+                                                Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
+                                                Variables.titlefile.getInt("teleport.titleStay") * 20,
+                                                Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
+                                    }
                                 }
-                            }
-                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
-                            CommandRun.commandrun(player);
-                            //
-                            if (Variables.effectfile.getBoolean("teleport.Freeze.enabled")) {
-                                String version = Bukkit.getServer().getVersion();
-                                int majorVersion = Integer.parseInt(version.split("\\.")[1]);
+                                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
+                                CommandRun.commandrun(player);
+                                //
+                                if (Variables.effectfile.getBoolean("teleport.Freeze.enabled")) {
+                                    String version = Bukkit.getServer().getVersion();
+                                    int majorVersion = Integer.parseInt(version.split("\\.")[1]);
 
-                                if (majorVersion >= 17) {
-                                    int freezeTimeInSeconds = Variables.effectfile.getInt("teleport.Freeze.time");
-                                    int freezeTicks = freezeTimeInSeconds * 40;
-                                    player.setFreezeTicks(freezeTicks);
-                                } else {
-                                    Bukkit.getConsoleSender().sendMessage("The freeze teleportation feature does not work on versions below 1.17.");
+                                    if (majorVersion >= 17) {
+                                        int freezeTimeInSeconds = Variables.effectfile.getInt("teleport.Freeze.time");
+                                        int freezeTicks = freezeTimeInSeconds * 40;
+                                        player.setFreezeTicks(freezeTicks);
+                                    } else {
+                                        Bukkit.getConsoleSender().sendMessage("The freeze teleportation feature does not work on versions below 1.17.");
+                                    }
                                 }
-                            }
-                            //
-                            if (Variables.soundfile.getBoolean("teleport.completed-teleport-sound.enabled")) {
-                                String soundName = Variables.soundfile.getString("teleport.completed-teleport-sound.sound");
-                                float volume = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.volume");
-                                float pitch = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.pitch");
+                                //
+                                if (Variables.soundfile.getBoolean("teleport.completed-teleport-sound.enabled")) {
+                                    String soundName = Variables.soundfile.getString("teleport.completed-teleport-sound.sound");
+                                    float volume = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.volume");
+                                    float pitch = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.pitch");
 
-                                try {
-                                    Sound sound = Sound.valueOf(soundName.toUpperCase());
-                                    player.getPlayer().playSound(player.getPlayer().getLocation(), sound, volume, pitch);
-                                } catch (IllegalArgumentException e) {
-                                    Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
+                                    try {
+                                        Sound sound = Sound.valueOf(soundName.toUpperCase());
+                                        player.getPlayer().playSound(player.getPlayer().getLocation(), sound, volume, pitch);
+                                    } catch (IllegalArgumentException e) {
+                                        Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
+                                    }
+                                }
+                                if (Variables.economyfile.getBoolean("teleport.Hunger.enabled")) {
+                                    int newFoodLevel = player.getFoodLevel() - Variables.economyfile.getInt("teleport.Hunger.hunger");
+                                    player.setFoodLevel(Math.max(newFoodLevel, 0));
+                                }
+                                if (Variables.economyfile.getBoolean("teleport.Health.enabled")) {
+                                    double healthToDeduct = Variables.economyfile.getDouble("teleport.Health.health");
+                                    double newHealth = player.getHealth() - healthToDeduct;
+                                    player.setHealth(Math.max(newHealth, 0.0));
+                                }
+                                if (Variables.economyfile.getBoolean("teleport.Levels.enabled")) {
+                                    int newLevel = player.getLevel() - Variables.economyfile.getInt("teleport.Levels.level");
+                                    player.setLevel(Math.max(newLevel, 0));
+                                }
+                                //
+                                if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
+                                    for (Map.Entry<Material, Integer> entry : Variables.itemMap.entrySet()) {
+                                        RemovePlayerItems.removePlayerItems(player, entry.getKey(), entry.getValue());
+                                    }
+                                }
+                                //
+                                if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
+                                    PlayerParticles.playerParticles(player);
+                                }
+                                if (Variables.teleportTasks.containsKey(player)) {
+                                    BukkitTask[] tasks = Variables.teleportTasks.get(player);
+                                    for (BukkitTask tasks1 : tasks) {
+                                        tasks1.cancel();
+                                    }
+                                    Variables.teleportTasks.remove(player);
+                                }
+                                Variables.playerSearchStatus.put(player.getName(), false);
+                            } else {
+                                tries++;
+                                if (loggingEnabled) {
+                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to banned block, biome, or unsafe block above.");
                                 }
                             }
-                            if (Variables.economyfile.getBoolean("teleport.Hunger.enabled")) {
-                                int newFoodLevel = player.getFoodLevel() - Variables.economyfile.getInt("teleport.Hunger.hunger");
-                                player.setFoodLevel(Math.max(newFoodLevel, 0));
-                            }
-                            if (Variables.economyfile.getBoolean("teleport.Health.enabled")) {
-                                double healthToDeduct = Variables.economyfile.getDouble("teleport.Health.health");
-                                double newHealth = player.getHealth() - healthToDeduct;
-                                player.setHealth(Math.max(newHealth, 0.0));
-                            }
-                            if (Variables.economyfile.getBoolean("teleport.Levels.enabled")) {
-                                int newLevel = player.getLevel() - Variables.economyfile.getInt("teleport.Levels.level");
-                                player.setLevel(Math.max(newLevel, 0));
-                            }
-                            //
-                            if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
-                                for (Map.Entry<Material, Integer> entry : Variables.itemMap.entrySet()) {
-                                    RemovePlayerItems.removePlayerItems(player, entry.getKey(), entry.getValue());
-                                }
-                            }
-                            //
-                            if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
-                                PlayerParticles.playerParticles(player);
-                            }
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                                for (BukkitTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
-                                Variables.teleportTasks.remove(player);
-                            }
-                            Variables.playerSearchStatus.put(player.getName(), false);
-                        } else {
-                            tries++;
-                            if (loggingEnabled) {
-                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to banned block, biome, or unsafe block above.");
-                            }
-                        }
+                        });
                     } catch (Throwable e) {
                         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                         String callingClassName = stackTrace[2].getClassName();
