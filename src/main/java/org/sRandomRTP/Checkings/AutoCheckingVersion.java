@@ -28,7 +28,7 @@ public class AutoCheckingVersion {
                 int seconds = Variables.getInstance().getConfig().getInt("Period-Checking-New-Version");
                 int periodInTicks = seconds * 20;
                 //
-                WrappedTask task = Variables.getFoliaLib().getImpl().runTimer(() -> {
+                WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
                     try {
                         URL url = new URL("https://gitlab.com/snezh0k69/sRandomRTP/-/raw/main/VERSION");
                         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -68,7 +68,7 @@ public class AutoCheckingVersion {
                     } catch (IOException e) {
                         Bukkit.getConsoleSender().sendMessage("§b[sRandomRTP] §8- §cError when checking new plugin CommandVersion: §6" + e.getMessage());
                     }
-                }, 1L, 1L); periodInTicks, periodInTicks);
+                }, periodInTicks, periodInTicks);
                 Variables.autoCheckVersionTask = task;
             } else {
             }

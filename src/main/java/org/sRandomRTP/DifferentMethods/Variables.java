@@ -9,7 +9,6 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.Main;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -47,7 +46,6 @@ public class Variables {
     public static FileConfiguration particlesfile;
     //
     public static List<Material> blockList = new ArrayList<>();
-    public static List<Material> blockListbiome = new ArrayList<>();
     public static List<String> messages = new ArrayList<>();
     //
     public static WrappedTask autoCheckVersionTask;
