@@ -17,17 +17,10 @@ import org.sRandomRTP.Rtp.RtpRtp;
 public class CooldownBypassBossBar {
 
     public static boolean cooldownBypassBossBar(Player player, CommandSender sender) {
-        try {
-            if (player.hasPermission("sRandomRTP.Cooldown.bypass")) {
-                RtpRtp.rtpRtp(sender);
-            } else {
-                startBossBarCountdown(player, sender);
-                return true;
-            }
-        } catch (Throwable e) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            String callingClassName = stackTrace[2].getClassName();
-            LoggerUtility.loggerUtility(callingClassName, e);
+        if (player.hasPermission("sRandomRTP.Cooldown.bypass")) {
+            RtpRtp.rtpRtp(sender);
+        } else {startBossBarCountdown(player, sender);
+            return true;
         }
         return false;
     }

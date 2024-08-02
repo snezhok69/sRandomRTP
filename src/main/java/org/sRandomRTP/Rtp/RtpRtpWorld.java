@@ -70,21 +70,22 @@ public class RtpRtpWorld {
                         int newZ = centerZ + (int) ((Math.random() * radius * 2) - radius);
 
                         CompletableFuture<GetSafeYCoordinate.CoordinateWithBiome> coordFuture;
+
                         if (world.getEnvironment() == World.Environment.NETHER) {
-                            int newY = GetSafeYCoordinateInNether.getSafeYCoordinateInNether(world, newX, newZ);
-                            coordFuture = CompletableFuture.completedFuture(new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
+                            coordFuture = GetSafeYCoordinateInNether.getSafeYCoordinateInNetherAsync(world, newX, newZ)
+                                    .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
                         } else if (world.getEnvironment() == World.Environment.THE_END) {
-                            int newY = GetSafeYCoordinateInEnd.getSafeYCoordinateInEnd(world, newX, newZ);
-                            coordFuture = CompletableFuture.completedFuture(new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
+                            coordFuture = GetSafeYCoordinateInEnd.getSafeYCoordinateInEndAsync(world, newX, newZ)
+                                    .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
                         } else {
                             coordFuture = GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX, newZ);
                         }
 
                         coordFuture.thenAccept(coordWithBiome -> {
                             if (coordWithBiome == null || coordWithBiome.y == -1) {
-                                tries++;
+                                tries[0]++;
                                 if (loggingEnabled) {
-                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to unsafe location.");
+                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries[0] + " failed due to unsafe location.");
                                 }
                                 return;
                             }

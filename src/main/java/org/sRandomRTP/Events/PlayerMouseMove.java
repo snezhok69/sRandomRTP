@@ -1,5 +1,6 @@
 package org.sRandomRTP.Events;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -27,8 +28,8 @@ public class PlayerMouseMove implements Listener {
                     // Проверка, чтобы удостовериться, что игрок действительно поворачивает камеру
                     if (event.getFrom().getYaw() != event.getTo().getYaw() || event.getFrom().getPitch() != event.getTo().getPitch()) {
                         if (Variables.teleportTasks.containsKey(player)) {
-                            BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                            for (BukkitTask tasks1 : tasks) {
+                            WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                            for (WrappedTask tasks1 : tasks) {
                                 tasks1.cancel();
                             }
                             Variables.teleportTasks.remove(player);

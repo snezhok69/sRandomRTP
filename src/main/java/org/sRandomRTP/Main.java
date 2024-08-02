@@ -1,11 +1,12 @@
 package org.sRandomRTP;
 
+import com.tcoded.folialib.FoliaLib;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
-import org.sRandomRTP.Checkings.AutoCheckingVersion;
+//import org.sRandomRTP.Checkings.AutoCheckingVersion;
 import org.sRandomRTP.Checkings.CheckingInstalledPlaceHolderAPI;
 import org.sRandomRTP.Checkings.CheckingServerVersion;
 import org.sRandomRTP.Checkings.StartPluginCheckingNewVersion;
@@ -29,6 +30,7 @@ public class Main extends JavaPlugin {
         try {
             //
             Variables.instance = this;
+            Variables.foliaLib = new FoliaLib(this);
             long startTime = System.currentTimeMillis();
             Bukkit.getConsoleSender().sendMessage("");
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c>==========================================<");
@@ -40,13 +42,13 @@ public class Main extends JavaPlugin {
                 return;
             }
             //
-            if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
-                Variables.pluginToggle = true;
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cFolia core is not supported, plugin is disabled!");
-                Bukkit.getPluginManager().disablePlugin(this);
-                return;
-            } else {
-            }
+           // if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
+           //     Variables.pluginToggle = true;
+           //     Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cFolia core is not supported, plugin is disabled!");
+           //     Bukkit.getPluginManager().disablePlugin(this);
+           //     return;
+           // } else {
+           // }
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking installed PlaceHolderAPI...");
             if (CheckingInstalledPlaceHolderAPI.checkingInstalledPlaceHolderAPI()) {
@@ -58,7 +60,7 @@ public class Main extends JavaPlugin {
             LoadFiles.loadFiles();
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eLoading events...");
-            getServer().getPluginManager().registerEvents(new PlayerParticles(), this);
+            //getServer().getPluginManager().registerEvents(new PlayerParticles(), this);
             getServer().getPluginManager().registerEvents(new PlayerDamage(), this);
             getServer().getPluginManager().registerEvents(new PlayerMove(), this);
             getServer().getPluginManager().registerEvents(new PlayerMouseMove(), this);
@@ -124,7 +126,7 @@ public class Main extends JavaPlugin {
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eRunning tasks...");
             StartPluginCheckingNewVersion.startPluginCheckingNewVersion();
             IsOutdatedByMultipleVersionsTask.isOutdatedByMultipleVersionsTask();
-            AutoCheckingVersion.autoCheckingVersion();
+            //AutoCheckingVersion.autoCheckingVersion();
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eSending anonymous statistics...");
             try {

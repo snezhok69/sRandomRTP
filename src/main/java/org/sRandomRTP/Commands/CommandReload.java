@@ -1,5 +1,6 @@
 package org.sRandomRTP.Commands;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -52,12 +53,10 @@ public class CommandReload {
                 String formattedLine = TranslateRGBColors.translateRGBColors(line);
                 sender.sendMessage(formattedLine);
             }
-            BukkitTask task = new BukkitRunnable() {
-                int step = 0;
-                @Override
-                public void run() {
+            final int[] step = {0};
+            WrappedTask task = Variables.getFoliaLib().getImpl().runTimer(() -> {
                     try {
-                        switch (step) {
+                        switch (step[0]) {
                             case 0:
                                 loadLanguageFile.loadLanguageFile();
                                 LoadMessages.loadMessages(langFile);
@@ -91,14 +90,13 @@ public class CommandReload {
                                 Variables.isReloaded = false;
                                 return;
                         }
-                        step++;
+                        step[0]++;
                     } catch (Throwable e) {
                         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                         String callingClassName = stackTrace[2].getClassName();
                         LoggerUtility.loggerUtility(callingClassName, e);
                     }
-                }
-            }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 8);
+        }, 1L, 1L);
             Variables.isReloaded = true;
             Variables.commandReloadTask = task;
         } catch (Throwable e) {

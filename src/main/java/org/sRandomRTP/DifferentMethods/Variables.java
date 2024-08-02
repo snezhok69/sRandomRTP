@@ -1,5 +1,7 @@
 package org.sRandomRTP.DifferentMethods;
 
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,8 +26,8 @@ public class Variables {
     }
     //
     public static Map<Player, BossBar> bossBars = new HashMap<>();
-    public static Map<Player, BukkitTask[]> teleportTasks = new HashMap<>();
-    public static Map<Player, BukkitTask> particleTasks = new HashMap<>();
+    public static Map<Player, WrappedTask[]> teleportTasks = new HashMap<>();
+    public static Map<Player, WrappedTask> particleTasks = new HashMap<>();
     public static Map<String, Long> cooldowns = new HashMap<>();
     public static Map<String, Boolean> playerSearchStatus = new HashMap<>();
     public static Map<String, CommandSender> senderSendMessage = new HashMap<>();
@@ -48,8 +50,8 @@ public class Variables {
     public static List<Material> blockListbiome = new ArrayList<>();
     public static List<String> messages = new ArrayList<>();
     //
-    public static BukkitTask autoCheckVersionTask;
-    public static BukkitTask commandReloadTask;
+    public static WrappedTask autoCheckVersionTask;
+    public static WrappedTask commandReloadTask;
     //
     public static Pattern RGB_PATTERN = Pattern.compile("&#([0-9a-fA-F]{6})");
     public static String pluginName = "§a[sRandomRTP]";
@@ -60,4 +62,8 @@ public class Variables {
     public static boolean isReloaded = false;
     public static boolean pluginToggle = false;
     //
+    public static FoliaLib foliaLib;
+    public static FoliaLib getFoliaLib() {
+        return foliaLib;
+    }
 }
