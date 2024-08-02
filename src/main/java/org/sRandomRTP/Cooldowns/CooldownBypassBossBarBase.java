@@ -1,5 +1,6 @@
 package org.sRandomRTP.Cooldowns;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -66,9 +67,7 @@ public class CooldownBypassBossBarBase {
                 }
             }
         }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 1);
-        BukkitTask soundTask = new BukkitRunnable() {
-            @Override
-            public void run() {
+        WrappedTask task = Variables.getFoliaLib().getImpl().runTimer(() -> {
                 if (Variables.soundfile.getBoolean("teleport.boss-bar-teleport-sound.enabled")) {
                     String soundName = Variables.soundfile.getString("teleport.boss-bar-teleport-sound.sound");
                     float volume = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.volume");
@@ -81,13 +80,12 @@ public class CooldownBypassBossBarBase {
                         Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
                     }
                 }
-            }
-        }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 20);
+        }, 1L, 1L);
 
         tasks[0] = progressTask;
-        tasks[1] = soundTask;
+        tasks[1] = soundtask;
 
-        Variables.teleportTasks.put(player.getPlayer(), tasks);
+        Variables.teleportTasks.put(player.getPlayer(), soundtask);
         Variables.playerSearchStatus.put(player.getName(), true);
     }
 }

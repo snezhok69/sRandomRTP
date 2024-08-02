@@ -1,5 +1,6 @@
 package org.sRandomRTP.Events;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -23,8 +24,8 @@ public class PlayerMove implements Listener {
                 Player player = event.getPlayer();
                 if (event.getFrom().getX() != event.getTo().getX() || event.getFrom().getZ() != event.getTo().getZ()) {
                     if (Variables.teleportTasks.containsKey(player)) {
-                        BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                        for (BukkitTask tasks1 : tasks) {
+                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                        for (WrappedTask tasks1 : tasks) {
                             tasks1.cancel();
                         }
                         Variables.teleportTasks.remove(player);
