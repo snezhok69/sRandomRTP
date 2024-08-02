@@ -14,15 +14,12 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.sRandomRTP.BlockBiomes.IsBiomeBanned;
 import org.sRandomRTP.BlockBiomes.IsBlockBanned;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Events.PlayerParticles;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinate;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -196,35 +193,7 @@ public class RtpRtpBase {
                                 }
                             }
                             //
-                            if (Variables.effectfile.getBoolean("teleport.Enabled")) {
-                                List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
-                                int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
-                                int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
-                                for (String effect : effectGive) {
-                                    try {
-                                        int effectId = Integer.parseInt(effect);
-                                        PotionEffectType effectType = PotionEffectType.getById(effectId);
-                                        if (effectType == null) {
-                                            if (loggingEnabled) {
-                                                Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
-                                            }
-                                            continue;
-                                        }
-                                        player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true);
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
-                                        }
-                                    } catch (NumberFormatException e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
-                                        }
-                                    } catch (Exception e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
-                                        }
-                                    }
-                                }
-                            }
+                            EffectGivePlayer.effectGivePlayer(player);
                             //
                             if (Variables.teleportTasks.containsKey(player)) {
                                 WrappedTask[] tasks = Variables.teleportTasks.get(player);
