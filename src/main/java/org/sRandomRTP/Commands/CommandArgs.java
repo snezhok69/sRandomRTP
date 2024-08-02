@@ -8,7 +8,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Cooldowns.CooldownBypassBossBarPlayer;
 import org.sRandomRTP.DifferentMethods.*;
-
+import org.sRandomRTP.Files.LoadMessages;
+import java.util.List;
 import java.util.Map;
 
 public class CommandArgs implements CommandExecutor {
@@ -62,6 +63,14 @@ public class CommandArgs implements CommandExecutor {
                 case "deny":
                     if (args.length < 2) {
                         Player targetPlayer = (Player) sender;
+                        if (!targetPlayer.hasPermission("sRandomRTP.Command.Deny")) {
+                            List<String> formattedMessage = LoadMessages.nopermissioncommand;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                sender.sendMessage(formattedLine);
+                            }
+                            return true;
+                        }
                         if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
                             CooldownBypassBossBarPlayer.denyTeleport(sender, targetPlayer);
                             Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
@@ -76,6 +85,14 @@ public class CommandArgs implements CommandExecutor {
                 case "accept":
                     if (args.length < 2) {
                         Player targetPlayer = (Player) sender;
+                        if (!targetPlayer.hasPermission("sRandomRTP.Command.Accept")) {
+                            List<String> formattedMessage = LoadMessages.nopermissioncommand;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                sender.sendMessage(formattedLine);
+                            }
+                            return true;
+                        }
                         if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
                             if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
                                 CooldownBypassBossBarPlayer.startBossBarCountdown(sender, targetPlayer);
@@ -108,6 +125,18 @@ public class CommandArgs implements CommandExecutor {
                                     sender.sendMessage(ChatColor.RED + "Player not found!");
                                     return true;
                                 }
+                                if (targetPlayer != null && !targetPlayer.hasPermission("sRandomRTP.Command.Player")) {
+                                    List<String> formattedMessage = LoadMessages.nopermissioncommand;
+                                    for (String line : formattedMessage) {
+                                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                        sender.sendMessage(formattedLine);
+                                    }
+                                    return true;
+                                }
+                                if (targetPlayer.equals(sender)) {
+                                    sender.sendMessage(ChatColor.RED + "You cannot teleport yourself!");
+                                    return true;
+                                }
                                 Variables.senderSendMessage.put(targetPlayer.getName(), sender);
                                 CommandPlayer.commandplayer(sender, targetPlayer);
                                 if (!targetPlayer.hasPermission("sRandomRTP.Cooldown.bypass")) {
@@ -116,6 +145,14 @@ public class CommandArgs implements CommandExecutor {
                                 }
                                 return true;
                             } else {
+                                if (sender != null && !sender.hasPermission("sRandomRTP.Command.Player")) {
+                                    List<String> formattedMessage = LoadMessages.nopermissioncommand;
+                                    for (String line : formattedMessage) {
+                                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                        sender.sendMessage(formattedLine);
+                                    }
+                                    return true;
+                                }
                                 sender.sendMessage(ChatColor.RED + "Invalid command usage! Use: /rtp player <nickname>");
                                 return true;
                             }

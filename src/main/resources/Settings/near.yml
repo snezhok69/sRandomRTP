@@ -1,10 +1,8 @@
 teleport:
   # Minimum radius for selecting a random teleportation point when using the /rtp near command.
   # If the distance to the nearest player is less than this radius, a random point within this radius around the player will be selected.
-  minRadius: 2
+  minRadius: 1
   # Maximum radius for selecting a random teleportation point when using the /rtp near command.
   # This radius applies when the distance to the nearest player is greater than or equal to minDistanceToPlayer.
-  maxRadius: 100
-  # Minimum distance to the nearest player, below which teleportation will occur to a point near that player.
-  # If the distance to the nearest player is less than this value, a random point within the minRadius will be selected.
-  minDistanceToPlayer: 5
+  # If the maximum radius is less than 10, /rtp near may not work.
+  maxRadius: 10
