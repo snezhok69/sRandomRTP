@@ -4,8 +4,6 @@ import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadFiles;
@@ -54,49 +52,49 @@ public class CommandReload {
                 sender.sendMessage(formattedLine);
             }
             final int[] step = {0};
-            WrappedTask task = Variables.getFoliaLib().getImpl().runTimer(() -> {
-                    try {
-                        switch (step[0]) {
-                            case 0:
-                                loadLanguageFile.loadLanguageFile();
-                                LoadMessages.loadMessages(langFile);
-                                break;
-                            case 1:
-                                Variables.getInstance().reloadConfig();
-                                LoadFiles.loadFiles();
-                                //
-                                LoadKeys.loadKeys(config);
-                                LoadBlockList.loadBlockList();
-                                //
-                                break;
-                            case 2:
-                                if (Variables.autoCheckVersionTask != null) {
-                                    Variables.autoCheckVersionTask.cancel();
-                                }
-                                AutoCheckingVersion.autoCheckingVersion();
-                                break;
-                            case 3:
-                                List<String> formattedMessage2 = LoadMessages.successfullyreload;
-                                for (String line : formattedMessage2) {
-                                    long endTime = System.currentTimeMillis();
-                                    long reloadPluginTime = endTime - startTime;
-                                    line = line.replace("%mc%", reloadPluginTime + "");
-                                    String formattedLine = TranslateRGBColors.translateRGBColors(line);
-                                    sender.sendMessage(formattedLine);
-                                }
-                                if (Variables.commandReloadTask != null) {
-                                    Variables.commandReloadTask.cancel();
-                                }
-                                Variables.isReloaded = false;
-                                return;
-                        }
-                        step[0]++;
-                    } catch (Throwable e) {
-                        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                        String callingClassName = stackTrace[2].getClassName();
-                        LoggerUtility.loggerUtility(callingClassName, e);
+            WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
+                try {
+                    switch (step[0]) {
+                        case 0:
+                            loadLanguageFile.loadLanguageFile();
+                            LoadMessages.loadMessages(langFile);
+                            break;
+                        case 1:
+                            Variables.getInstance().reloadConfig();
+                            LoadFiles.loadFiles();
+                            //
+                            LoadKeys.loadKeys(config);
+                            LoadBlockList.loadBlockList();
+                            //
+                            break;
+                        case 2:
+                            if (Variables.autoCheckVersionTask != null) {
+                                Variables.autoCheckVersionTask.cancel();
+                            }
+                            AutoCheckingVersion.autoCheckingVersion();
+                            break;
+                        case 3:
+                            List<String> formattedMessage2 = LoadMessages.successfullyreload;
+                            for (String line : formattedMessage2) {
+                                long endTime = System.currentTimeMillis();
+                                long reloadPluginTime = endTime - startTime;
+                                line = line.replace("%mc%", reloadPluginTime + "");
+                                String formattedLine = TranslateRGBColors.translateRGBColors(line);
+                                sender.sendMessage(formattedLine);
+                            }
+                            if (Variables.commandReloadTask != null) {
+                                Variables.commandReloadTask.cancel();
+                            }
+                            Variables.isReloaded = false;
+                            return;
                     }
-        }, 1L, 1L);
+                    step[0]++;
+                } catch (Throwable e) {
+                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                    String callingClassName = stackTrace[2].getClassName();
+                    LoggerUtility.loggerUtility(callingClassName, e);
+                }
+            }, 1L, 1L);
             Variables.isReloaded = true;
             Variables.commandReloadTask = task;
         } catch (Throwable e) {

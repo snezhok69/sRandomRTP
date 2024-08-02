@@ -7,14 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.DifferentMethods.Variables;
 
 public class PlayerParticles implements Listener {
     public static void playerParticles(Player player) {
         final int[] ticks = {0};
-        WrappedTask task = Variables.getFoliaLib().getImpl().runTimer(() -> {
+        WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
             if (ticks[0] >= Variables.particlesfile.getInt("teleport.particles.duration") * 20) {
                 if (Variables.particleTasks.containsKey(player)) {
                     WrappedTask searchTask = Variables.particleTasks.get(player);
