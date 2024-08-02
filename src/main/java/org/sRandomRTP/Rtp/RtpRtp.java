@@ -11,18 +11,16 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.BlockBiomes.IsBiomeBanned;
 import org.sRandomRTP.BlockBiomes.IsBlockBanned;
 import org.sRandomRTP.DifferentMethods.*;
-//import org.sRandomRTP.Events.PlayerParticles;
+import org.sRandomRTP.Events.PlayerParticles;
+import org.sRandomRTP.Events.PlayerParticles;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetProtectedRegionName;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinate;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinateInEnd;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinateInNether;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -50,55 +48,55 @@ public class RtpRtp {
 
             final int[] tries = {0};
             WrappedTask task = Variables.getFoliaLib().getImpl().runAtLocationTimer(world.getSpawnLocation(), () -> {
-                    try {
-                        if (tries[0] >= Variables.teleportfile.getInt("teleport.maxtries")) {
-                            List<String> formattedMessage1 = LoadMessages.locationNotFound;
-                            for (String line : formattedMessage1) {
-                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                player.sendMessage(formattedLine);
+                try {
+                    if (tries[0] >= Variables.teleportfile.getInt("teleport.maxtries")) {
+                        List<String> formattedMessage1 = LoadMessages.locationNotFound;
+                        for (String line : formattedMessage1) {
+                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                            player.sendMessage(formattedLine);
+                        }
+                        // Убедитесь, что задачи удаляются и состояние обновляется
+                        if (Variables.teleportTasks.containsKey(player)) {
+                            WrappedTask[] tasks = Variables.teleportTasks.get(player);
+                            for (WrappedTask tasks1 : tasks) {
+                                tasks1.cancel();
                             }
-                            // Убедитесь, что задачи удаляются и состояние обновляется
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                                for (WrappedTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
-                                Variables.teleportTasks.remove(player);
+                            Variables.teleportTasks.remove(player);
+                        }
+                        Variables.playerSearchStatus.put(player.getName(), false);
+                        return;
+                    }
+
+                    int newX = centerX + (int) ((Math.random() * radius * 2) - radius);
+                    int newZ = centerZ + (int) ((Math.random() * radius * 2) - radius);
+
+                    CompletableFuture<GetSafeYCoordinate.CoordinateWithBiome> coordFuture;
+
+                    if (world.getEnvironment() == World.Environment.NETHER) {
+                        coordFuture = GetSafeYCoordinateInNether.getSafeYCoordinateInNetherAsync(world, newX, newZ)
+                                .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
+                    } else if (world.getEnvironment() == World.Environment.THE_END) {
+                        coordFuture = GetSafeYCoordinateInEnd.getSafeYCoordinateInEndAsync(world, newX, newZ)
+                                .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
+                    } else {
+                        coordFuture = GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX, newZ);
+                    }
+
+                    coordFuture.thenAccept(coordWithBiome -> {
+                        if (coordWithBiome == null || coordWithBiome.y == -1) {
+                            tries[0]++;
+                            if (loggingEnabled) {
+                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries[0] + " failed due to unsafe location.");
                             }
-                            Variables.playerSearchStatus.put(player.getName(), false);
                             return;
                         }
 
-                        int newX = centerX + (int) ((Math.random() * radius * 2) - radius);
-                        int newZ = centerZ + (int) ((Math.random() * radius * 2) - radius);
+                        int newY = coordWithBiome.y;
+                        Biome targetBiome = coordWithBiome.biome;
 
-                        CompletableFuture<GetSafeYCoordinate.CoordinateWithBiome> coordFuture;
-
-                        if (world.getEnvironment() == World.Environment.NETHER) {
-                            coordFuture = GetSafeYCoordinateInNether.getSafeYCoordinateInNetherAsync(world, newX, newZ)
-                                    .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
-                        } else if (world.getEnvironment() == World.Environment.THE_END) {
-                            coordFuture = GetSafeYCoordinateInEnd.getSafeYCoordinateInEndAsync(world, newX, newZ)
-                                    .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
-                        } else {
-                            coordFuture = GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX, newZ);
-                        }
-
-                        coordFuture.thenAccept(coordWithBiome -> {
-                            if (coordWithBiome == null || coordWithBiome.y == -1) {
-                                tries[0]++;
-                                if (loggingEnabled) {
-                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries[0] + " failed due to unsafe location.");
-                                }
-                                return;
-                            }
-
-                            int newY = coordWithBiome.y;
-                            Biome targetBiome = coordWithBiome.biome;
-
-                            Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
-                            Block blockAbove = world.getBlockAt(newX, newY, newZ);
-                            Block blockTwoAbove = world.getBlockAt(newX, newY + 1, newZ);
+                        Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
+                        Block blockAbove = world.getBlockAt(newX, newY, newZ);
+                        Block blockTwoAbove = world.getBlockAt(newX, newY + 1, newZ);
 
                         if (loggingEnabled) {
                             Bukkit.getConsoleSender().sendMessage("Trying teleport to: X=" + newX + ", Y=" + newY + ", Z=" + newZ);
@@ -185,11 +183,11 @@ public class RtpRtp {
                                 ValidateConfigEntries.validateConfigEntries(config);
                             }
                             if (newY != -1) {
-                                    if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
-                                        player.teleportAsync(new Location(world, newX + 0.5, newY, newZ + 0.5));
-                                    } else {
-                                        player.teleportAsync(new Location(world, newX + 0.5, newY + 2, newZ + 0.5));
-                                    }
+                                if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
+                                    player.teleportAsync(new Location(world, newX + 0.5, newY, newZ + 0.5));
+                                } else {
+                                    player.teleportAsync(new Location(world, newX + 0.5, newY + 2, newZ + 0.5));
+                                }
                                 List<String> formattedMessage2 = LoadMessages.teleportyes;
                                 for (String line : formattedMessage2) {
                                     line = line.replace("%x%", String.valueOf(newX));
@@ -200,37 +198,35 @@ public class RtpRtp {
                                 }
                             }
                             //
-                            //Bukkit.getScheduler().runTask(Variables.getInstance(), () -> {
-                                if (Variables.effectfile.getBoolean("teleport.Enabled")) {
-                                    List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
-                                    int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
-                                    int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
-                                    for (String effect : effectGive) {
-                                        try {
-                                            int effectId = Integer.parseInt(effect);
-                                            PotionEffectType effectType = PotionEffectType.getById(effectId);
-                                            if (effectType == null) {
-                                                if (loggingEnabled) {
-                                                    Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
-                                                }
-                                                continue;
-                                            }
-                                            player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true);
+                            if (Variables.effectfile.getBoolean("teleport.Enabled")) {
+                                List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
+                                int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
+                                int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
+                                for (String effect : effectGive) {
+                                    try {
+                                        int effectId = Integer.parseInt(effect);
+                                        PotionEffectType effectType = PotionEffectType.getById(effectId);
+                                        if (effectType == null) {
                                             if (loggingEnabled) {
-                                                Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
+                                                Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
                                             }
-                                        } catch (NumberFormatException e) {
-                                            if (loggingEnabled) {
-                                                Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
-                                            }
-                                        } catch (Exception e) {
-                                            if (loggingEnabled) {
-                                                Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
-                                            }
+                                            continue;
+                                        }
+                                        Variables.getFoliaLib().getImpl().runLater(() -> player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true), 0);
+                                        if (loggingEnabled) {
+                                            Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
+                                        }
+                                    } catch (NumberFormatException e) {
+                                        if (loggingEnabled) {
+                                            Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
+                                        }
+                                    } catch (Exception e) {
+                                        if (loggingEnabled) {
+                                            Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
                                         }
                                     }
                                 }
-                           // });
+                            }
                             //
                             if (Variables.teleportTasks.containsKey(player)) {
                                 WrappedTask[] tasks = Variables.teleportTasks.get(player);
@@ -258,7 +254,7 @@ public class RtpRtp {
                                 }
                             }
                             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
-                            //Bukkit.getScheduler().runTask(Variables.getInstance(), () -> CommandRun.commandrun(player));
+                            Variables.getFoliaLib().getImpl().runLater(() -> CommandRun.commandrun(player), 0);
                             //
                             if (Variables.effectfile.getBoolean("teleport.Freeze.enabled")) {
                                 String version = Bukkit.getServer().getVersion();
@@ -304,10 +300,10 @@ public class RtpRtp {
                                     RemovePlayerItems.removePlayerItems(player, entry.getKey(), entry.getValue());
                                 }
                             }
-                            //
-                            //if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
-                            //    PlayerParticles.playerParticles(player);
-                            //}
+
+                            if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
+                                PlayerParticles.playerParticles(player);
+                            }
                             if (Variables.teleportTasks.containsKey(player)) {
                                 WrappedTask[] tasks = Variables.teleportTasks.get(player);
                                 for (WrappedTask tasks1 : tasks) {
@@ -322,13 +318,13 @@ public class RtpRtp {
                                 Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to banned block, biome, or unsafe block above.");
                             }
                         }
-                        });
-                    } catch (Throwable e) {
-                        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                        String callingClassName = stackTrace[2].getClassName();
-                        LoggerUtility.loggerUtility(callingClassName, e);
-                    }
-        }, 1L, 1L);
+                    });
+                } catch (Throwable e) {
+                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                    String callingClassName = stackTrace[2].getClassName();
+                    LoggerUtility.loggerUtility(callingClassName, e);
+                }
+            }, 1L, 1L);
             Variables.teleportTasks.put(player, new WrappedTask[]{task});
             Variables.playerSearchStatus.put(player.getName(), true);
         } catch (Throwable e) {

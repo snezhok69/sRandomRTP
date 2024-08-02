@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 //import org.sRandomRTP.Checkings.AutoCheckingVersion;
+import org.sRandomRTP.Checkings.AutoCheckingVersion;
 import org.sRandomRTP.Checkings.CheckingInstalledPlaceHolderAPI;
 import org.sRandomRTP.Checkings.CheckingServerVersion;
 import org.sRandomRTP.Checkings.StartPluginCheckingNewVersion;
@@ -60,7 +61,7 @@ public class Main extends JavaPlugin {
             LoadFiles.loadFiles();
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eLoading events...");
-            //getServer().getPluginManager().registerEvents(new PlayerParticles(), this);
+            getServer().getPluginManager().registerEvents(new PlayerParticles(), this);
             getServer().getPluginManager().registerEvents(new PlayerDamage(), this);
             getServer().getPluginManager().registerEvents(new PlayerMove(), this);
             getServer().getPluginManager().registerEvents(new PlayerMouseMove(), this);
@@ -126,7 +127,7 @@ public class Main extends JavaPlugin {
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eRunning tasks...");
             StartPluginCheckingNewVersion.startPluginCheckingNewVersion();
             IsOutdatedByMultipleVersionsTask.isOutdatedByMultipleVersionsTask();
-            //AutoCheckingVersion.autoCheckingVersion();
+            AutoCheckingVersion.autoCheckingVersion();
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eSending anonymous statistics...");
             try {
