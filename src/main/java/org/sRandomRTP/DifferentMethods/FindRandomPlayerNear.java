@@ -12,16 +12,12 @@ public class FindRandomPlayerNear {
             List<Player> sameWorldPlayers = allPlayers.stream()
                     .filter(p -> p.getWorld().equals(player.getWorld()) && !p.equals(player))
                     .collect(Collectors.toList());
-
             if (sameWorldPlayers.isEmpty()) {
                 return null;
             }
-
-            // Рандомизация из списка игроков в том же мире
             Random random = new Random();
             return sameWorldPlayers.get(random.nextInt(sameWorldPlayers.size()));
         } catch (Throwable e) {
-            // Логирование ошибок
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);
