@@ -21,6 +21,9 @@ import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Events.PlayerParticles;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetSafeYCoordinate;
+import org.sRandomRTP.GetYGet.GetSafeYCoordinateInEnd;
+import org.sRandomRTP.GetYGet.GetSafeYCoordinateInNether;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -98,8 +101,15 @@ public class RtpRtpBase {
                         return;
                     }
 
+                    CompletableFuture<Integer> futureY;
+                    if (world.getEnvironment() == World.Environment.NETHER) {
+                        futureY = GetSafeYCoordinateInNether.getSafeYCoordinateInNetherAsync(world, newX, newZ);
+                    } else if (world.getEnvironment() == World.Environment.THE_END) {
+                        futureY = GetSafeYCoordinateInEnd.getSafeYCoordinateInEndAsync(world, newX, newZ);
+                    } else {
+                        futureY = GetSafeYCoordinate.getSafeYCoordinateFromBottomAsync(world, newX, newZ);
+                    }
 
-                    CompletableFuture<Integer> futureY = GetSafeYCoordinate.getSafeYCoordinateFromBottomAsync(world, newX, newZ);
                     futureY.thenAccept(newY -> {
                         if (newY == -1) {
                             tries[0]++;
@@ -109,13 +119,9 @@ public class RtpRtpBase {
                             return;
                         }
 
-                        // Define the callback logic
-                        SafeYCoordinateCallback callback = new SafeYCoordinateCallback() {
-                            @Override
-                            public void onResult(int resultY) {
-                                if (loggingEnabled) {
-                                    Bukkit.getConsoleSender().sendMessage("Processed Y coordinate: " + resultY);
-                                }
+                        SafeYCoordinateCallback callback = resultY -> {
+                            if (loggingEnabled) {
+                                Bukkit.getConsoleSender().sendMessage("Processed Y coordinate: " + resultY);
                             }
                         };
 
@@ -123,24 +129,22 @@ public class RtpRtpBase {
                             GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX, newZ)
                                     .thenAccept(coordWithBiome -> {
                                         if (coordWithBiome != null) {
-                                            callback.onResult(coordWithBiome.y);  // Use callback to handle the result
+                                            callback.onResult(coordWithBiome.y);
                                         } else {
-                                            callback.onResult(-1);  // Handle case where no valid coordinate was found
+                                            callback.onResult(-1);
                                         }
                                     })
                                     .exceptionally(ex -> {
                                         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
                                         String callingClassName = stackTrace[2].getClassName();
                                         LoggerUtility.loggerUtility(callingClassName, ex);
-                                        callback.onResult(-1);  // Handle exception case
+                                        callback.onResult(-1);
                                         return null;
                                     });
                         } else {
-                            callback.onResult(newY);  // Directly use the result if found synchronously
+                            callback.onResult(newY);
                         }
 
-
-                        // Если безопасное место все еще не найдено
                         if (newY == -1) {
                             tries[0]++;
                             if (loggingEnabled) {
