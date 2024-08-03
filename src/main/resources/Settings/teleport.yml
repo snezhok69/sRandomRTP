@@ -5,7 +5,8 @@ teleport:
   bannedBiomes:
   - ''
   # Here you can specify the radius of random teleportation from the center of the world.
-  radius: 1000
+  radius: 50
+  minradius: 10
   # Radius to the nearest teleportation point to the region by command /rtp base. The recommended minimum number is 10, if you set the number lower the /rtp base command may stop working.
   regionradius: 10
   # Enable or disable teleportation request message on /rtp player <player> command.
