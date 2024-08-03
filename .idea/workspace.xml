@@ -10,16 +10,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c4ac92aa-a4da-4f3f-9ed5-a294fc61feb2" name="Changes" comment="pre-update folia">
-      <change beforePath="$PROJECT_DIR$/.idea/artifacts/sRandomRTP_3_0.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/artifacts/sRandomRTP_3_0.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Checkings/AutoCheckingVersion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Checkings/AutoCheckingVersion.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Commands/CommandArgs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Commands/CommandArgs.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpBase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpBase.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpNear.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpNear.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpPlayer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpPlayer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpWorld.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtpWorld.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/Settings/teleport.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Settings/teleport.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,15 +43,11 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/snezhok69/sRandomRTP&quot;,
-    &quot;accountId&quot;: &quot;7159fb9a-fe37-48d1-a849-b702cf98eb2e&quot;
+    &quot;accountId&quot;: &quot;948100ab-d09a-4c72-a5b1-7d7d1a7b9f96&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$USER_HOME$/AppData/Local/Temp/fc5f1e6d-b993-4bfd-b8be-38055e13da58_Новая сжатая ZIP-папка (2).zip.a58/sRTP/src/main/java/org/srtp/DifferentMethods/RtpRtp.java" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/main/java/org/srtp/DifferentMethods/CooldownBypassBossBarNear.java" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/src/main/java/org/srtp/DifferentMethods/RtpRtp.java" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/main/java/org/srtp/DifferentMethods/RtpRtpNear.java" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/src/main/java/org/srtp/DifferentMethods/RtpRtpWorld.java" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/AppData/Local/Temp/5c7e6abb-50d0-48c6-a3f1-f78a2c958df4_Новая сжатая ZIP-папка (2).zip.df4/sRTP/src/main/java/org/srtp/DifferentMethods/RtpRtpNear.java" root0="SKIP_INSPECTION" />
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -73,37 +63,39 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Maven.sRTP package.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/NO DELETE NO/FoliaLibRANDOMRTP.jar&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.stylelint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.stylelint&quot;: &quot;&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Artifacts&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15527344&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.3810409&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.projectsettings.compiler.javacompiler&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Maven.sRTP package.executor": "Run",
+    "Remote JVM Debug.Unnamed.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/SystemX/Desktop/FoliaLibRANDOMRTP.jar",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.stylelint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.stylelint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Artifacts",
+    "project.structure.proportion": "0.15559031",
+    "project.structure.side.proportion": "0.3810409",
+    "settings.editor.selected.configurable": "project.propCompiler",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Vitalik\Desktop\sRTP\src\main\resources\Settings" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.sRandomRTP.Rtp" />
       <recent name="org.sRandomRTP.DifferentMethods" />
       <recent name="org.sRandomRTP.Commands" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Maven.sRandomRTP package">
     <configuration name="sRandomRTP package" type="MavenRunConfiguration" factoryName="Maven">
       <MavenSettings>
         <option name="myGeneralSettings" />
@@ -134,6 +126,24 @@
       </MavenSettings>
       <method v="2" />
     </configuration>
+    <configuration name="Unnamed" type="Remote" nameIsGenerated="true">
+      <module name="sRandomRTP" />
+      <option name="USE_SOCKET_TRANSPORT" value="true" />
+      <option name="SERVER_MODE" value="false" />
+      <option name="SHMEM_ADDRESS" />
+      <option name="HOST" value="localhost" />
+      <option name="PORT" value="5005" />
+      <option name="AUTO_RESTART" value="false" />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="5005" />
+        <option name="LOCAL" value="false" />
+      </RunnerSettings>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Maven.sRandomRTP package" />
+      <item itemvalue="Remote JVM Debug.Unnamed" />
+    </list>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -426,8 +436,11 @@
       <workItem from="1722587277020" duration="4595000" />
       <workItem from="1722591937857" duration="428000" />
       <workItem from="1722592526102" duration="2649000" />
-      <workItem from="1722595204320" duration="341000" />
-      <workItem from="1722595578812" duration="2574000" />
+      <workItem from="1722621514123" duration="10716000" />
+      <workItem from="1722681050939" duration="2382000" />
+      <workItem from="1722687361122" duration="1923000" />
+      <workItem from="1722689352799" duration="2086000" />
+      <workItem from="1722691517499" duration="13867000" />
     </task>
     <task id="LOCAL-00001" summary="Add project">
       <option name="closed" value="true" />
@@ -535,21 +548,45 @@
     </task>
     <task id="LOCAL-00014" summary="pre-update folia">
       <option name="closed" value="true" />
-      <created>1722595233754</created>
+      <created>1722634605723</created>
       <option name="number" value="00014" />
       <option name="presentableId" value="LOCAL-00014" />
       <option name="project" value="LOCAL" />
-      <updated>1722595233754</updated>
+      <updated>1722634605723</updated>
     </task>
     <task id="LOCAL-00015" summary="pre-update folia">
       <option name="closed" value="true" />
-      <created>1722595705350</created>
+      <created>1722688646434</created>
       <option name="number" value="00015" />
       <option name="presentableId" value="LOCAL-00015" />
       <option name="project" value="LOCAL" />
-      <updated>1722595705350</updated>
+      <updated>1722688646434</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="pre-update folia">
+      <option name="closed" value="true" />
+      <created>1722688988727</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1722688988727</updated>
+    </task>
+    <task id="LOCAL-00017" summary="pre-update folia">
+      <option name="closed" value="true" />
+      <created>1722689296295</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1722689296295</updated>
+    </task>
+    <task id="LOCAL-00018" summary="pre-update folia">
+      <option name="closed" value="true" />
+      <created>1722691293540</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1722691293540</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
