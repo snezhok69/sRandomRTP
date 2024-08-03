@@ -46,7 +46,7 @@ public class RtpRtp {
             int minRadius = Variables.teleportfile.getInt("teleport.minradius");
 
 
-            final int[] tries = {0};
+                final int[] tries = {0};
             WrappedTask task = Variables.getFoliaLib().getImpl().runAtLocationTimer(world.getSpawnLocation(), () -> {
                 try {
                     if (tries[0] >= Variables.teleportfile.getInt("teleport.maxtries")) {
@@ -55,12 +55,7 @@ public class RtpRtp {
                             String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                             player.sendMessage(formattedLine);
                         }
-                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                        for (WrappedTask tasks1 : tasks) {
-                            tasks1.cancel();
-                        }
-                        Variables.teleportTasks.remove(player);
-                        Variables.playerSearchStatus.put(player.getName(), false);
+                        cancelTasks(player);
                         return;
                     }
 
@@ -160,7 +155,10 @@ public class RtpRtp {
                             Variables.teleportTasks.remove(player);
                             Variables.playerSearchStatus.put(player.getName(), false);
 
-                            if (!IsBlockBanned.isBlockBanned(targetBlock.getType()) && !IsBiomeBanned.isBiomeBanned(targetBiome) && blockAbove.getType() == Material.AIR && blockTwoAbove.getType() == Material.AIR) {
+                            if (!IsBlockBanned.isBlockBanned(targetBlock.getType())
+                                    && !IsBiomeBanned.isBiomeBanned(targetBiome)
+                                    && blockAbove.getType() == Material.AIR
+                                    && blockTwoAbove.getType() == Material.AIR) {
 
                                 if (loggingEnabled) {
                                     ValidateConfigEntries.validateConfigEntries(config);
@@ -184,17 +182,11 @@ public class RtpRtp {
                                                 String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                                                 player.sendMessage(formattedLine);
                                             }
+                                            // Завершение задачи после успешного телепорта
+                                            cancelTasks(player);
                                         }
                                     });
                                 }
-
-                                // Завершение задачи после успешного телепорта
-                                WrappedTask[] tasks2 = Variables.teleportTasks.get(player);
-                                for (WrappedTask tasks1 : tasks2) {
-                                    tasks1.cancel();
-                                }
-                                Variables.teleportTasks.remove(player);
-                                Variables.playerSearchStatus.put(player.getName(), false);
 
                                 // Дополнительные действия после успешного телепорта
                                 EffectGivePlayer.effectGivePlayer(player);
@@ -256,6 +248,7 @@ public class RtpRtp {
                                 if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
                                     PlayerParticles.playerParticles(player);
                                 }
+                                cancelTasks(player);
                             }
                         });
                     });
@@ -272,5 +265,14 @@ public class RtpRtp {
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);
         }
+    }
+
+    private static void cancelTasks(Player player) {
+        WrappedTask[] tasks = Variables.teleportTasks.get(player);
+        for (WrappedTask task : tasks) {
+            task.cancel();
+        }
+        Variables.teleportTasks.remove(player);
+        Variables.playerSearchStatus.put(player.getName(), false);
     }
 }
