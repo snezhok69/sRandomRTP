@@ -136,8 +136,6 @@
                     <archive>
                         <manifest>
                             <mainClass>org.sRandomRTP.Main</mainClass>
-                            <source>1.8</source>
-                            <target>1.8</target>
                         </manifest>
                     </archive>
                 </configuration>
