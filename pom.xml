@@ -130,11 +130,16 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.2</version>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
                 <configuration>
-                    <repositoryId>jitpack.io</repositoryId>
-                    <url>https://jitpack.io</url>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.sRandomRTP.Main</mainClass>
+                            <source>1.8</source>
+                            <target>1.8</target>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
@@ -162,7 +167,7 @@
             <url>https://maven.enginehub.org/repo/</url>
         </repository>
         <repository>
-            <id>jitpack.io</id>
+                <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
         <repository>
@@ -179,9 +184,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.destroystokyo.paper</groupId>
+            <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.12.2-R0.1-SNAPSHOT</version>
+            <version>1.17.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -226,16 +231,12 @@
             <version>1.0.8</version>
             <scope>compile</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>2.20.0</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.snezhok69</groupId>
-            <artifactId>sRandomRTP</artifactId>
-            <version>2.9-REALESE</version>
         </dependency>
     </dependencies>
     <distributionManagement>
