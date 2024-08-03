@@ -5,6 +5,7 @@
       <element id="module-output" name="sRandomRTP" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/io/papermc/paperlib/1.0.8/paperlib-1.0.8.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../../NO DELETE NO/FoliaLibRANDOMRTP.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/FoliaLibRANDOMRTP.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
