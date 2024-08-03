@@ -43,6 +43,7 @@ public class RtpRtp {
             int centerX = (int) world.getWorldBorder().getCenter().getX();
             int centerZ = (int) world.getWorldBorder().getCenter().getZ();
             int radius = Variables.teleportfile.getInt("teleport.radius");
+            int minRadius = Variables.teleportfile.getInt("teleport.minradius");
 
 
             final int[] tries = {0};
@@ -63,20 +64,24 @@ public class RtpRtp {
                         return;
                     }
 
-                    int newX = centerX + (int) ((Math.random() * radius * 2) - radius);
-                    int newZ = centerZ + (int) ((Math.random() * radius * 2) - radius);
+                    int[] newX = new int[1];
+                    int[] newZ = new int[1];
 
-                    Location loc = new Location(world, newX, 0, newZ);
+                    do {
+                        newX[0] = centerX + (int) ((Math.random() * radius * 2) - radius);
+                        newZ[0] = centerZ + (int) ((Math.random() * radius * 2) - radius);
+                    } while (Math.abs(newX[0] - centerX) < minRadius && Math.abs(newZ[0] - centerZ) < minRadius);
+
+                    Location loc = new Location(world, newX[0], 0, newZ[0]);
+
                     PaperLib.getChunkAtAsync(loc).thenAccept(chunk -> {
                         CompletableFuture<GetSafeYCoordinate.CoordinateWithBiome> coordFuture;
                         if (world.getEnvironment() == World.Environment.NETHER) {
-                            coordFuture = GetSafeYCoordinateInNether.getSafeYCoordinateInNetherAsync(world, newX, newZ)
-                                    .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
+                            coordFuture = GetSafeYCoordinateInNether.getSafeYCoordinateInNetherAsync(world, newX[0], newZ[0]).thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX[0], newY, newZ[0])));
                         } else if (world.getEnvironment() == World.Environment.THE_END) {
-                            coordFuture = GetSafeYCoordinateInEnd.getSafeYCoordinateInEndAsync(world, newX, newZ)
-                                    .thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ)));
+                            coordFuture = GetSafeYCoordinateInEnd.getSafeYCoordinateInEndAsync(world, newX[0], newZ[0]).thenApply(newY -> new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX[0], newY, newZ[0])));
                         } else {
-                            coordFuture = GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX, newZ);
+                            coordFuture = GetSafeYCoordinate.getSafeYCoordinateWithAirCheckAsync(world, newX[0], newZ[0]);
                         }
 
                         coordFuture.thenAccept(coordWithBiome -> {
@@ -91,12 +96,12 @@ public class RtpRtp {
                             int newY = coordWithBiome.y;
                             Biome targetBiome = coordWithBiome.biome;
 
-                            Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
-                            Block blockAbove = world.getBlockAt(newX, newY, newZ);
-                            Block blockTwoAbove = world.getBlockAt(newX, newY + 1, newZ);
+                            Block targetBlock = world.getBlockAt(newX[0], newY - 1, newZ[0]);
+                            Block blockAbove = world.getBlockAt(newX[0], newY, newZ[0]);
+                            Block blockTwoAbove = world.getBlockAt(newX[0], newY + 1, newZ[0]);
 
                             if (loggingEnabled) {
-                                Bukkit.getConsoleSender().sendMessage("Trying teleport to: X=" + newX + ", Y=" + newY + ", Z=" + newZ);
+                                Bukkit.getConsoleSender().sendMessage("Trying teleport to: X=" + newX[0] + ", Y=" + newY + ", Z=" + newZ[0]);
                                 Bukkit.getConsoleSender().sendMessage("Target block: " + targetBlock.getType().name());
                                 Bukkit.getConsoleSender().sendMessage("Block above: " + blockAbove.getType().name());
                                 Bukkit.getConsoleSender().sendMessage("Block two above: " + blockTwoAbove.getType().name());
@@ -105,7 +110,7 @@ public class RtpRtp {
                                 Bukkit.getConsoleSender().sendMessage("Banned biomes: " + Variables.teleportfile.getStringList("teleport.bannedBiomes").toString());
                             }
 
-                            Location targetLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
+                            Location targetLocation = new Location(world, newX[0] + 0.5, newY, newZ[0] + 0.5);
                             int worldBorderSize = (int) (world.getWorldBorder().getSize() / 2);
                             int minX = centerX - worldBorderSize;
                             int maxX = centerX + worldBorderSize;
@@ -118,7 +123,7 @@ public class RtpRtp {
                                 }
                                 tries[0]++;
                                 if (loggingEnabled) {
-                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to world border constraints.");
+                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries[0] + " failed due to world border constraints.");
                                 }
                                 return;
                             }
@@ -148,48 +153,33 @@ public class RtpRtp {
                                     return;
                                 }
                             }
-
-                            if (Variables.teleportfile.getBoolean("teleport.checking-in-regions")) {
-                                if (IsInProtectedRegion.isInProtectedRegion(targetLocation)) {
-                                    String regionName = GetProtectedRegionName.getProtectedRegionName(targetLocation);
-                                    if (loggingEnabled) {
-                                        Bukkit.getConsoleSender().sendMessage("Attempted to teleport into protected region: " + regionName);
-                                    }
-                                    tries[0]++;
-                                    if (loggingEnabled) {
-                                        Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to protected region.");
-                                    }
-                                    return;
-                                }
-                            }
                             WrappedTask[] tasks = Variables.teleportTasks.get(player);
                             for (WrappedTask tasks1 : tasks) {
                                 tasks1.cancel();
                             }
                             Variables.teleportTasks.remove(player);
                             Variables.playerSearchStatus.put(player.getName(), false);
-                            if (!IsBlockBanned.isBlockBanned(targetBlock.getType())
-                                    && !IsBiomeBanned.isBiomeBanned(targetBiome)
-                                    && blockAbove.getType() == Material.AIR
-                                    && blockTwoAbove.getType() == Material.AIR) {
+
+                            if (!IsBlockBanned.isBlockBanned(targetBlock.getType()) && !IsBiomeBanned.isBiomeBanned(targetBiome) && blockAbove.getType() == Material.AIR && blockTwoAbove.getType() == Material.AIR) {
 
                                 if (loggingEnabled) {
                                     ValidateConfigEntries.validateConfigEntries(config);
                                 }
                                 if (newY != -1) {
-                                    Location teleportLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
+                                    Location teleportLocation = new Location(world, newX[0] + 0.5, newY, newZ[0] + 0.5);
 
                                     if (world.getEnvironment() == World.Environment.NETHER || world.getEnvironment() == World.Environment.THE_END) {
                                         teleportLocation.setY(newY);
                                     } else {
                                         teleportLocation.setY(newY + 2);
                                     }
+
                                     PaperLib.teleportAsync(player, teleportLocation).thenAccept(result -> {
                                         if (result) {
                                             List<String> formattedMessage2 = LoadMessages.teleportyes;
                                             for (String line : formattedMessage2) {
-                                                line = line.replace("%x%", String.valueOf(newX));
-                                                line = line.replace("%z%", String.valueOf(newZ));
+                                                line = line.replace("%x%", String.valueOf(newX[0]));
+                                                line = line.replace("%z%", String.valueOf(newZ[0]));
                                                 line = line.replace("%y%", String.valueOf(newY));
                                                 String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                                                 player.sendMessage(formattedLine);
@@ -197,33 +187,35 @@ public class RtpRtp {
                                         }
                                     });
                                 }
-                                //
+
+                                // Завершение задачи после успешного телепорта
+                                WrappedTask[] tasks2 = Variables.teleportTasks.get(player);
+                                for (WrappedTask tasks1 : tasks2) {
+                                    tasks1.cancel();
+                                }
+                                Variables.teleportTasks.remove(player);
+                                Variables.playerSearchStatus.put(player.getName(), false);
+
+                                // Дополнительные действия после успешного телепорта
                                 EffectGivePlayer.effectGivePlayer(player);
-                                //
                                 if (titleEnabled && (!LoadMessages.titleMessage.isEmpty() || (subtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
                                     String formattedTitle = LoadMessages.titleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
                                     formattedTitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedTitle));
                                     if (subtitleEnabled) {
                                         String formattedSubtitle = LoadMessages.subtitleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
                                         formattedSubtitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedSubtitle));
-                                        player.sendTitle(formattedTitle, formattedSubtitle,
-                                                Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
-                                                Variables.titlefile.getInt("teleport.titleStay") * 20,
-                                                Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
+                                        player.sendTitle(formattedTitle, formattedSubtitle, Variables.titlefile.getInt("teleport.titleFadeIn") * 20, Variables.titlefile.getInt("teleport.titleStay") * 20, Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
                                     } else {
-                                        player.sendTitle(formattedTitle, null,
-                                                Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
-                                                Variables.titlefile.getInt("teleport.titleStay") * 20,
-                                                Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
+                                        player.sendTitle(formattedTitle, null, Variables.titlefile.getInt("teleport.titleFadeIn") * 20, Variables.titlefile.getInt("teleport.titleStay") * 20, Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
                                     }
                                 }
+
+                                // Остальные действия после телепорта
                                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
                                 Variables.getFoliaLib().getImpl().runLater(() -> CommandRun.commandrun(player), 0);
-                                //
                                 if (Variables.effectfile.getBoolean("teleport.Freeze.enabled")) {
                                     String version = Bukkit.getServer().getVersion();
                                     int majorVersion = Integer.parseInt(version.split("\\.")[1]);
-
                                     if (majorVersion >= 17) {
                                         int freezeTimeInSeconds = Variables.effectfile.getInt("teleport.Freeze.time");
                                         int freezeTicks = freezeTimeInSeconds * 40;
@@ -232,12 +224,10 @@ public class RtpRtp {
                                         Bukkit.getConsoleSender().sendMessage("The freeze teleportation feature does not work on versions below 1.17.");
                                     }
                                 }
-                                //
                                 if (Variables.soundfile.getBoolean("teleport.completed-teleport-sound.enabled")) {
                                     String soundName = Variables.soundfile.getString("teleport.completed-teleport-sound.sound");
                                     float volume = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.volume");
                                     float pitch = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.pitch");
-
                                     try {
                                         Sound sound = Sound.valueOf(soundName.toUpperCase());
                                         player.getPlayer().playSound(player.getPlayer().getLocation(), sound, volume, pitch);
@@ -258,20 +248,13 @@ public class RtpRtp {
                                     int newLevel = player.getLevel() - Variables.economyfile.getInt("teleport.Levels.level");
                                     player.setLevel(Math.max(newLevel, 0));
                                 }
-                                //
                                 if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
                                     for (Map.Entry<Material, Integer> entry : Variables.itemMap.entrySet()) {
                                         RemovePlayerItems.removePlayerItems(player, entry.getKey(), entry.getValue());
                                     }
                                 }
-
                                 if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
                                     PlayerParticles.playerParticles(player);
-                                }
-                            } else {
-                                tries[0]++;
-                                if (loggingEnabled) {
-                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to banned block, biome, or unsafe block above.");
                                 }
                             }
                         });
