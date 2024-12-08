@@ -1,10 +1,12 @@
 package org.sRandomRTP.Commands;
 
-import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
+import org.sRandomRTP.BlockBiomes.LoadBlockListBiome;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadFiles;
 import org.sRandomRTP.Files.LoadKeys;
@@ -14,6 +16,7 @@ import java.io.File;
 import java.util.*;
 
 public class CommandReload {
+    public static boolean isReloaded = false;
 
     public static void commandReload(CommandSender sender) {
         try {
@@ -38,7 +41,7 @@ public class CommandReload {
             YamlConfiguration langFile = loadLanguageFile.getLangFile();
             LoadMessages.loadMessages(langFile);
             //
-            if (Variables.isReloaded) {
+            if (isReloaded) {
                 List<String> formattedMessage = LoadMessages.reloadingwait;
                 for (String line : formattedMessage) {
                     String formattedLine = TranslateRGBColors.translateRGBColors(line);
@@ -51,51 +54,55 @@ public class CommandReload {
                 String formattedLine = TranslateRGBColors.translateRGBColors(line);
                 sender.sendMessage(formattedLine);
             }
-            final int[] step = {0};
-            WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
-                try {
-                    switch (step[0]) {
-                        case 0:
-                            loadLanguageFile.loadLanguageFile();
-                            LoadMessages.loadMessages(langFile);
-                            break;
-                        case 1:
-                            Variables.getInstance().reloadConfig();
-                            LoadFiles.loadFiles();
-                            //
-                            LoadKeys.loadKeys(config);
-                            LoadBlockList.loadBlockList();
-                            //
-                            break;
-                        case 2:
-                            if (Variables.autoCheckVersionTask != null) {
-                                Variables.autoCheckVersionTask.cancel();
-                            }
-                            AutoCheckingVersion.autoCheckingVersion();
-                            break;
-                        case 3:
-                            List<String> formattedMessage2 = LoadMessages.successfullyreload;
-                            for (String line : formattedMessage2) {
-                                long endTime = System.currentTimeMillis();
-                                long reloadPluginTime = endTime - startTime;
-                                line = line.replace("%mc%", reloadPluginTime + "");
-                                String formattedLine = TranslateRGBColors.translateRGBColors(line);
-                                sender.sendMessage(formattedLine);
-                            }
-                            if (Variables.commandReloadTask != null) {
-                                Variables.commandReloadTask.cancel();
-                            }
-                            Variables.isReloaded = false;
-                            return;
+            BukkitTask task = new BukkitRunnable() {
+                int step = 0;
+                @Override
+                public void run() {
+                    try {
+                        switch (step) {
+                            case 0:
+                                loadLanguageFile.loadLanguageFile();
+                                LoadMessages.loadMessages(langFile);
+                                break;
+                            case 1:
+                                Variables.getInstance().reloadConfig();
+                                LoadFiles.loadFiles();
+                                //
+                                LoadKeys.loadKeys(config);
+                                LoadBlockList.loadBlockList();
+                                LoadBlockListBiome.loadBlockList();
+                                //
+                                break;
+                            case 2:
+                                if (Variables.autoCheckVersionTask != null) {
+                                    Variables.autoCheckVersionTask.cancel();
+                                }
+                                AutoCheckingVersion.autoCheckingVersion();
+                                break;
+                            case 3:
+                                List<String> formattedMessage2 = LoadMessages.successfullyreload;
+                                for (String line : formattedMessage2) {
+                                    long endTime = System.currentTimeMillis();
+                                    long reloadPluginTime = endTime - startTime;
+                                    line = line.replace("%mc%", reloadPluginTime + "");
+                                    String formattedLine = TranslateRGBColors.translateRGBColors(line);
+                                    sender.sendMessage(formattedLine);
+                                }
+                                if (Variables.commandReloadTask != null) {
+                                    Variables.commandReloadTask.cancel();
+                                }
+                                isReloaded = false;
+                                return;
+                        }
+                        step++;
+                    } catch (Throwable e) {
+                        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                        String callingClassName = stackTrace[2].getClassName();
+                        LoggerUtility.loggerUtility(callingClassName, e);
                     }
-                    step[0]++;
-                } catch (Throwable e) {
-                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                    String callingClassName = stackTrace[2].getClassName();
-                    LoggerUtility.loggerUtility(callingClassName, e);
                 }
-            }, 1L, 1L);
-            Variables.isReloaded = true;
+            }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 8);
+            isReloaded = true;
             Variables.commandReloadTask = task;
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();

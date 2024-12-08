@@ -1,6 +1,5 @@
 package org.sRandomRTP.Commands;
 
-import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -34,8 +33,8 @@ public class CommandCancel implements Listener {
         Player player = (Player) sender;
 
             if (Variables.teleportTasks.containsKey(player)) {
-                WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                for (WrappedTask task : tasks) {
+                BukkitTask[] tasks = Variables.teleportTasks.get(player);
+                for (BukkitTask task : tasks) {
                     task.cancel();
                 }
                 Variables.teleportTasks.remove(player);
