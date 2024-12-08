@@ -14,9 +14,13 @@ import org.sRandomRTP.Commands.CommandArgs;
 import org.sRandomRTP.Commands.onTabCompletes;
 import org.sRandomRTP.Data.DataLoad;
 import org.sRandomRTP.DifferentMethods.*;
-import org.sRandomRTP.Events.*;
+import org.sRandomRTP.Events.PlayerDamage;
+import org.sRandomRTP.Events.PlayerMouseMove;
+import org.sRandomRTP.Events.PlayerMove;
+import org.sRandomRTP.Events.PlayerParticles;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Metrics.Metrics;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -40,20 +44,14 @@ public class Main extends JavaPlugin {
             if (CheckingServerVersion.checkingServerVersion()) {
                 return;
             }
-            if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cUsed Folia there may be errors or bugs!...");
-                LoadFiles.loadFiles();
-            } else {
-                LoadFiles.loadFiles();
-            }
             //
-           // if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
-           //     Variables.pluginToggle = true;
-           //     Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cFolia core is not supported, plugin is disabled!");
-           //     Bukkit.getPluginManager().disablePlugin(this);
-           //     return;
-           // } else {
-           // }
+            if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
+                Variables.pluginToggle = true;
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cFolia core is not supported, plugin is disabled!");
+                Bukkit.getPluginManager().disablePlugin(this);
+                return;
+            } else {
+            }
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking installed PlaceHolderAPI...");
             if (CheckingInstalledPlaceHolderAPI.checkingInstalledPlaceHolderAPI()) {
@@ -69,14 +67,13 @@ public class Main extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new PlayerDamage(), this);
             getServer().getPluginManager().registerEvents(new PlayerMove(), this);
             getServer().getPluginManager().registerEvents(new PlayerMouseMove(), this);
-            getServer().getPluginManager().registerEvents(new PlayerBreak(), this);
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eCreating files...");
             FilesCreate filesCreate = new FilesCreate();
             List<String> createdFiles = filesCreate.filesCreate();
             long createTime = System.currentTimeMillis();
             for (String message : createdFiles) {
-                if (message != null && !createdFiles.contains(message)) {
+                if (message != null) {
                     long elapsedTime = System.currentTimeMillis() - createTime;
                     String formattedLine = String.format(Variables.pluginName + " §8- §aFile %s successfully created §6(%d ms)", message, elapsedTime);
                     Bukkit.getConsoleSender().sendMessage(formattedLine);
@@ -97,22 +94,22 @@ public class Main extends JavaPlugin {
             FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
             LoadKeys.loadKeys(config);
             //
-            //CheckingFile checkingFile = new CheckingFile();
-            //checkingFile.compareLanguageFiles("ar_sa.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("custom_messages.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("de_de.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("en_us.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("es_es.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("fr_fr.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("it_it.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("ja_jp.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("ko_kr.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("pl_pl.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("pt_br.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("uk_ua.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("vi_vn.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("zh_cn.yml", "ru_ru.yml");
-            //checkingFile.compareLanguageFiles("tr_tr.yml", "ru_ru.yml");
+            CheckingFile checkingFile = new CheckingFile();
+            checkingFile.compareLanguageFiles("ar_sa.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("custom_messages.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("de_de.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("en_us.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("es_es.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("fr_fr.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("it_it.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("ja_jp.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("ko_kr.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("pl_pl.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("pt_br.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("uk_ua.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("vi_vn.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("zh_cn.yml", "ru_ru.yml");
+            checkingFile.compareLanguageFiles("tr_tr.yml", "ru_ru.yml");
             //
             LoadLanguageFile loadLanguageFile = new LoadLanguageFile();
             loadLanguageFile.loadLanguageFile();
@@ -139,15 +136,11 @@ public class Main extends JavaPlugin {
                 metrics.addCustomChart(new Metrics.DrilldownPie("lang", () -> {
                     Map<String, Map<String, Integer>> map = new HashMap<>();
                     String language = Variables.getInstance().getConfig().getString("Language");
-
                     if (language != null && !language.trim().isEmpty()) {
-                        // Извлекаем основной язык из формата ru_ru
-                        String[] parts = language.split("_");
-                        String mainLanguage = parts[0];
-
                         Map<String, Integer> entry = new HashMap<>();
-                        entry.put(mainLanguage, 1);
-                        map.put(mainLanguage, entry);
+                        entry.put(language, 1);
+                        map.put(language, entry);
+                    } else {
                     }
                     return map;
                 }));

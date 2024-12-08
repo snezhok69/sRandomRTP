@@ -5,6 +5,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.block.Biome;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -12,16 +13,15 @@ import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.Data.DataSave;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
-import org.sRandomRTP.Rtp.RtpRtpBase;
+import org.sRandomRTP.Rtp.RtpRtpBiome;
 
-public class CooldownBypassBossBarBase {
-
-    public static boolean cooldownBypassBossBarbase(Player player, CommandSender sender) {
+public class CooldownBypassBossBarBiome {
+    public static boolean cooldownBypassBossBarbiome(Player player, CommandSender sender, Biome biome) {
         try {
             if (player.hasPermission("sRandomRTP.Cooldown.bypass")) {
-                RtpRtpBase.rtpRtpbase(sender);
+                RtpRtpBiome.rtpRtpbiome(sender, biome);
             } else {
-                startBossBarCountdown(player, sender);
+                startBossBarCountdown(player, sender, biome);
                 return true;
             }
         } catch (Throwable e) {
@@ -32,7 +32,7 @@ public class CooldownBypassBossBarBase {
         return false;
     }
 
-    public static void startBossBarCountdown(Player player, CommandSender sender) {
+    public static void startBossBarCountdown(Player player, CommandSender sender, Biome biome) {
         int countdownTime = Variables.bossbarfile.getInt("teleport.bossbar-time");
         BukkitTask[] tasks = new BukkitTask[2];
         BukkitTask progressTask = new BukkitRunnable() {
@@ -45,7 +45,7 @@ public class CooldownBypassBossBarBase {
                     cancel();
                     RemoveBossBar.removeBossBar(player);
                     Variables.playerSearchStatus.put(player.getName(), false);
-                    RtpRtpBase.rtpRtpbase(sender);
+                    RtpRtpBiome.rtpRtpbiome(sender, biome);
                     int totalUses = Variables.rtpCount.getOrDefault(1, 0);
                     Variables.rtpCount.put(1, totalUses + 1);
                     DataSave.dataSave();

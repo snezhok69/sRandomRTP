@@ -1,6 +1,5 @@
 package org.sRandomRTP.Events;
 
-import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -24,8 +23,8 @@ public class PlayerDamage implements Listener {
                 if (event.getEntity() instanceof Player) {
                     Player player = (Player) event.getEntity();
                     if (Variables.teleportTasks.containsKey(player)) {
-                        WrappedTask[] tasks = Variables.teleportTasks.get(player);
-                        for (WrappedTask tasks1 : tasks) {
+                        BukkitTask[] tasks = Variables.teleportTasks.get(player);
+                        for (BukkitTask tasks1 : tasks) {
                             tasks1.cancel();
                         }
                         Variables.teleportTasks.remove(player);
