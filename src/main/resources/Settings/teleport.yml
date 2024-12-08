@@ -5,11 +5,9 @@ teleport:
   bannedBiomes:
   - ''
   # Here you can specify the radius of random teleportation from the center of the world.
-  radius: 50
-  minradius: 10
+  radius: 1000
   # Radius to the nearest teleportation point to the region by command /rtp base. The recommended minimum number is 10, if you set the number lower the /rtp base command may stop working.
   regionradius: 10
-  # Enable or disable teleportation request message on /rtp player <player> command.
   rtp-player-messages: false
   # Here you can specify the blocks to which the plugin will not teleport.
   # These are default blocks, better not to change them!
@@ -22,6 +20,24 @@ teleport:
   - SEAGRASS
   - KELP_PLANT
   - KELP
+  # List of forbidden biomes for the /rtp BIOME command.
+  # Link to all biomes - https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html.
+  # Here you can specify the biomes to which the plugin will not teleport.
+  # '' - write without this symbol. Write in a column as in blocks.
+  bannedBiomescmdbiome:
+    - ''
+  # List of forbidden blocks for the /rtp biome command. Take into account the fact that if, for example, you have banned the WATER block and try to teleport to the OCEAN biome,
+  # You simply will not be teleported, because the main biome block is forbidden.
+  # These are default blocks, better not to change them!
+  # Otherwise, it might teleport you to water, even if it's forbidden because SEAGRASS is a SEPARATE BLOCK.
+  # Link to all blocks minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html.
+  bannedBlockscmdbiome:
+    - LAVA
+    - WATER
+    - TALL_SEAGRASS
+    - SEAGRASS
+    - KELP_PLANT
+    - KELP
   # Off,on execution of commands upon successful teleportation.
   Commandsteleport:
     # Off,on execution of commands upon successful teleportation.
@@ -42,7 +58,6 @@ teleport:
     # If true, cooldown will be issued after taking damage or canceling teleportation with /rtp cancel.
     # If false, cooldown will not be issued after taking damage or canceling teleportation with /rtp cancel.
     move-cancel-cooldown: false
-    break-block-cooldown: false
     # If true, cooldown will be issued on the command.
     # If false, cooldown will not be issued on the command.
     enabled: true
@@ -57,7 +72,6 @@ teleport:
   # If true - teleportation will be canceled if you move the mouse.
   # If false - teleportation will not be canceled if you move the mouse.
   mouse-move-cancel-rtp: false
-  break-block-cancel-rtp: false
   # Enables or disables the function for checking random teleportation in regions.
   # If true - the plugin will not teleport in regions.
   # If false - the plugin will teleport in regions.

@@ -4,10 +4,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.sRandomRTP.Cooldowns.CooldownBypassBossBarPlayer;
+import org.sRandomRTP.BlockBiomes.IsBiomeBanned;
+import org.sRandomRTP.Cooldowns.CooldownBypassBossBarBiome;
 import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
@@ -16,21 +18,18 @@ import org.sRandomRTP.GetYGet.GetPlayerItemCount;
 import java.util.List;
 import java.util.Map;
 
-public class CommandPlayer {
-
-    public static void commandplayer(CommandSender sender, Player targetPlayer) {
+public class CommandBiome {
+    public static void commandbiome(CommandSender sender, String biomeArg) {
         try {
-            if (targetPlayer.equals(sender)) {
-                sender.sendMessage(ChatColor.RED + "You cannot teleport yourself!");
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
                 return;
             }
-
-            Player player = (sender instanceof Player) ? (Player) sender : null;
-            World world = targetPlayer.getWorld();
+            Player player = (Player) sender;
+            World world = player.getWorld();
             FileConfiguration config = Variables.getInstance().getConfig();
             boolean loggingEnabled = config.getBoolean("logs", false);
-
-            if (player != null && !player.hasPermission("sRandomRTP.Command.Player")) {
+            if (!player.hasPermission("sRandomRTP.Command.Biome")) {
                 List<String> formattedMessage = LoadMessages.nopermissioncommand;
                 for (String line : formattedMessage) {
                     String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
@@ -38,7 +37,6 @@ public class CommandPlayer {
                 }
                 return;
             }
-
             if (Variables.teleportfile.getBoolean("teleport.checking-in-regions")) {
                 try {
                     Class.forName("com.sk89q.worldguard.bukkit.WorldGuardPlugin");
@@ -46,11 +44,10 @@ public class CommandPlayer {
                     if (loggingEnabled) {
                         Bukkit.getConsoleSender().sendMessage("Install the WorldGuard plugin or disable checking regions in the configuration (checkinginregions: false).");
                     }
-                    sender.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
+                    player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
                     return;
                 }
             }
-
             if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
                 try {
                     Class.forName("net.milkbowl.vault.economy.Economy");
@@ -58,12 +55,13 @@ public class CommandPlayer {
                     if (loggingEnabled) {
                         Bukkit.getConsoleSender().sendMessage("Install the Vault plugin to make the economy function work. Or disable the economy function (Money: enabled: false)");
                     }
-                    sender.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
+                    player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
                     return;
                 }
-
+            }
+            if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
                 int teleportCost = Variables.economyfile.getInt("teleport.Money.money");
-                if (player != null && !Variables.econ.has(player, teleportCost)) {
+                if (!Variables.econ.has(player, teleportCost)) {
                     List<String> formattedMessage = LoadMessages.insufficient_funds;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%money%", String.valueOf(teleportCost))));
@@ -71,7 +69,7 @@ public class CommandPlayer {
                     }
                     return;
                 }
-                if (player != null && !Variables.econ.withdrawPlayer(player, teleportCost).transactionSuccess()) {
+                if (!Variables.econ.withdrawPlayer(player, teleportCost).transactionSuccess()) {
                     List<String> formattedMessage = LoadMessages.error_withdrawing;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
@@ -83,11 +81,11 @@ public class CommandPlayer {
 
             if (Variables.economyfile.getBoolean("teleport.Hunger.enabled")) {
                 int requiredHunger = Variables.economyfile.getInt("teleport.Hunger.hunger");
-                if (targetPlayer.getFoodLevel() < requiredHunger) {
+                if (player.getFoodLevel() < requiredHunger) {
                     List<String> formattedMessage = LoadMessages.insufficient_hunger;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%hunger%", String.valueOf(requiredHunger))));
-                        targetPlayer.sendMessage(formattedLine);
+                        player.sendMessage(formattedLine);
                     }
                     return;
                 }
@@ -95,40 +93,38 @@ public class CommandPlayer {
 
             if (Variables.economyfile.getBoolean("teleport.Levels.enabled")) {
                 int requiredLevel = Variables.economyfile.getInt("teleport.Levels.level");
-                if (targetPlayer.getLevel() < requiredLevel) {
+                if (player.getLevel() < requiredLevel) {
                     List<String> formattedMessage = LoadMessages.insufficient_levels;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%level%", String.valueOf(requiredLevel))));
-                        targetPlayer.sendMessage(formattedLine);
+                        player.sendMessage(formattedLine);
                     }
                     return;
                 }
             }
-
-            if (Variables.economyfile.getBoolean("teleport.Health.enabled")) {
-                double requiredHealth = Variables.economyfile.getDouble("teleport.Health.health");
-                if (targetPlayer.getHealth() < requiredHealth) {
+            if (Variables.economyfile.getBoolean("teleport.Levels.enabled")) {
+                double requiredHealth = Variables.economyfile.getDouble("teleport.Levels.health");
+                if (player.getHealth() < requiredHealth) {
                     List<String> formattedMessage = LoadMessages.insufficient_health;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%health%", String.valueOf(requiredHealth))));
-                        targetPlayer.sendMessage(formattedLine);
+                        player.sendMessage(formattedLine);
                     }
                     return;
                 }
             }
-
             if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
                 List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
                 if (bannedWorlds.contains(world.getName())) {
                     List<String> formattedMessage = LoadMessages.banned_world;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
-                        targetPlayer.sendMessage(formattedLine);
+                        player.sendMessage(formattedLine);
                     }
                     return;
                 }
             }
-
+            //
             if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
                 List<String> requiredItems = Variables.economyfile.getStringList("teleport.Items.requiredItems");
                 for (String itemString : requiredItems) {
@@ -140,7 +136,7 @@ public class CommandPlayer {
                 boolean hasAllItems = true;
                 StringBuilder missingItems = new StringBuilder();
                 for (Map.Entry<Material, Integer> entry : Variables.itemMap.entrySet()) {
-                    int playerItemCount = GetPlayerItemCount.getPlayerItemCount(targetPlayer, entry.getKey());
+                    int playerItemCount = GetPlayerItemCount.getPlayerItemCount(player, entry.getKey());
                     if (playerItemCount < entry.getValue()) {
                         hasAllItems = false;
                         if (missingItems.length() > 0) {
@@ -154,23 +150,34 @@ public class CommandPlayer {
                     List<String> formattedMessage = LoadMessages.insufficient_items;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%items%", missingItemsMessage)));
-                        targetPlayer.sendMessage(formattedLine);
+                        player.sendMessage(formattedLine);
                     }
                     return;
                 }
             }
-
-            if (PlayerSearchStatus.playerSearchStatus(targetPlayer, sender)) {
+            Biome targetBiome = Biome.valueOf(biomeArg.toUpperCase());
+            if (IsBiomeBanned.isBiomeBanned(targetBiome)) {
+                List<String> formattedMessage = LoadMessages.bannedbiome;
+                for (String line : formattedMessage) {
+                    line = line.replace("%biome%", String.valueOf(targetBiome));
+                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                    sender.sendMessage(formattedLine);
+                    return;
+                }
+            }
+            //
+            if (PlayerSearchStatus.playerSearchStatus(player, sender)) {
                 return;
             }
-
-            if (CooldownCommandRtp.cooldownCommandRtp(targetPlayer, sender)) {
+            //
+            if (CooldownCommandRtp.cooldownCommandRtp(player, sender)) {
                 return;
             }
-
-            if (CooldownBypassBossBarPlayer.cooldownBypassBossBarplayer(sender, targetPlayer)) {
+            //
+            if (CooldownBypassBossBarBiome.cooldownBypassBossBarbiome(player, sender, targetBiome)) {
                 return;
             }
+                return;
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
