@@ -52,6 +52,9 @@ public class onTabCompletes implements TabCompleter {
                 if (sender.hasPermission("sRandomRTP.Command.Back")) {
                     arguments.add("back");
                 }
+                if (sender.hasPermission("sRandomRTP.Command.Biome")) {
+                    arguments.add("biome");
+                }
                 if (sender.hasPermission("sRandomRTP.Command.World")) {
                     arguments.add("world");
                 }
@@ -146,7 +149,7 @@ public class onTabCompletes implements TabCompleter {
                     args[0].equalsIgnoreCase("base") ||
                     args[0].equalsIgnoreCase("back") ||
                     args[0].equalsIgnoreCase("accept") ||
-                    args[0].equalsIgnoreCase("deny") ||
+                    args[0].equalsIgnoreCase("denySd") ||
                     args[0].equalsIgnoreCase("version"))) {
                 String input = args[1].toLowerCase();
                 for (String argument : getAllArguments(sender, args)) {

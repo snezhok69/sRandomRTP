@@ -10,7 +10,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c4ac92aa-a4da-4f3f-9ed5-a294fc61feb2" name="Changes" comment="pre-update folia">
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/artifacts/sRandomRTP_3_0.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/artifacts/sRandomRTP_3_0.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/FoliaLibRANDOMRTP.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/FoliaLibRANDOMRTP2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_02_08_2024_15_46_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_02_08_2024_15_46__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/DifferentMethods/Variables.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/DifferentMethods/Variables.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/GetYGet/GetSafeYCoordinate.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/GetYGet/GetSafeYCoordinate.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/sRandomRTP/Rtp/RtpRtp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,8 +48,8 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/snezhok69/sRandomRTP&quot;,
-    &quot;accountId&quot;: &quot;948100ab-d09a-4c72-a5b1-7d7d1a7b9f96&quot;
+    &quot;url&quot;: &quot;https://github.com/snezhok69/sRandomRTP.git&quot;,
+    &quot;accountId&quot;: &quot;e02235a0-c57c-4ad6-ab84-848fc47c0d98&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
@@ -60,28 +69,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Maven.sRTP package.executor": "Run",
-    "Remote JVM Debug.Unnamed.executor": "Debug",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/SystemX/Desktop/FoliaLibRANDOMRTP.jar",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.stylelint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.stylelint": "",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Artifacts",
-    "project.structure.proportion": "0.15871775",
-    "project.structure.side.proportion": "0.3810409",
-    "settings.editor.selected.configurable": "project.propCompiler",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven.sRTP package.executor&quot;: &quot;Run&quot;,
+    &quot;Remote JVM Debug.Unnamed.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Administrator/Downloads/FoliaLib-0.4.3.jar&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.stylelint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.stylelint&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15871775&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.3810409&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propCompiler&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Vitalik\Desktop\sRTP\src\main\resources\Settings" />
@@ -145,8 +154,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.18034.62" />
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-IU-241.18034.62" />
+        <option value="bundled-jdk-9823dce3aa75-28b599e66164-intellij.indexing.shared.core-IU-242.23726.103" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-IU-242.23726.103" />
       </set>
     </attachedChunks>
   </component>
@@ -440,6 +449,7 @@
       <workItem from="1722691517499" duration="15535000" />
       <workItem from="1722714748691" duration="1535000" />
       <workItem from="1722720197110" duration="9099000" />
+      <workItem from="1733668121511" duration="207000" />
     </task>
     <task id="LOCAL-00001" summary="Add project">
       <option name="closed" value="true" />
