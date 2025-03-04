@@ -14,10 +14,10 @@ public class PortalDataTasks {
     private String taskIds;
     private WrappedTask particlesTask;
     private WrappedTask triggerTask;
-    private String shape; // Тип портала: круглый или квадратный
+    private String shape;
 
     public PortalDataTasks(String playerName, String portalName, String taskType, long delay, long period, Location center, int radius, String taskIds, WrappedTask particlesTask, WrappedTask triggerTask) {
-        this(playerName, portalName, taskType, delay, period, center, radius, taskIds, particlesTask, triggerTask, "circle"); // По умолчанию круглый
+        this(playerName, portalName, taskType, delay, period, center, radius, taskIds, particlesTask, triggerTask, "circle");
     }
 
     public PortalDataTasks(String playerName, String portalName, String taskType, long delay, long period, Location center, int radius, String taskIds, WrappedTask particlesTask, WrappedTask triggerTask, String shape) {
@@ -31,7 +31,7 @@ public class PortalDataTasks {
         this.taskIds = taskIds;
         this.particlesTask = particlesTask;
         this.triggerTask = triggerTask;
-        this.shape = shape != null ? shape : "circle"; // Защита от null
+        this.shape = shape != null ? shape : "circle";
     }
 
     public String getPlayerName() {

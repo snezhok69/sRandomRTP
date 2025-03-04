@@ -43,7 +43,7 @@ public class CooldownBypassBossBarPlayer {
 
                 if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
                     Variables.commandSenderMap.put(targetPlayer.getName(), sender);
-                    sendInitialMessage(sender, targetPlayer); // Отправляем запрос игроку
+                    sendInitialMessage(sender, targetPlayer);
                     return true;
                 } else {
                     if (targetPlayer.hasPermission("sRandomRTP.Cooldown.bypass")) {

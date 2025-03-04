@@ -111,7 +111,6 @@ public class CommandSetPortal {
         int maxZ = world.getWorldBorder().getCenter().getBlockZ() + (int) world.getWorldBorder().getSize() / 2;
 
         if (shape.equals("circle")) {
-            // Для круглого портала
             double increment = (2 * Math.PI) / (radius * 16);
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
@@ -140,7 +139,6 @@ public class CommandSetPortal {
                 }
             }
         } else if (shape.equals("square")) {
-            // Для квадратного портала
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
                     Location glassLocation = center.clone().add(x, -1, z);
@@ -170,7 +168,6 @@ public class CommandSetPortal {
         StringBuilder allBlocksData = new StringBuilder();
 
         if (shape.equals("circle")) {
-            // Круглый портал - основание
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
                     if (x * x + z * z <= radius * radius) {
@@ -193,7 +190,6 @@ public class CommandSetPortal {
                 }
             }
 
-            // Круглый портал - граница
             int x = 0;
             int z = radius;
             int d = 3 - 2 * radius;
@@ -217,7 +213,6 @@ public class CommandSetPortal {
                 x++;
             }
         } else if (shape.equals("square")) {
-            // Квадратный портал - основание
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
                     Location glassLocation = center.clone().add(x, -1, z);
@@ -238,14 +233,13 @@ public class CommandSetPortal {
                 }
             }
 
-            // Квадратный портал - граница
             for (int x = -radius; x <= radius; x++) {
-                placeObsidianBorder(center, x, -radius, player, portalName, world, allBlocksData); // Север
-                placeObsidianBorder(center, x, radius, player, portalName, world, allBlocksData);  // Юг
+                placeObsidianBorder(center, x, -radius, player, portalName, world, allBlocksData);
+                placeObsidianBorder(center, x, radius, player, portalName, world, allBlocksData);
             }
             for (int z = -radius + 1; z <= radius - 1; z++) {
-                placeObsidianBorder(center, -radius, z, player, portalName, world, allBlocksData); // Запад
-                placeObsidianBorder(center, radius, z, player, portalName, world, allBlocksData);  // Восток
+                placeObsidianBorder(center, -radius, z, player, portalName, world, allBlocksData);
+                placeObsidianBorder(center, radius, z, player, portalName, world, allBlocksData);
             }
         }
 
@@ -283,7 +277,6 @@ public class CommandSetPortal {
         double increment = 0.5;
 
         if (shape.equals("circle")) {
-            // Частицы для круглого портала
             for (double x = -radius; x <= radius; x += increment) {
                 for (double z = -radius; z <= radius; z += increment) {
                     if (x * x + z * z <= radius * radius) {
@@ -293,7 +286,6 @@ public class CommandSetPortal {
                 }
             }
         } else if (shape.equals("square")) {
-            // Частицы для квадратного портала
             for (double x = -radius; x <= radius; x += increment) {
                 for (double z = -radius; z <= radius; z += increment) {
                     Location particleLocation = center.clone().add(x, 0, z);
@@ -338,10 +330,8 @@ public class CommandSetPortal {
         boolean isOnGlass = dy >= -1 && dy <= 0;
 
         if (shape.equals("circle")) {
-            // Для круглого портала
             return isOnGlass && (dx * dx + dz * dz <= radius * radius);
         } else if (shape.equals("square")) {
-            // Для квадратного портала
             return isOnGlass && (Math.abs(dx) <= radius && Math.abs(dz) <= radius);
         }
 
