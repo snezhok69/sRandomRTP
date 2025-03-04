@@ -1,3 +1,4 @@
+# 좌표를 지정하려면 %y% %z% %x%를 사용하세요 (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &c플러그인을 다시 로드할 권한이 없습니다.'
@@ -5,8 +6,6 @@ messages:
     - '&a[sRandomRTP] &c플러그인이 다시 로드 중입니다. 잠시만 기다려주세요...'
   reloading-start:
     - '&a[sRandomRTP] &c플러그인이 다시 로드되고 있습니다. 잠시 기다려주세요...'
-  reloading-process:
-    - '&a[sRandomRTP] &6플러그인이 다시 로드되고 있습니다. 잠시 기다려주세요...'
   successfully-reload:
     - '&a[sRandomRTP] &a플러그인이 성공적으로 다시 로드되었습니다. %mc% 밀리초'
   no-permission:
@@ -18,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &c텔레포트가 취소되었습니다.'
   teleported:
-    - '&a[sRandomRTP] &f좌표 &aX: %x% Z: %z% 로 텔레포트되었습니다.'
+    - '&a[sRandomRTP] &f좌표 &aX: %x% Y: %y% Z: %z% 로 텔레포트되었습니다.'
   loading:
     - '&a[sRandomRTP] &6적합한 장소를 찾고 있습니다...'
   locationNotFound:
@@ -38,7 +37,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6현재 텔레포트 중이 아닙니다.'
   titleMessage: "&a텔레포트 성공!"
-  subtitleMessage: "&e새로운 장소로 이동되었습니다."
+  subtitleMessage: "&e새로운 장소로 이동되었습니다. 좌표: &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6서버에 /rtp near 명령어를 사용할 수 있는 플레이어가 없습니다.'
   noplayerworldnear:
@@ -94,6 +93,12 @@ messages:
     - '&a[sRandomRTP] &6플레이어에게 이미 활성 텔레포트 요청이 있습니다.'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6플레이어 &a%player% 에게 텔레포트 요청을 성공적으로 보냈습니다'
+  error-radius:
+    - '&a[sRandomRTP] &6오류: &4radius 및 &4minRadius &6는 같을 수 없습니다. 텔레포트가 취소되었습니다.'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6자기 자신을 텔레포트할 수 없습니다.'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &c텔레포트 요청을 찾을 수 없거나 만료되었습니다.'
   commandhelp:
     - ' '
     - '&c플러그인 명령어 도움말:'
@@ -121,3 +126,86 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &c플러그인이 비활성화되었습니다! %mc% ms'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &c반경은 1에서 10 사이여야 합니다!'
+  error-portal-name:
+    - '&a[sRandomRTP] &c잘못된 포털 이름입니다. 문자와 숫자만 사용하세요. 특수 문자와 공백은 허용되지 않습니다.'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &c&e90 &c자를 초과하는 포털은 생성할 수 없습니다. &e %excessCharacters% &c자 제한을 초과했습니다.'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &c이름이 &6%portalName% &c인 포털이 이미 존재합니다.'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &c반경 &6%radius%&c의 포털을 생성할 공간이 부족합니다!'
+  success-portal-created:
+    - '&a[sRandomRTP] &a포털 &6%portalName% &a이(가) 반경 &6%radius%로 생성되었습니다'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &c다시 텔레포트하기 전에 기다려주세요!'
+  error-page-number-invalid:
+    - '&c잘못된 페이지 번호입니다.'
+  error-command-format:
+    - '&c잘못된 명령어 형식입니다. 예시: /rtp listportal -p:2'
+  error-no-portals:
+    - '&c생성된 포털이 없습니다.'
+  error-page-not-found:
+    - '&c페이지 %page%가 존재하지 않습니다.'
+  error-portal-not-found:
+    - '&c이름이 &e%portal% &c인 포털을 찾을 수 없습니다.'
+  error-world-not-found:
+    - '&c포털 월드를 찾을 수 없습니다.'
+  portal-list-header:
+    - '&6&l포털 목록 (페이지 %page% / %total%):'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7클릭하여 포털 &e%portal% 삭제'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7클릭하여 포털 &e%portal%로 텔레포트'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[이전]'
+  portal-prev-hover: '&7클릭하여 이전 페이지로 이동'
+  portal-prev-disabled: '&c첫 페이지입니다'
+  portal-next-button: '&a[다음]'
+  portal-next-hover: '&7클릭하여 다음 페이지로 이동'
+  portal-next-disabled: '&c마지막 페이지입니다'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&a포털 &e%portal%&a로 텔레포트되었습니다.'
+  portal-delete-success:
+    - '&a포털 &e%portal% &a와 모든 블록이 성공적으로 삭제되었습니다.'
+  redirect-world:
+    - '&a[sRandomRTP] &6월드 &e%from_world% &4에서의 텔레포트가 금지되었습니다. &6월드 &e%to_world%로 텔레포트됩니다'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6플레이어 &e%player% &e을(를) 금지된 월드 &e%world%&c로 텔레포트할 수 없습니다!'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6반경 &e%radius% &e블록의 청크 생성을 시작했습니다&c!'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6월드 &e%world%&c에서 청크 생성이 중지되었습니다!'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6이 월드에 활성화된 청크 생성 작업이 없습니다!'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6반경은 숫자여야 합니다!'
+  commandhelp:
+    - ' '
+    - '&c플러그인 명령어 도움말:'
+    - ' '
+    - '&a/rtp - &6랜덤 텔레포트.'
+    - '&a/rtp world <당신의 세계> - &6지정된 세계로 텔레포트.'
+    - '&a/rtp near - &6플레이어 근처로 텔레포트.'
+    - '&a/rtp help - &6명령어 도움말을 표시.'
+    - '&a/rtp version - &6새 플러그인 버전을 확인.'
+    - '&a/rtp reload - &6플러그인을 리로드.'
+    - '&a/rtp cancel - &6보스바 동안 텔레포트를 취소.'
+    - '&a/rtp back - &6텔레포트 전 위치로 돌아가기.'
+    - '&a/rtp base - &6WorldGuard 지역 근처로 텔레포트.'
+    - '&a/rtp player <플레이어 이름>(또는 추가 인수 <world>, 지정된 플레이어를 다른 월드로 텔레포트) - &6지정된 플레이어를 텔레포트.'
+    - '&a/rtp accept - &6다른 플레이어의 텔레포트를 수락.'
+    - '&a/rtp deny - &6다른 플레이어의 텔레포트를 거부.'
+    - '&a/rtp setportal - &6포털 생성.'
+    - '&a/rtp delportal - &6포털 삭제.'
+    - '&a/rtp listportal - &6포털 목록 보기.'
+    - '&a/rtp chunky N- &6N개의 청크 생성 시작.'
+    - '&a/rtp chunky stop- &6현재 플레이어의 월드에서 청크 생성 중지.'
+    - ' '
+  worldborder-error:
+    - '&a[sRandomRTP] &6텔레포트가 취소되었습니다: 월드 경계를 넘어 이동할 수 없습니다.'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6리다이렉트 월드에 플레이어가 없습니다!'

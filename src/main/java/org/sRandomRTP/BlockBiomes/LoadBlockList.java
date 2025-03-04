@@ -1,17 +1,14 @@
 package org.sRandomRTP.BlockBiomes;
 
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
-
 import java.util.List;
 
 public class LoadBlockList {
     public static void loadBlockList() {
         try {
             Variables.blockList.clear();
-            FileConfiguration config = Variables.getInstance().getConfig();
             if (Variables.teleportfile.contains("teleport.bannedBlocks")) {
                 List<String> blockNames = Variables.teleportfile.getStringList("teleport.bannedBlocks");
                 for (String materialName : blockNames) {

@@ -1,3 +1,4 @@
+# Utilisez %y% %z% %x% pour spécifier les coordonnées (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cVous n''avez pas la permission de recharger le plugin.'
@@ -5,8 +6,6 @@ messages:
     - '&a[sRandomRTP] &cLe plugin se recharge, veuillez patienter...'
   reloading-start:
     - '&a[sRandomRTP] &cLe plugin est en cours de rechargement, veuillez patienter...'
-  reloading-process:
-    - '&a[sRandomRTP] &6Le plugin est en cours de rechargement, veuillez patienter...'
   successfully-reload:
     - '&a[sRandomRTP] &aLe plugin a été rechargé avec succès. %mc% ms'
   no-permission:
@@ -18,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &cLa téléportation a été annulée.'
   teleported:
-    - '&a[sRandomRTP] &fVous avez été téléporté aux coordonnées &aX: %x% Z: %z%.'
+    - '&a[sRandomRTP] &fVous avez été téléporté aux coordonnées &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Recherche d''un endroit approprié...'
   locationNotFound:
@@ -38,7 +37,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6Vous ne vous téléportez pas pour le moment.'
   titleMessage: "&aTéléportation réussie !"
-  subtitleMessage: "&eVous avez été déplacé à un nouvel endroit."
+  subtitleMessage: "&eVous avez été déplacé vers un nouvel emplacement aux coordonnées &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6Il n''y a personne sur le serveur pour utiliser la commande /rtp near.'
   noplayerworldnear:
@@ -94,6 +93,12 @@ messages:
     - '&a[sRandomRTP] &6Le joueur a déjà une demande de téléportation active.'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6Vous avez envoyé avec succès une demande de téléportation au joueur &a%player%'
+  error-radius:
+    - '&a[sRandomRTP] &6Erreur : &4radius et &4minRadius &6ne peuvent pas être égaux. Téléportation annulée.'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6Vous ne pouvez pas vous téléporter vous-même.'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &cAucune demande de téléportation trouvée ou elle a expiré.'
   commandhelp:
     - ' '
     - '&cAide des commandes du plugin :'
@@ -107,9 +112,14 @@ messages:
     - '&a/rtp cancel - &6annule la téléportation pendant la barre de boss.'
     - '&a/rtp back - &6retourne à l''endroit avant la téléportation.'
     - '&a/rtp base - &6se téléporte près des régions de WorldGuard.'
-    - '&a/rtp player <nom du joueur> - &6téléporte le joueur spécifié.'
+    - '&a/rtp player <nom du joueur>(ou argument supplémentaire <world>, pour téléporter le joueur spécifié vers un autre monde) - &6téléporte le joueur spécifié.'
     - '&a/rtp accept - &6accepte la téléportation d''un autre joueur.'
     - '&a/rtp deny - &6refuse la téléportation d''un autre joueur.'
+    - '&a/rtp setportal - &6créer un portail.'
+    - '&a/rtp delportal - &6supprimer un portail.'
+    - '&a/rtp listportal - &6voir la liste des portails.'
+    - '&a/rtp chunky N- &6commencer à générer N chunks.'
+    - '&a/rtp chunky stop- &6arrêter la génération de chunks dans le monde actuel du joueur.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -121,3 +131,64 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &cPlugin désactivé! %mc% ms'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &cLe rayon doit être compris entre 1 et 10 !'
+  error-portal-name:
+    - '&a[sRandomRTP] &cNom de portail invalide. Utilisez uniquement des lettres et des chiffres. Les caractères spéciaux et les espaces ne sont pas autorisés.'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &cImpossible de créer des portails de plus de &e90 &ccaractères. Vous avez dépassé la limite de &e %excessCharacters% &ccaractères.'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &cUn portail avec le nom &6%portalName% &cexiste déjà.'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &cPas assez d''espace pour créer un portail avec un rayon de &6%radius%&c !'
+  success-portal-created:
+    - '&a[sRandomRTP] &aPortail &6%portalName% &acréé avec un rayon de : &6%radius%'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &cVeuillez attendre avant de vous téléporter à nouveau !'
+  error-page-number-invalid:
+    - '&cNuméro de page invalide.'
+  error-command-format:
+    - '&cFormat de commande invalide. Exemple : /rtp listportal -p:2'
+  error-no-portals:
+    - '&cVous n''avez aucun portail créé.'
+  error-page-not-found:
+    - '&cLa page %page% n''existe pas.'
+  error-portal-not-found:
+    - '&cPortail avec le nom &e%portal% &cnon trouvé.'
+  error-world-not-found:
+    - '&cMonde du portail non trouvé.'
+  portal-list-header:
+    - '&6&lLISTE DES PORTAILS (Page %page% sur %total%) :'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7Cliquez pour supprimer le portail &e%portal%'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7Cliquez pour vous téléporter au portail &e%portal%'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[Précédent]'
+  portal-prev-hover: '&7Cliquez pour aller à la page précédente'
+  portal-prev-disabled: '&cVous êtes sur la première page'
+  portal-next-button: '&a[Suivant]'
+  portal-next-hover: '&7Cliquez pour aller à la page suivante'
+  portal-next-disabled: '&cVous êtes sur la dernière page'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&aVous avez été téléporté au portail &e%portal%&a.'
+  portal-delete-success:
+    - '&aLe portail &e%portal% &aet tous ses blocs ont été supprimés avec succès.'
+  redirect-world:
+    - '&a[sRandomRTP] &6La téléportation depuis le monde &e%from_world% &4est interdite. &6Vous serez téléporté vers le monde &e%to_world%'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6Vous ne pouvez pas téléporter le joueur &e%player% &evers le monde interdit &e%world%&c !'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6Début de la génération de chunks dans un rayon de &e%radius% &eblocs&c !'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6La génération de chunks a été arrêtée dans le monde &e%world%&c !'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6Aucune tâche de génération de chunks active dans ce monde !'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6Le rayon doit être un nombre !'
+  worldborder-error:
+    - '&a[sRandomRTP] &6Téléportation annulée : Vous ne pouvez pas vous déplacer au-delà des limites du monde.'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6Il n''y a pas de joueurs dans le monde de redirection !'

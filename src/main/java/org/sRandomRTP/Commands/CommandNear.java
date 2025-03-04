@@ -9,7 +9,6 @@ import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
-
 import java.util.List;
 import java.util.Map;
 
@@ -23,10 +22,8 @@ public class CommandNear {
             }
 
             Player player = (Player) sender;
-            Location playerLocation = player.getLocation();
             FileConfiguration config = Variables.getInstance().getConfig();
             boolean loggingEnabled = config.getBoolean("logs", false);
-            double minDistanceToPlayer = Variables.nearfile.getInt("teleport.minDistanceToPlayer");
             boolean playerNearby = false;
             World world = player.getWorld();
             if (!player.hasPermission("sRandomRTP.Command.Near")) {
@@ -112,18 +109,6 @@ public class CommandNear {
                     List<String> formattedMessage = LoadMessages.insufficient_levels;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%level%", String.valueOf(requiredLevel))));
-                        player.sendMessage(formattedLine);
-                    }
-                    return;
-                }
-            }
-
-            if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                if (bannedWorlds.contains(world.getName())) {
-                    List<String> formattedMessage = LoadMessages.banned_world;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
                         player.sendMessage(formattedLine);
                     }
                     return;

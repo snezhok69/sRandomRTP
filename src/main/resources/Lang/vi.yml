@@ -1,3 +1,4 @@
+# Sử dụng %y% %z% %x% để chỉ định tọa độ (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cBạn không có quyền để tải lại plugin.'
@@ -16,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &cDịch chuyển đã bị hủy.'
   teleported:
-    - '&a[sRandomRTP] &fBạn đã được dịch chuyển đến tọa độ &aX: %x% Z: %z%.'
+    - '&a[sRandomRTP] &fBạn đã được dịch chuyển đến tọa độ &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Đang tìm vị trí phù hợp cho bạn...'
   locationNotFound:
@@ -36,7 +37,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6Hiện tại bạn không đang được dịch chuyển.'
   titleMessage: "&aDịch chuyển thành công!"
-  subtitleMessage: "&eBạn đã được chuyển đến một địa điểm mới."
+  subtitleMessage: "&eBạn đã được di chuyển đến một địa điểm mới tại tọa độ &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6Không có người chơi nào trên máy chủ để sử dụng lệnh /rtp near.'
   noplayerworldnear:
@@ -92,6 +93,12 @@ messages:
     - '&a[sRandomRTP] &6Người chơi đã có yêu cầu dịch chuyển đang hoạt động.'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6Bạn đã gửi yêu cầu dịch chuyển đến người chơi &a%player% thành công.'
+  error-radius:
+    - '&a[sRandomRTP] &6Lỗi: &4radius và &4minRadius &6không thể bằng nhau. Dịch chuyển bị hủy.'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6Bạn không thể tự dịch chuyển chính mình.'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &cKhông tìm thấy yêu cầu dịch chuyển hoặc yêu cầu đã hết hạn.'
   commandhelp:
     - ' '
     - '&cHướng dẫn lệnh plugin:'
@@ -105,9 +112,14 @@ messages:
     - '&a/rtp cancel - &6hủy dịch chuyển khi đang trong bossbar.'
     - '&a/rtp back - &6quay lại vị trí trước khi dịch chuyển.'
     - '&a/rtp base - &6dịch chuyển gần khu vực worldguard.'
-    - '&a/rtp player <tên người chơi> - &6dịch chuyển người chơi đã chỉ định.'
+    - '&a/rtp player <tên người chơi>(hoặc tham số bổ sung <world>, để dịch chuyển người chơi đã chỉ định đến thế giới khác) - &6dịch chuyển người chơi đã chỉ định.'
     - '&a/rtp accept - &6chấp nhận dịch chuyển từ người chơi khác.'
     - '&a/rtp deny - &6từ chối dịch chuyển từ người chơi khác.'
+    - '&a/rtp setportal - &6tạo cổng.'
+    - '&a/rtp delportal - &6xóa cổng.'
+    - '&a/rtp listportal - &6xem danh sách cổng.'
+    - '&a/rtp chunky N- &6bắt đầu tạo N chunk.'
+    - '&a/rtp chunky stop- &6dừng tạo chunk trong thế giới hiện tại của người chơi.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -119,3 +131,64 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &cPlugin đã được tắt! %mc% ms'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &cBán kính phải từ 1 đến 10!'
+  error-portal-name:
+    - '&a[sRandomRTP] &cTên cổng không hợp lệ. Chỉ sử dụng chữ cái và số. Không được phép dùng ký tự đặc biệt và khoảng trắng.'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &cKhông thể tạo cổng dài hơn &e90 &cký tự. Bạn đã vượt quá giới hạn &e %excessCharacters% &cký tự.'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &cCổng có tên &6%portalName% &cđã tồn tại.'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &cKhông đủ không gian để tạo cổng với bán kính &6%radius%&c!'
+  success-portal-created:
+    - '&a[sRandomRTP] &aCổng &6%portalName% &ađã được tạo với bán kính: &6%radius%'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &cVui lòng đợi trước khi dịch chuyển lại!'
+  error-page-number-invalid:
+    - '&cSố trang không hợp lệ.'
+  error-command-format:
+    - '&cĐịnh dạng lệnh không hợp lệ. Ví dụ: /rtp listportal -p:2'
+  error-no-portals:
+    - '&cBạn chưa tạo cổng nào.'
+  error-page-not-found:
+    - '&cTrang %page% không tồn tại.'
+  error-portal-not-found:
+    - '&cKhông tìm thấy cổng có tên &e%portal%&c.'
+  error-world-not-found:
+    - '&cKhông tìm thấy thế giới của cổng.'
+  portal-list-header:
+    - '&6&lDANH SÁCH CỔNG (Trang %page% / %total%):'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7Nhấp để xóa cổng &e%portal%'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7Nhấp để dịch chuyển đến cổng &e%portal%'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[Trước]'
+  portal-prev-hover: '&7Nhấp để đi đến trang trước'
+  portal-prev-disabled: '&cBạn đang ở trang đầu tiên'
+  portal-next-button: '&a[Tiếp]'
+  portal-next-hover: '&7Nhấp để đi đến trang tiếp theo'
+  portal-next-disabled: '&cBạn đang ở trang cuối cùng'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&aBạn đã được dịch chuyển đến cổng &e%portal%&a.'
+  portal-delete-success:
+    - '&aCổng &e%portal% &avà tất cả các khối của nó đã được xóa thành công.'
+  redirect-world:
+    - '&a[sRandomRTP] &6Dịch chuyển từ thế giới &e%from_world% &4bị cấm. &6Bạn sẽ được dịch chuyển đến thế giới &e%to_world%'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6Bạn không thể dịch chuyển người chơi &e%player% &eđến thế giới bị cấm &e%world%&c!'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6Đã bắt đầu tạo chunk trong bán kính &e%radius% &ekhối&c!'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6Đã dừng tạo chunk trong thế giới &e%world%&c!'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6Không có tác vụ tạo chunk đang hoạt động trong thế giới này!'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6Bán kính phải là một số!'
+  worldborder-error:
+    - '&a[sRandomRTP] &6Dịch chuyển đã bị hủy: Bạn không thể di chuyển ra ngoài ranh giới thế giới.'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6Không có người chơi nào trong thế giới chuyển hướng!'
