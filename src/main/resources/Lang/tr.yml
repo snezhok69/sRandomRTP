@@ -1,3 +1,4 @@
+# Koordinatları belirtmek için %y% %z% %x% kullanın (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cEklentiyi yeniden yüklemek için izniniz yok.'
@@ -16,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &cIşınlanma iptal edildi.'
   teleported:
-    - '&a[sRandomRTP] &fAşağıdaki koordinatlara ışınlandınız &aX: %x% Y: %y% Z: %z%.'
+    - '&a[sRandomRTP] &fKoordinatlar &aX: %x% Y: %y% Z: %z% için teleportlandınız.'
   loading:
     - '&a[sRandomRTP] &6Sizin için uygun bir yer aranıyor...'
   locationNotFound:
@@ -35,7 +36,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6Şu anda ışınlanma gerçekleştirmiyorsunuz.'
   titleMessage: "&aIşınlanma başarılı!"
-  subtitleMessage: "&eAşağıdaki koordinatlara taşındınız &aX: %x% Y: %y% Z: %z%."
+  subtitleMessage: "&eYeni bir konuma taşındınız. Koordinatlar &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6Sunucuda /rtp near komutunu kullanabileceğiniz oyuncu yok.'
   noplayerworldnear:
@@ -91,6 +92,12 @@ messages:
     - '&a[sRandomRTP] &6Oyuncunun zaten aktif bir ışınlanma talebi var.'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6Başarıyla %player% oyuncusuna ışınlanma talebi gönderildi'
+  error-radius:
+    - '&a[sRandomRTP] &6Hata: &4radius ve &4minRadius &6eşit olamaz. Teleport iptal edildi.'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6Kendinizi teleport edemezsiniz.'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &cTeleport isteği bulunamadı veya süresi doldu.'
   commandhelp:
     - ' '
     - '&cEklenti komutları yardımı:'
@@ -104,9 +111,14 @@ messages:
     - '&a/rtp cancel - &6boss sırasında ışınlanmayı iptal etme.'
     - '&a/rtp back - &6ışınlanmadan önceki yere dönme.'
     - '&a/rtp base - &6WorldGuard bölgelerinin yakınına ışınlanma.'
-    - '&a/rtp player <oyuncu adı> - &6belirtilen oyuncuyu ışınlama.'
+    - '&a/rtp player <oyuncu adı>(veya ek argüman <world>, belirtilen oyuncuyu başka bir dünyaya ışınlamak için) - &6belirtilen oyuncuyu ışınlama.'
     - '&a/rtp accept - &6başka bir oyuncunun ışınlanmasını kabul etme.'
     - '&a/rtp deny - &6başka bir oyuncunun ışınlanmasını reddetme.'
+    - '&a/rtp setportal - &6portal oluşturma.'
+    - '&a/rtp delportal - &6portal silme.'
+    - '&a/rtp listportal - &6portal listesini görüntüleme.'
+    - '&a/rtp chunky N- &6N chunk oluşturmaya başlama.'
+    - '&a/rtp chunky stop- &6mevcut oyuncu dünyasında chunk oluşturmayı durdurma.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -118,4 +130,65 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &cEklenti devre dışı! %mc% ms'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &cYarıçap 1 ile 10 arasında olmalıdır!'
+  error-portal-name:
+    - '&a[sRandomRTP] &cGeçersiz portal adı. Sadece harf ve rakam kullanın. Özel karakterler ve boşluklar kullanılamaz.'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &c&e90 &ckarakteri aşan portal oluşturulamaz. &e %excessCharacters% &ckarakter sınırını aştınız.'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &c&6%portalName% &cadında bir portal zaten var.'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &c&6%radius%&c yarıçaplı portal oluşturmak için yeterli alan yok!'
+  success-portal-created:
+    - '&a[sRandomRTP] &a&6%portalName% &aportali &6%radius% &ayarıçapı ile oluşturuldu'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &cTekrar ışınlanmadan önce lütfen bekleyin!'
+  error-page-number-invalid:
+    - '&cGeçersiz sayfa numarası.'
+  error-command-format:
+    - '&cGeçersiz komut formatı. Örnek: /rtp listportal -p:2'
+  error-no-portals:
+    - '&cOluşturulmuş portalınız yok.'
+  error-page-not-found:
+    - '&c%page% sayfası mevcut değil.'
+  error-portal-not-found:
+    - '&c&e%portal% &cadlı portal bulunamadı.'
+  error-world-not-found:
+    - '&cPortal dünyası bulunamadı.'
+  portal-list-header:
+    - '&6&lPORTAL LİSTESİ (Sayfa %page% / %total%):'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7&e%portal% &7portalini silmek için tıklayın'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7&e%portal% &7portalına ışınlanmak için tıklayın'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[Önceki]'
+  portal-prev-hover: '&7Önceki sayfaya gitmek için tıklayın'
+  portal-prev-disabled: '&cİlk sayfadasınız'
+  portal-next-button: '&a[Sonraki]'
+  portal-next-hover: '&7Sonraki sayfaya gitmek için tıklayın'
+  portal-next-disabled: '&cSon sayfadasınız'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&a&e%portal%&a portalına ışınlandınız.'
+  portal-delete-success:
+    - '&a&e%portal% &aportali ve tüm blokları başarıyla silindi.'
+  redirect-world:
+    - '&a[sRandomRTP] &6&e%from_world% &4dünyasından ışınlanma yasaklandı. &6&e%to_world% &6dünyasına ışınlanacaksınız'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6&e%player% &eadlı oyuncuyu yasaklı dünya &e%world%&c''e ışınlayamazsınız!'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6&e%radius% &eblok yarıçapında chunk oluşturma başlatıldı&c!'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6&e%world%&c dünyasında chunk oluşturma durduruldu!'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6Bu dünyada aktif chunk oluşturma görevi yok!'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6Yarıçap bir sayı olmalıdır!'
+  worldborder-error:
+    - '&a[sRandomRTP] &6Işınlanma iptal edildi: Dünya sınırlarının ötesine gidemezsiniz.'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6Yönlendirme dünyasında oyuncu yok!'
 

@@ -1,5 +1,7 @@
 package org.sRandomRTP.Rtp;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
+import io.papermc.lib.PaperLib;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -8,27 +10,49 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.BlockBiomes.IsBiomeBanned;
 import org.sRandomRTP.BlockBiomes.IsBlockBanned;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Events.PlayerParticles;
 import org.sRandomRTP.Files.LoadMessages;
-import org.sRandomRTP.GetYGet.GetProtectedRegionName;
-import org.sRandomRTP.GetYGet.GetSafeYCoordinate;
-import org.sRandomRTP.GetYGet.GetSafeYCoordinateInEnd;
-import org.sRandomRTP.GetYGet.GetSafeYCoordinateInNether;
-
+import org.sRandomRTP.GetYGet.*;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RtpRtpWorld {
-    public static void rtpRtpworld(CommandSender sender, Player player, World world) {
+
+    public static void rtpRtpworld(CommandSender sender, Player player, World targetWorld) {
         try {
             Variables.initialPositions.put(player, player.getLocation());
+            final World world;
+
+            if (targetWorld != null) {
+                world = targetWorld;
+            } else {
+                World currentWorld = player.getWorld();
+                if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
+                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+                    if (bannedWorlds.contains(currentWorld.getName())) {
+                        if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
+                            String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
+                            World redirectWorld = Bukkit.getWorld(redirectWorldName);
+                            if (redirectWorld != null) {
+                                world = redirectWorld;
+                            } else {
+                                world = currentWorld;
+                            }
+                        } else {
+                            world = currentWorld;
+                        }
+                    } else {
+                        world = currentWorld;
+                    }
+                } else {
+                    world = currentWorld;
+                }
+            }
             List<String> formattedMessage = LoadMessages.loading;
             for (String line : formattedMessage) {
                 String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
@@ -42,54 +66,78 @@ public class RtpRtpWorld {
             int centerX = (int) world.getWorldBorder().getCenter().getX();
             int centerZ = (int) world.getWorldBorder().getCenter().getZ();
             int radius = Variables.teleportfile.getInt("teleport.radius");
+            int minRadius = Variables.teleportfile.getInt("teleport.minradius");
 
-            BukkitTask task = new BukkitRunnable() {
-                int tries = 0;
-                @Override
-                public void run() {
-                    try {
-                        if (tries >= Variables.teleportfile.getInt("teleport.maxtries")) {
-                            List<String> formattedMessage1 = LoadMessages.locationNotFound;
-                            for (String line : formattedMessage1) {
-                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                player.sendMessage(formattedLine);
-                            }
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                                for (BukkitTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
+            final int[] tries = {0};
+            WrappedTask task = Variables.getFoliaLib().getImpl().runAtLocationTimer(player.getLocation(), () -> {
+                try {
+                    if (tries[0] >= Variables.teleportfile.getInt("teleport.maxtries")) {
+                        List<String> formattedMessage1 = LoadMessages.locationNotFound;
+                        for (String line : formattedMessage1) {
+                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                            player.sendMessage(formattedLine);
+                        }
+                        WrappedTask checkProximityTaskTask = Variables.teleportTasks.get(player);
+                        if (checkProximityTaskTask != null) {
+                            checkProximityTaskTask.cancel();
+                            Variables.teleportTasks.remove(player);
+                        }
+                        Variables.playerSearchStatus.put(player.getName(), false);
+                        return;
+                    }
+
+                    int newX = centerX + (int) ((Math.random() * radius * 2) - radius);
+                    int newZ = centerZ + (int) ((Math.random() * radius * 2) - radius);
+
+                    if (radius == minRadius) {
+                        List<String> formattedMessage3 = LoadMessages.error_radius;
+                        for (String line : formattedMessage3) {
+                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                            player.sendMessage(formattedLine);
+                        }
+                        WrappedTask checkProximityTaskTask = Variables.teleportTasks.get(player);
+                        if (checkProximityTaskTask != null) {
+                            checkProximityTaskTask.cancel();
+                            Variables.teleportTasks.remove(player);
+                        }
+                        Variables.playerSearchStatus.put(player.getName(), false);
+                        return;
+                    }
+
+                    AtomicReference<GetSafeYCoordinate1.CoordinateWithBiome> coordWithBiomeRef = new AtomicReference<>();
+
+                    CompletableFuture<Integer> yCoordinateFuture;
+
+                    if (world.getEnvironment() == World.Environment.NETHER) {
+                        yCoordinateFuture = GetSafeYCoordinateInNether.getSafeYCoordinateInNetherAsync(world, newX, newZ);
+                    } else if (world.getEnvironment() == World.Environment.THE_END) {
+                        yCoordinateFuture = GetSafeYCoordinateInEnd.getSafeYCoordinateInEndAsync(world, newX, newZ);
+                    } else {
+                        yCoordinateFuture = GetSafeYCoordinate1.getSafeYCoordinateWithAirCheck(world, newX, newZ)
+                                .thenApply(coord -> (coord != null && coord.y != -1) ? coord.y : -1);
+                    }
+
+                    yCoordinateFuture.thenAccept(newY -> {
+                        if (!Variables.teleportTasks.containsValue(Variables.teleportTasks.get(player))) {
+                            WrappedTask checkProximityTaskTask = Variables.teleportTasks.get(player);
+                            if (checkProximityTaskTask != null) {
+                                checkProximityTaskTask.cancel();
                                 Variables.teleportTasks.remove(player);
                             }
                             Variables.playerSearchStatus.put(player.getName(), false);
                             return;
                         }
-
-                        int newX = centerX + (int) ((Math.random() * radius * 2) - radius);
-                        int newZ = centerZ + (int) ((Math.random() * radius * 2) - radius);
-
-                        GetSafeYCoordinate.CoordinateWithBiome coordWithBiome;
-
-                        if (world.getEnvironment() == World.Environment.NETHER) {
-                            int newY = GetSafeYCoordinateInNether.getSafeYCoordinateInNether(world, newX, newZ);
-                            coordWithBiome = new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ));
-                        } else if (world.getEnvironment() == World.Environment.THE_END) {
-                            int newY = GetSafeYCoordinateInEnd.getSafeYCoordinateInEnd(world, newX, newZ);
-                            coordWithBiome = new GetSafeYCoordinate.CoordinateWithBiome(newY, world.getBiome(newX, newY, newZ));
-                        } else {
-                            coordWithBiome = GetSafeYCoordinate.getSafeYCoordinateWithAirCheck(world, newX, newZ);
-                        }
-
-                        if (coordWithBiome == null || coordWithBiome.y == -1) {
-                            tries++;
+                        if (newY == -1) {
+                            tries[0]++;
                             if (loggingEnabled) {
-                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to unsafe location.");
+                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries[0] + " failed due to unsafe location.");
                             }
                             return;
                         }
 
-                        int newY = coordWithBiome.y;
-                        Biome targetBiome = coordWithBiome.biome;
+
+                        Biome targetBiome = world.getBiome(newX, newY, newZ);
+                        coordWithBiomeRef.set(new GetSafeYCoordinate1.CoordinateWithBiome(newY, targetBiome));
 
                         Block targetBlock = world.getBlockAt(newX, newY - 1, newZ);
                         Block blockAbove = world.getBlockAt(newX, newY, newZ);
@@ -107,8 +155,6 @@ public class RtpRtpWorld {
 
                         Location targetLocation = new Location(world, newX + 0.5, newY, newZ + 0.5);
                         int worldBorderSize = (int) (world.getWorldBorder().getSize() / 2);
-                        int centerX = (int) world.getWorldBorder().getCenter().getX();
-                        int centerZ = (int) world.getWorldBorder().getCenter().getZ();
                         int minX = centerX - worldBorderSize;
                         int maxX = centerX + worldBorderSize;
                         int minZ = centerZ - worldBorderSize;
@@ -117,11 +163,21 @@ public class RtpRtpWorld {
                         if (targetLocation.getX() < minX || targetLocation.getX() > maxX || targetLocation.getZ() < minZ || targetLocation.getZ() > maxZ) {
                             if (loggingEnabled) {
                                 Bukkit.getConsoleSender().sendMessage("Attempted to teleport outside world border to coordinates: "
-                                        + targetLocation.getBlockX() + ", " + targetLocation.getBlockY() + ", " + targetLocation.getBlockZ());
+                                        + targetLocation.getBlockX() + ", "
+                                        + targetLocation.getBlockY() + ", "
+                                        + targetLocation.getBlockZ());
+                                Bukkit.getConsoleSender().sendMessage("Teleportation cancelled due to world border constraints.");
                             }
-                            tries++;
-                            if (loggingEnabled) {
-                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to world border constraints.");
+                            WrappedTask checkProximityTaskTask = Variables.teleportTasks.get(player);
+                            if (checkProximityTaskTask != null) {
+                                checkProximityTaskTask.cancel();
+                                Variables.teleportTasks.remove(player);
+                            }
+                            Variables.playerSearchStatus.put(player.getName(), false);
+                            List<String> formattedMessage3 = LoadMessages.worldborder_error;
+                            for (String line : formattedMessage3) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                player.sendMessage(formattedLine);
                             }
                             return;
                         }
@@ -134,11 +190,9 @@ public class RtpRtpWorld {
                                     Bukkit.getConsoleSender().sendMessage("Install the WorldGuard plugin or disable checking regions in the configuration (checkinginregions: false).");
                                 }
                                 player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
-                                if (Variables.teleportTasks.containsKey(player)) {
-                                    BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                                    for (BukkitTask tasks1 : tasks) {
-                                        tasks1.cancel();
-                                    }
+                                WrappedTask checkProximityTaskTask = Variables.teleportTasks.get(player);
+                                if (checkProximityTaskTask != null) {
+                                    checkProximityTaskTask.cancel();
                                     Variables.teleportTasks.remove(player);
                                 }
                                 Variables.playerSearchStatus.put(player.getName(), false);
@@ -164,9 +218,9 @@ public class RtpRtpWorld {
                                 if (loggingEnabled) {
                                     Bukkit.getConsoleSender().sendMessage("Attempted to teleport into protected region: " + regionName);
                                 }
-                                tries++;
+                                tries[0]++;
                                 if (loggingEnabled) {
-                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to protected region.");
+                                    Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries[0] + " failed due to protected region.");
                                 }
                                 return;
                             }
@@ -187,53 +241,74 @@ public class RtpRtpWorld {
                                 } else {
                                     teleportLocation = new Location(world, newX + 0.5, newY + 2, newZ + 0.5);
                                 }
-                                player.teleportAsync(teleportLocation);
-                                List<String> formattedMessage2 = LoadMessages.teleportyes;
-                                for (String line : formattedMessage2) {
-                                    line = line.replace("%x%", String.valueOf(newX));
-                                    line = line.replace("%z%", String.valueOf(newZ));
-                                    line = line.replace("%y%", String.valueOf(newY));
-                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                    player.sendMessage(formattedLine);
+
+                                if (loggingEnabled) {
+                                    int chunkX = teleportLocation.getBlockX() >> 4;
+                                    int chunkZ = teleportLocation.getBlockZ() >> 4;
+                                    Bukkit.getLogger().info("Starting asynchronous chunk loading for blocks: "
+                                            + newX + ", " + newZ + " (Chunk: " + chunkX + ", " + chunkZ + ") in world " + world.getName());
                                 }
-                            }
-                            //
-                            if (Variables.effectfile.getBoolean("teleport.Enabled")) {
-                                List<String> effectGive = Variables.effectfile.getStringList("teleport.Effect");
-                                int duration = Variables.effectfile.getInt("teleport.effectDuration") * 20;
-                                int amplifier = Variables.effectfile.getInt("teleport.effectAmplifier");
-                                for (String effect : effectGive) {
-                                    try {
-                                        int effectId = Integer.parseInt(effect);
-                                        PotionEffectType effectType = PotionEffectType.getById(effectId);
-                                        if (effectType == null) {
-                                            if (loggingEnabled) {
-                                                Bukkit.getConsoleSender().sendMessage("Invalid effect ID: " + effectId);
-                                            }
-                                            continue;
+
+                                PaperLib.getChunkAtAsync(teleportLocation).thenAccept(chunk -> {
+                                    if (loggingEnabled) {
+                                        Bukkit.getLogger().info("Chunk is loaded: " + chunk.getX() + ", " + chunk.getZ());
+                                    }
+                                    Variables.getFoliaLib().getImpl().runLater(() -> {
+                                        if (loggingEnabled) {
+                                            Bukkit.getLogger().info("Begin teleporting the player " + player.getName());
                                         }
 
-                                        player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, true, false), true);
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Applied effect: " + effectType.getName() + " with duration: " + duration + " and amplifier: " + amplifier);
-                                        }
-                                    } catch (NumberFormatException e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Invalid effect format: " + effect);
-                                        }
-                                    } catch (Exception e) {
-                                        if (loggingEnabled) {
-                                            Bukkit.getConsoleSender().sendMessage("Error applying effect: " + effect + " - " + e.getMessage());
-                                        }
+                                        PaperLib.teleportAsync(player, teleportLocation).thenAccept(success -> {
+                                            if (success) {
+                                                if (loggingEnabled) {
+                                                    Bukkit.getLogger().info("Player " + player.getName() + " successfully teleported to "
+                                                            + teleportLocation.getX() + ", "
+                                                            + teleportLocation.getY() + ", "
+                                                            + teleportLocation.getZ());
+                                                }
+                                                List<String> formattedMessage2 = LoadMessages.teleportyes;
+                                                for (String line : formattedMessage2) {
+                                                    line = line.replace("%x%", String.valueOf(newX));
+                                                    line = line.replace("%z%", String.valueOf(newZ));
+                                                    line = line.replace("%y%", String.valueOf(newY));
+                                                    String formattedLine = TranslateRGBColors.translateRGBColors(
+                                                            ChatColor.translateAlternateColorCodes('&', line)
+                                                    );
+                                                    player.sendMessage(formattedLine);
+
+                                                    if (!Variables.teleportTasks.containsValue(Variables.teleportTasks.get(player))) {
+                                                        return;
+                                                    }
+                                                    WrappedTask checkProximityTaskTask12 = Variables.teleportTasks.get(player);
+                                                    if (checkProximityTaskTask12 != null) {
+                                                        checkProximityTaskTask12.cancel();
+                                                        Variables.teleportTasks.remove(player);
+                                                    }
+                                                    Variables.playerSearchStatus.put(player.getName(), false);
+                                                }
+                                            } else {
+                                                if (loggingEnabled) {
+                                                    Bukkit.getLogger().warning("Failed to teleport player " + player.getName());
+                                                }
+                                            }
+                                        });
+                                    }, 1L);
+                                }).exceptionally(ex -> {
+                                    if (loggingEnabled) {
+                                        Bukkit.getLogger().severe("Chunk loading error: " + ex.getMessage());
                                     }
-                                }
+                                    ex.printStackTrace();
+                                    if (loggingEnabled) {
+                                        player.sendMessage("Error loading the location. Try again.");
+                                    }
+                                    return null;
+                                });
                             }
+                            EffectGivePlayer.effectGivePlayer(player);
                             //
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                                for (BukkitTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
+                            WrappedTask checkProximityTaskTask = Variables.teleportTasks.get(player);
+                            if (checkProximityTaskTask != null) {
+                                checkProximityTaskTask.cancel();
                                 Variables.teleportTasks.remove(player);
                             }
                             Variables.playerSearchStatus.put(player.getName(), false);
@@ -244,18 +319,18 @@ public class RtpRtpWorld {
                                     String formattedSubtitle = LoadMessages.subtitleMessage.replace("%x%", String.valueOf(newX)).replace("%z%", String.valueOf(newZ)).replace("%y%", String.valueOf(newY));
                                     formattedSubtitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedSubtitle));
                                     player.sendTitle(formattedTitle, formattedSubtitle,
-                                            Variables.titlefile.getInt("teleport.titleFadeIn")*20,
-                                            Variables.titlefile.getInt("teleport.titleStay")*20,
-                                            Variables.titlefile.getInt("teleport.titleFadeOut")*20);
+                                            Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
+                                            Variables.titlefile.getInt("teleport.titleStay") * 20,
+                                            Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
                                 } else {
                                     player.sendTitle(formattedTitle, null,
-                                            Variables.titlefile.getInt("teleport.titleFadeIn")*20,
-                                            Variables.titlefile.getInt("teleport.titleStay")*20,
-                                            Variables.titlefile.getInt("teleport.titleFadeOut")*20);
+                                            Variables.titlefile.getInt("teleport.titleFadeIn") * 20,
+                                            Variables.titlefile.getInt("teleport.titleStay") * 20,
+                                            Variables.titlefile.getInt("teleport.titleFadeOut") * 20);
                                 }
                             }
                             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
-                            CommandRun.commandrun(player);
+                            Variables.getFoliaLib().getImpl().runLater(() -> CommandRun.commandrun(player), 0);
                             //
                             if (Variables.effectfile.getBoolean("teleport.Freeze.enabled")) {
                                 String version = Bukkit.getServer().getVersion();
@@ -305,30 +380,29 @@ public class RtpRtpWorld {
                             if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
                                 PlayerParticles.playerParticles(player);
                             }
-                            if (Variables.teleportTasks.containsKey(player)) {
-                                BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                                for (BukkitTask tasks1 : tasks) {
-                                    tasks1.cancel();
-                                }
+                            WrappedTask checkProximityTaskTask1 = Variables.teleportTasks.get(player);
+                            if (checkProximityTaskTask1 != null) {
+                                checkProximityTaskTask1.cancel();
                                 Variables.teleportTasks.remove(player);
                             }
                             Variables.playerSearchStatus.put(player.getName(), false);
                         } else {
-                            tries++;
+                            tries[0]++;
                             if (loggingEnabled) {
-                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries + " failed due to banned block, biome, or unsafe block above.");
+                                Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + tries[0] + " failed due to banned block, biome, or unsafe block above.");
                             }
                         }
-                    } catch (Throwable e) {
-                        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                        String callingClassName = stackTrace[2].getClassName();
-                        LoggerUtility.loggerUtility(callingClassName, e);
-                    }
+                    });
+                } catch (Throwable e) {
+                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                    String callingClassName = stackTrace[2].getClassName();
+                    LoggerUtility.loggerUtility(callingClassName, e);
                 }
-            }.runTaskTimer(Variables.getInstance(), 0, 1);
-            Variables.teleportTasks.put(player, new BukkitTask[]{task});
+            }, 0L, 1L);
+            Variables.teleportTasks.put(player, task);
             Variables.playerSearchStatus.put(player.getName(), true);
-        } catch (Throwable e) {
+        } catch (
+                Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);

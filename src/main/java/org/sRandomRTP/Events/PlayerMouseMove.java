@@ -1,5 +1,6 @@
 package org.sRandomRTP.Events;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -7,13 +8,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.RemoveBossBar;
 import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 import java.util.List;
+import static org.sRandomRTP.DifferentMethods.Variables.teleportTasks;
 
 public class PlayerMouseMove implements Listener {
     @EventHandler
@@ -21,17 +22,14 @@ public class PlayerMouseMove implements Listener {
         try {
             if (Variables.teleportfile.getBoolean("teleport.move-cancel-rtp")) {
                 if (Variables.teleportfile.getBoolean("teleport.mouse-move-cancel-rtp")) {
-
                     Player player = event.getPlayer();
-
-                    // Проверка, чтобы удостовериться, что игрок действительно поворачивает камеру
                     if (event.getFrom().getYaw() != event.getTo().getYaw() || event.getFrom().getPitch() != event.getTo().getPitch()) {
-                        if (Variables.teleportTasks.containsKey(player)) {
-                            BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                            for (BukkitTask tasks1 : tasks) {
-                                tasks1.cancel();
+                        if (teleportTasks.containsKey(player)) {
+                            WrappedTask checkProximityTaskTask = teleportTasks.get(player);
+                            if (checkProximityTaskTask != null) {
+                                checkProximityTaskTask.cancel();
+                                teleportTasks.remove(player);
                             }
-                            Variables.teleportTasks.remove(player);
                             //
                             List<String> formattedMessage = LoadMessages.teleportmovecancel;
                             for (String line : formattedMessage) {

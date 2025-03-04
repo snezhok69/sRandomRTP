@@ -10,12 +10,10 @@ import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
-
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class CooldownCommandRtp {
     public static boolean cooldownCommandRtp(Player player, CommandSender sender) {
@@ -32,15 +30,11 @@ public class CooldownCommandRtp {
                 if (loggingEnabled) {
                     Bukkit.getConsoleSender().sendMessage("Default cooldown from config: " + cooldown);
                 }
-
-                // Get the custom cooldown value based on permissions
                 int customCooldown = getCustomCooldown(player, cooldown);
 
                 if (loggingEnabled) {
                     Bukkit.getConsoleSender().sendMessage("Custom cooldown after checking permissions: " + customCooldown);
                 }
-
-                // Use the custom cooldown value
                 cooldown = customCooldown;
 
                 if (Variables.cooldowns.containsKey(player.getName())) {
@@ -78,7 +72,7 @@ public class CooldownCommandRtp {
 
         Pattern pattern = Pattern.compile("(?i)sRandomRTP\\.Cooldown\\.(\\d+)");
         for (PermissionAttachmentInfo permInfo : permissions) {
-            if (permInfo.getValue()) { // Check if the permission is explicitly set to true
+            if (permInfo.getValue()) {
                 String permission = permInfo.getPermission();
                 Matcher matcher = pattern.matcher(permission);
                 if (matcher.matches()) {

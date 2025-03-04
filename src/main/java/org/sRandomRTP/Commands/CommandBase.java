@@ -13,7 +13,6 @@ import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,21 +25,19 @@ public class CommandBase {
                 sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
                 return;
             }
-
             Player player = (Player) sender;
-            Location playerLocation = player.getLocation();
             FileConfiguration config = Variables.getInstance().getConfig();
             boolean loggingEnabled = config.getBoolean("logs", false);
             World world = player.getWorld();
-                try {
-                    Class.forName("com.sk89q.worldguard.bukkit.WorldGuardPlugin");
-                } catch (ClassNotFoundException e) {
-                    if (loggingEnabled) {
-                        Bukkit.getConsoleSender().sendMessage("Install the WorldGuard plugin or disable checking regions in the configuration (checkinginregions: false).");
-                    }
-                    player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
-                    return;
+            try {
+                Class.forName("com.sk89q.worldguard.bukkit.WorldGuardPlugin");
+            } catch (ClassNotFoundException e) {
+                if (loggingEnabled) {
+                    Bukkit.getConsoleSender().sendMessage("Install the WorldGuard plugin or disable checking regions in the configuration (checkinginregions: false).");
                 }
+                player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
+                return;
+            }
 
             if (!player.hasPermission("sRandomRTP.Command.Base")) {
                 List<String> formattedMessage = LoadMessages.nopermissioncommand;
@@ -50,7 +47,6 @@ public class CommandBase {
                 }
                 return;
             }
-            // Получение всех регионов WorldGuard
             RegionManager regionManager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
             if (regionManager == null) {
                 List<String> formattedMessage = LoadMessages.regionManager;
@@ -74,6 +70,50 @@ public class CommandBase {
                     return;
                 }
             }
+
+            if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
+                List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+                if (bannedWorlds.contains(world.getName())) {
+                    if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
+                        String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
+                        World redirectWorld = Bukkit.getWorld(redirectWorldName);
+                        if (redirectWorld != null) {
+                            if (bannedWorlds.contains(redirectWorldName)) {
+                                List<String> formattedMessage = LoadMessages.banned_world;
+                                for (String line : formattedMessage) {
+                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
+                                    player.sendMessage(formattedLine);
+                                }
+                                return;
+                            }
+                            String originalWorldName = world.getName();
+                            world = redirectWorld;
+                            List<String> formattedMessage = LoadMessages.redirect_world;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&',
+                                        line.replace("%from_world%", originalWorldName)
+                                                .replace("%to_world%", redirectWorld.getName())));
+                                player.sendMessage(formattedLine);
+                            }
+                        } else {
+                            List<String> formattedMessage = LoadMessages.banned_world;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
+                                player.sendMessage(formattedLine);
+                            }
+                            return;
+                        }
+                    } else {
+                        List<String> formattedMessage = LoadMessages.banned_world;
+                        for (String line : formattedMessage) {
+                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
+                            player.sendMessage(formattedLine);
+                        }
+                        return;
+                    }
+                }
+            }
+
             if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
                 try {
                     Class.forName("net.milkbowl.vault.economy.Economy");
@@ -128,18 +168,6 @@ public class CommandBase {
                     return;
                 }
             }
-
-            if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                if (bannedWorlds.contains(world.getName())) {
-                    List<String> formattedMessage = LoadMessages.banned_world;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
-                        player.sendMessage(formattedLine);
-                    }
-                    return;
-                }
-            }
             //
             if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
                 List<String> requiredItems = Variables.economyfile.getStringList("teleport.Items.requiredItems");
@@ -180,7 +208,7 @@ public class CommandBase {
                 return;
             }
 
-            if (CooldownBypassBossBarBase.cooldownBypassBossBarbase(player, sender)) {
+            if (CooldownBypassBossBarBase.cooldownBypassBossBarbase(player, sender, world)) {
                 return;
             }
             return;

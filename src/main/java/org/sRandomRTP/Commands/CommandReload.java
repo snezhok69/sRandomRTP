@@ -1,12 +1,10 @@
 package org.sRandomRTP.Commands;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
-import org.sRandomRTP.BlockBiomes.LoadBlockListBiome;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadFiles;
 import org.sRandomRTP.Files.LoadKeys;
@@ -54,12 +52,10 @@ public class CommandReload {
                 String formattedLine = TranslateRGBColors.translateRGBColors(line);
                 sender.sendMessage(formattedLine);
             }
-            BukkitTask task = new BukkitRunnable() {
-                int step = 0;
-                @Override
-                public void run() {
-                    try {
-                        switch (step) {
+            final int[] step = {0};
+            WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
+                try {
+                        switch (step[0]) {
                             case 0:
                                 loadLanguageFile.loadLanguageFile();
                                 LoadMessages.loadMessages(langFile);
@@ -70,7 +66,6 @@ public class CommandReload {
                                 //
                                 LoadKeys.loadKeys(config);
                                 LoadBlockList.loadBlockList();
-                                LoadBlockListBiome.loadBlockList();
                                 //
                                 break;
                             case 2:
@@ -94,14 +89,13 @@ public class CommandReload {
                                 isReloaded = false;
                                 return;
                         }
-                        step++;
-                    } catch (Throwable e) {
-                        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                        String callingClassName = stackTrace[2].getClassName();
-                        LoggerUtility.loggerUtility(callingClassName, e);
-                    }
+                        step[0]++;
+                } catch (Throwable e) {
+                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                    String callingClassName = stackTrace[2].getClassName();
+                    LoggerUtility.loggerUtility(callingClassName, e);
                 }
-            }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 8);
+            }, 1L, 1L);
             isReloaded = true;
             Variables.commandReloadTask = task;
         } catch (Throwable e) {

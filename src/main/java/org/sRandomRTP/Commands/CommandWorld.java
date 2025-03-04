@@ -11,7 +11,6 @@ import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
-
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +27,6 @@ public class CommandWorld {
             FileConfiguration config = Variables.getInstance().getConfig();
             boolean loggingEnabled = config.getBoolean("logs", false);
 
-            // Проверяем наличие прав у игрока
             if (!player.hasPermission("sRandomRTP.Command.World")) {
                 List<String> formattedMessage = LoadMessages.nopermissioncommand;
                 for (String line : formattedMessage) {
@@ -132,17 +130,6 @@ public class CommandWorld {
                     List<String> formattedMessage = LoadMessages.insufficient_levels;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%level%", String.valueOf(requiredLevel))));
-                        player.sendMessage(formattedLine);
-                    }
-                    return;
-                }
-            }
-            if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                if (bannedWorlds.contains(targetWorld.getName())) {
-                    List<String> formattedMessage = LoadMessages.banned_world;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", targetWorld.getName())));
                         player.sendMessage(formattedLine);
                     }
                     return;

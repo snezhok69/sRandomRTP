@@ -1,5 +1,6 @@
 package org.sRandomRTP.Events;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
@@ -7,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.RemoveBossBar;
 import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
@@ -16,18 +16,19 @@ import org.sRandomRTP.Files.LoadMessages;
 import java.util.List;
 
 public class PlayerDamage implements Listener {
-    @EventHandler()
+
+    @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         try {
             if (Variables.teleportfile.getBoolean("teleport.damaged-cancel-rtp")) {
                 if (event.getEntity() instanceof Player) {
                     Player player = (Player) event.getEntity();
                     if (Variables.teleportTasks.containsKey(player)) {
-                        BukkitTask[] tasks = Variables.teleportTasks.get(player);
-                        for (BukkitTask tasks1 : tasks) {
-                            tasks1.cancel();
+                        WrappedTask checkProximityTaskTask = Variables.teleportTasks.get(player);
+                        if (checkProximityTaskTask != null) {
+                            checkProximityTaskTask.cancel();
+                            Variables.teleportTasks.remove(player);
                         }
-                        Variables.teleportTasks.remove(player);
                         //
                         List<String> formattedMessage = LoadMessages.teleportdamagedcancel;
                         for (String line : formattedMessage) {

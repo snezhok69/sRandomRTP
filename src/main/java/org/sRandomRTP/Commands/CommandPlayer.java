@@ -12,21 +12,23 @@ import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
-
 import java.util.List;
 import java.util.Map;
 
 public class CommandPlayer {
 
-    public static void commandplayer(CommandSender sender, Player targetPlayer) {
+    public static void commandplayer(CommandSender sender, Player targetPlayer, World targetWorld) {
         try {
             if (targetPlayer.equals(sender)) {
-                sender.sendMessage(ChatColor.RED + "You cannot teleport yourself!");
-                return;
+                List<String> formattedMessage1 = LoadMessages.error_teleport_yourself;
+                for (String line : formattedMessage1) {
+                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                    sender.sendMessage(formattedLine);
+                    return;
+                }
             }
-
             Player player = (sender instanceof Player) ? (Player) sender : null;
-            World world = targetPlayer.getWorld();
+            World world = targetWorld != null ? targetWorld : targetPlayer.getWorld();
             FileConfiguration config = Variables.getInstance().getConfig();
             boolean loggingEnabled = config.getBoolean("logs", false);
 
@@ -117,18 +119,6 @@ public class CommandPlayer {
                 }
             }
 
-            if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                if (bannedWorlds.contains(world.getName())) {
-                    List<String> formattedMessage = LoadMessages.banned_world;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
-                        targetPlayer.sendMessage(formattedLine);
-                    }
-                    return;
-                }
-            }
-
             if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
                 List<String> requiredItems = Variables.economyfile.getStringList("teleport.Items.requiredItems");
                 for (String itemString : requiredItems) {
@@ -168,7 +158,7 @@ public class CommandPlayer {
                 return;
             }
 
-            if (CooldownBypassBossBarPlayer.cooldownBypassBossBarplayer(sender, targetPlayer)) {
+            if (CooldownBypassBossBarPlayer.cooldownBypassBossBarplayer(sender, targetPlayer, world)) {
                 return;
             }
         } catch (Throwable e) {

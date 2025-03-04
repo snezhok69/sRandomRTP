@@ -9,6 +9,7 @@ import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
+import org.sRandomRTP.Rtp.RtpRtpPlayer;
 
 import java.util.List;
 import java.util.Map;
@@ -111,12 +112,43 @@ public class CommandRtp {
             if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
                 List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
                 if (bannedWorlds.contains(world.getName())) {
-                    List<String> formattedMessage = LoadMessages.banned_world;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
-                        player.sendMessage(formattedLine);
+                    if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
+                        String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
+                        World redirectWorld = Bukkit.getWorld(redirectWorldName);
+                        if (redirectWorld != null) {
+                            if (bannedWorlds.contains(redirectWorldName)) {
+                                List<String> formattedMessage = LoadMessages.banned_world;
+                                for (String line : formattedMessage) {
+                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
+                                    player.sendMessage(formattedLine);
+                                }
+                                return;
+                            }
+                            String originalWorldName = world.getName();
+                            world = redirectWorld;
+                            List<String> formattedMessage = LoadMessages.redirect_world;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&',
+                                        line.replace("%from_world%", originalWorldName)
+                                                .replace("%to_world%", redirectWorld.getName())));
+                                player.sendMessage(formattedLine);
+                            }
+                        } else {
+                            List<String> formattedMessage = LoadMessages.banned_world;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
+                                player.sendMessage(formattedLine);
+                            }
+                            return;
+                        }
+                    } else {
+                        List<String> formattedMessage = LoadMessages.banned_world;
+                        for (String line : formattedMessage) {
+                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%world%", world.getName())));
+                            player.sendMessage(formattedLine);
+                        }
+                        return;
                     }
-                    return;
                 }
             }
             //
@@ -159,7 +191,7 @@ public class CommandRtp {
                 return;
             }
             //
-            if (CooldownBypassBossBar.cooldownBypassBossBar(player, sender)) {
+            if (CooldownBypassBossBar.cooldownBypassBossBar(player, sender, world)) {
                 return;
             }
             return;

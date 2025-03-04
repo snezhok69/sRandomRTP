@@ -2,27 +2,18 @@ package org.sRandomRTP.Commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.block.Biome;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class onTabCompletes implements TabCompleter {
-
-    private final List<String> biomes;
-
-    public onTabCompletes() {
-        biomes = new ArrayList<>();
-        for (Biome biome : Biome.values()) {
-            biomes.add(biome.name().toLowerCase());
-        }
-    }
 
     public List<String> getAllArguments(CommandSender sender, String[] args) {
         try {
@@ -52,9 +43,6 @@ public class onTabCompletes implements TabCompleter {
                 if (sender.hasPermission("sRandomRTP.Command.Back")) {
                     arguments.add("back");
                 }
-                if (sender.hasPermission("sRandomRTP.Command.Biome")) {
-                    arguments.add("biome");
-                }
                 if (sender.hasPermission("sRandomRTP.Command.World")) {
                     arguments.add("world");
                 }
@@ -63,6 +51,18 @@ public class onTabCompletes implements TabCompleter {
                 }
                 if (sender.hasPermission("sRandomRTP.Command.Deny")) {
                     arguments.add("deny");
+                }
+                if (sender.hasPermission("sRandomRTP.Command.SetPortal")) {
+                    arguments.add("setportal");
+                }
+                if (sender.hasPermission("sRandomRTP.Command.DelPortal")) {
+                    arguments.add("delportal");
+                }
+                if (sender.hasPermission("sRandomRTP.Command.ListPortal")) {
+                    arguments.add("listportal");
+                }
+                if (sender.hasPermission("sRandomRTP.Command.ListPortal")) {
+                    arguments.add("chunky");
                 }
             } else if (args.length == 2 && args[0].equalsIgnoreCase("world") && sender.hasPermission("sRtp.Command.World")) {
                 int count = 0;
@@ -84,26 +84,34 @@ public class onTabCompletes implements TabCompleter {
                     playerNames.add(player.getName());
                 }
                 return playerNames;
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("delportal")) {
+                String partialPortalName = args[1];
+                Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
+                if (playerPortals != null) {
+                    playerPortals.keySet().stream()
+                            .filter(portalName -> portalName.toLowerCase().startsWith(partialPortalName))
+                            .limit(8)
+                            .forEach(arguments::add);
+                    return arguments;
+                }
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("listportal")) {
+                String partialPortalName = args[1];
+                Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
+                if (playerPortals != null) {
+                    playerPortals.keySet().stream()
+                            .filter(portalName -> portalName.toLowerCase().startsWith(partialPortalName))
+                            .limit(8)
+                            .forEach(arguments::add);
+                    return arguments;
+                }
             }
-                return arguments;
+            return arguments;
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);
         }
         return java.util.Collections.emptyList();
-    }
-
-    private List<String> getBiomesPage(int page) {
-        int biomesPerPage = 100;
-        int start = (page - 1) * biomesPerPage;
-        int end = Math.min(start + biomesPerPage, biomes.size());
-
-        if (start >= biomes.size() || start < 0) {
-            return new ArrayList<>();
-        }
-
-        return biomes.subList(start, end);
     }
 
     @Override
@@ -116,22 +124,6 @@ public class onTabCompletes implements TabCompleter {
                     if (argument.toLowerCase().startsWith(input)) {
                         completions.add(argument);
                     }
-                }
-            } else if (args.length == 2 && args[0].equalsIgnoreCase("biome")) {
-                String input = args[1].toLowerCase();
-                int page = 1;
-                try {
-                    page = Integer.parseInt(args[1]);
-                } catch (NumberFormatException ignored) {
-                    // Filtration logic
-                    for (String biome : biomes) {
-                        if (biome.startsWith(input)) {
-                            completions.add(biome);
-                        }
-                    }
-                }
-                if (completions.isEmpty()) {
-                    completions.addAll(getBiomesPage(page));
                 }
             } else if (args.length == 2 && args[0].equalsIgnoreCase("player")) {
                 String input = args[1].toLowerCase();
@@ -149,7 +141,9 @@ public class onTabCompletes implements TabCompleter {
                     args[0].equalsIgnoreCase("base") ||
                     args[0].equalsIgnoreCase("back") ||
                     args[0].equalsIgnoreCase("accept") ||
-                    args[0].equalsIgnoreCase("denySd") ||
+                    args[0].equalsIgnoreCase("delportal") ||
+                    args[0].equalsIgnoreCase("listportal") ||
+                    args[0].equalsIgnoreCase("chunky") ||
                     args[0].equalsIgnoreCase("version"))) {
                 String input = args[1].toLowerCase();
                 for (String argument : getAllArguments(sender, args)) {

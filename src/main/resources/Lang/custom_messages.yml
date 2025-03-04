@@ -1,4 +1,5 @@
 # Here you can translate the messages in the plugin as you want.
+# Use %y% %z% %x% to specify coordinates (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cYou do not have permission to reload the plugin.'
@@ -6,8 +7,6 @@ messages:
     - '&a[sRandomRTP] &cThe plugin is reloading, please wait...'
   reloading-start:
     - '&a[sRandomRTP] &cPlugin is reloading, please wait...'
-  reloading-process:
-    - '&a[sRandomRTP] &6Plugin is reloading, please wait...'
   successfully-reload:
     - '&a[sRandomRTP] &aPlugin successfully reloaded. %mc% ms'
   no-permission:
@@ -19,7 +18,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &cTeleportation was cancelled.'
   teleported:
-    - '&a[sRandomRTP] &fYou have been teleported to coordinates &aX: %x% Z: %z%.'
+    - '&a[sRandomRTP] &fYou have been teleported to coordinates &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Searching for a suitable location...'
   locationNotFound:
@@ -39,7 +38,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6You are not currently teleporting.'
   titleMessage: "&aTeleportation successful!"
-  subtitleMessage: "&eYou have been moved to a new location."
+  subtitleMessage: "&eYou have been moved to a new location at coordinates &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6There are no players on the server to use the /rtp near command.'
   noplayerworldnear:
@@ -95,6 +94,12 @@ messages:
     - '&a[sRandomRTP] &6Player already has an active teleport request.'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6You have successfully sent a teleport request to player &a%player%'
+  error-radius:
+    - '&a[sRandomRTP] &6Error: &4radius and &4minRadius &6cannot be equal. Teleportation canceled.'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6You cannot teleport yourself.'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &cNo teleportation request found or it has expired.'
   commandhelp:
     - ' '
     - '&cPlugin command help:'
@@ -108,9 +113,14 @@ messages:
     - '&a/rtp cancel - &6cancels teleportation during the boss bar.'
     - '&a/rtp back - &6returns to the place before teleportation.'
     - '&a/rtp base - &6teleports near WorldGuard regions.'
-    - '&a/rtp player <player name> - &6teleports the specified player.'
+    - '&a/rtp player <player name>(or additional argument <world>, to teleport specified player to another world) - &6teleports the specified player.'
     - '&a/rtp accept - &6accepts teleportation from another player.'
     - '&a/rtp deny - &6denies teleportation from another player.'
+    - '&a/rtp setportal - &6create a portal.'
+    - '&a/rtp delportal - &6delete a portal.'
+    - '&a/rtp listportal - &6view list of portals.'
+    - '&a/rtp chunky N- &6start generating N chunks.'
+    - '&a/rtp chunky stop- &6stop chunk generation in current player world.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -122,3 +132,64 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &cPlugin disabled! %mc% ms'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &cRadius must be between 1 and 10!'
+  error-portal-name:
+    - '&a[sRandomRTP] &cInvalid portal name. Use only letters and numbers. Special characters and spaces are not allowed.'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &cCannot create portals longer than &e90 &ccharacters. You exceeded the limit by &e %excessCharacters% &ccharacters.'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &cPortal with name &6%portalName% &calready exists.'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &cNot enough space to create a portal with radius &6%radius%&c!'
+  success-portal-created:
+    - '&a[sRandomRTP] &aPortal &6%portalName% &acreated with radius: &6%radius%'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &cPlease wait before teleporting again!'
+  error-page-number-invalid:
+    - '&cInvalid page number.'
+  error-command-format:
+    - '&cInvalid command format. Example: /rtp listportal -p:2'
+  error-no-portals:
+    - '&cYou have no created portals.'
+  error-page-not-found:
+    - '&cPage %page% does not exist.'
+  error-portal-not-found:
+    - '&cPortal with name &e%portal% &cnot found.'
+  error-world-not-found:
+    - '&cPortal world not found.'
+  portal-list-header:
+    - '&6&lPORTAL LIST (Page %page% of %total%):'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7Click to delete portal &e%portal%'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7Click to teleport to portal &e%portal%'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[Previous]'
+  portal-prev-hover: '&7Click to go to previous page'
+  portal-prev-disabled: '&cYou are on the first page'
+  portal-next-button: '&a[Next]'
+  portal-next-hover: '&7Click to go to next page'
+  portal-next-disabled: '&cYou are on the last page'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&aYou have been teleported to portal &e%portal%&a.'
+  portal-delete-success:
+    - '&aPortal &e%portal% &aand all its blocks have been successfully deleted.'
+  redirect-world:
+    - '&a[sRandomRTP] &6Teleportation from world &e%from_world% &4is prohibited. &6You will be teleported to world &e%to_world%'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6You cannot teleport player &e%player% &eto banned world &e%world%&c!'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6Started chunk generation in radius of &e%radius% &eblocks&c!'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6Chunk generation was stopped in world &e%world%&c!'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6No active chunk generation tasks in this world!'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6Radius must be a number!'
+  worldborder-error:
+    - '&a[sRandomRTP] &6Teleportation cancelled: You cannot move beyond world borders.'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6There are no players in the redirect world!'

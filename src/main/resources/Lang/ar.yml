@@ -1,3 +1,4 @@
+# استخدم %y% %z% %x% لتحديد الإحداثيات (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cليس لديك إذن لإعادة تحميل المكون الإضافي.'
@@ -5,8 +6,6 @@ messages:
     - '&a[sRandomRTP] &cيتم إعادة تحميل المكون الإضافي، يرجى الانتظار قليلاً...'
   reloading-start:
     - '&a[sRandomRTP] &cالبرنامج الإضافي يعيد التحميل، يرجى الانتظار...'
-  reloading-process:
-    - '&a[sRandomRTP] &6البرنامج الإضافي يعيد التحميل، يرجى الانتظار...'
   successfully-reload:
     - '&a[sRandomRTP] &aتم إعادة تحميل البرنامج الإضافي بنجاح. %mc% مللي ثانية'
   no-permission:
@@ -18,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &cتم إلغاء النقل الفوري.'
   teleported:
-    - '&a[sRandomRTP] &fتم نقلك إلى الإحداثيات &aX: %x% Z: %z%.'
+    - '&a[sRandomRTP] &fتم نقلك إلى الإحداثيات &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6جارٍ البحث عن مكان مناسب...'
   locationNotFound:
@@ -38,7 +37,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6أنت لا تنتقل الآن.'
   titleMessage: "&aتمت عملية النقل بنجاح!"
-  subtitleMessage: "&eلقد تم نقلك إلى موقع جديد."
+  subtitleMessage: "&eلقد تم نقلك إلى موقع جديد عند الإحداثيات &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6لا يوجد أحد على الخادم لاستخدام الأمر /rtp near.'
   noplayerworldnear:
@@ -94,6 +93,12 @@ messages:
     - '&a[sRandomRTP] &6اللاعب لديه طلب انتقال نشط بالفعل.'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6لقد قمت بإرسال طلب انتقال إلى اللاعب &a%player%'
+  error-radius:
+    - '&a[sRandomRTP] &6خطأ: &4radius و &4minRadius &6لا يمكن أن يكونا متساويين. تم إلغاء النقل.'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6لا يمكنك نقل نفسك.'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &cلم يتم العثور على طلب نقل أو انتهت صلاحيته.'
   commandhelp:
     - ' '
     - '&cمساعدة أوامر الإضافة:'
@@ -107,9 +112,14 @@ messages:
     - '&a/rtp cancel - &6إلغاء الانتقال أثناء bossbar.'
     - '&a/rtp back - &6العودة إلى الموقع الذي كنت فيه قبل الانتقال.'
     - '&a/rtp base - &6الانتقال بالقرب من مناطق worldguard.'
-    - '&a/rtp player <اسم اللاعب> - &6نقل اللاعب المحدد.'
+    - '&a/rtp player <اسم اللاعب>(أو الوسيط الإضافي <world>، لنقل اللاعب المحدد إلى عالم آخر) - &6نقل اللاعب المحدد.'
     - '&a/rtp accept - &6قبول انتقال من لاعب آخر.'
     - '&a/rtp deny - &6إلغاء انتقال من لاعب آخر.'
+    - '&a/rtp setportal - &6إنشاء بوابة.'
+    - '&a/rtp delportal - &6حذف بوابة.'
+    - '&a/rtp listportal - &6عرض قائمة البوابات.'
+    - '&a/rtp chunky N- &6بدء تحميل N تشانك.'
+    - '&a/rtp chunky stop- &6إيقاف تحميل التشانكات في العالم الحالي للاعب.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -121,5 +131,64 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &cتم تعطيل الإضافة! %mc% مللي ثانية'
     - ''
-
-
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &cيجب أن يكون نصف القطر من 1 إلى 10!'
+  error-portal-name:
+    - '&a[sRandomRTP] &cاسم البوابة غير صالح. استخدم الأحرف والأرقام فقط. الرموز الخاصة والمسافات غير مسموح بها.'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &cلا يمكن إنشاء بوابات أطول من &e90 &cحرفًا. لقد تجاوزت الحد بـ &e %excessCharacters% &cحرفًا.'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &cالبوابة باسم &6%portalName% &cموجودة بالفعل.'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &cلا توجد مساحة كافية لإنشاء بوابة بنصف قطر &6%radius%&c!'
+  success-portal-created:
+    - '&a[sRandomRTP] &aتم إنشاء البوابة &6%portalName% &aبنصف قطر: &6%radius%'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &cيرجى الانتظار قبل الانتقال مرة أخرى!'
+  error-page-number-invalid:
+    - '&cرقم الصفحة غير صالح.'
+  error-command-format:
+    - '&cتنسيق الأمر غير صحيح. مثال: /rtp listportal -p:2'
+  error-no-portals:
+    - '&cليس لديك بوابات منشأة.'
+  error-page-not-found:
+    - '&cالصفحة %page% غير موجودة.'
+  error-portal-not-found:
+    - '&cالبوابة باسم &e%portal% &cغير موجودة.'
+  error-world-not-found:
+    - '&cعالم البوابة غير موجود.'
+  portal-list-header:
+    - '&6&lقائمة البوابات (الصفحة %page% من %total%):'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7انقر لحذف البوابة &e%portal%'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7انقر للانتقال إلى البوابة &e%portal%'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[السابق]'
+  portal-prev-hover: '&7انقر للانتقال إلى الصفحة السابقة'
+  portal-prev-disabled: '&cأنت في الصفحة الأولى'
+  portal-next-button: '&a[التالي]'
+  portal-next-hover: '&7انقر للانتقال إلى الصفحة التالية'
+  portal-next-disabled: '&cأنت في الصفحة الأخيرة'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&aتم نقلك إلى البوابة &e%portal%&a.'
+  portal-delete-success:
+    - '&aتم حذف البوابة &e%portal% &aوجميع كتلها بنجاح.'
+  redirect-world:
+    - '&a[sRandomRTP] &6الانتقال من عالم &e%from_world% &4ممنوع. &6سيتم نقلك إلى عالم &e%to_world%'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6لا يمكنك نقل اللاعب &e%player% &eإلى العالم المحظور &e%world%&c!'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6بدأ تحميل التشانكات في نطاق &e%radius% &eبلوك&c!'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6تم إيقاف تحميل التشانكات في عالم &e%world%&c!'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6لا توجد مهام تحميل تشانكات نشطة في هذا العالم!'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6يجب أن يكون نصف القطر رقماً!'
+  worldborder-error:
+    - '&a[sRandomRTP] &6تم إلغاء النقل: لا يمكنك الانتقال خارج حدود العالم.'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6لا يوجد لاعبون في عالم إعادة التوجيه!'

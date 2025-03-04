@@ -1,3 +1,4 @@
+# 使用 %y% %z% %x% 来指定坐标 (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &c你没有权限重载本插件。'
@@ -5,8 +6,6 @@ messages:
     - '&a[sRandomRTP] &c插件正在重新加载，请稍候...'
   reloading-start:
     - '&a[sRandomRTP] &c插件正在重载，请稍等...'
-  reloading-process:
-    - '&a[sRandomRTP] &6插件正在重载，请稍等...'
   successfully-reload:
     - '&a[sRandomRTP] &a插件重载完毕，耗时 %mc% ms'
   no-permission:
@@ -18,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &c待处理的传送请求已取消。'
   teleported:
-    - '&a[sRandomRTP] &f你已被传送至 &aX: %x% Z: %z%。'
+    - '&a[sRandomRTP] &f您已被传送到坐标 &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6正在搜寻合适的位置...'
   locationNotFound:
@@ -38,7 +37,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6你尚未发起随机传送请求。'
   titleMessage: "&a传送完毕！"
-  subtitleMessage: "&e你已传送到了新的位置。"
+  subtitleMessage: "&e您已被移动到新的位置，坐标为 &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6服务器上没有合适的玩家可以使用 /rtp near 命令。'
   noplayerworldnear:
@@ -94,6 +93,12 @@ messages:
     - '&a[sRandomRTP] &6玩家已有一个活动的传送请求。'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6你已成功向玩家 &a%player% 发送传送请求'
+  error-radius:
+    - '&a[sRandomRTP] &6错误：&4radius 和 &4minRadius &6不能相等。传送已取消。'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6您不能传送自己。'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &c未找到传送请求或请求已过期。'
   commandhelp:
     - ' '
     - '&c插件命令帮助：'
@@ -107,9 +112,14 @@ messages:
     - '&a/rtp cancel - &6取消boss进度条上的传送。'
     - '&a/rtp back - &6返回传送前的位置。'
     - '&a/rtp base - &6传送到WorldGuard区域附近。'
-    - '&a/rtp player <玩家名字> - &6传送指定玩家。'
+    - '&a/rtp player <玩家名字>(或额外参数 <world>，将指定玩家传送到另一个世界) - &6传送指定玩家。'
     - '&a/rtp accept - &6接受其他玩家的传送请求。'
     - '&a/rtp deny - &6拒绝其他玩家的传送请求。'
+    - '&a/rtp setportal - &6创建传送门。'
+    - '&a/rtp delportal - &6删除传送门。'
+    - '&a/rtp listportal - &6查看传送门列表。'
+    - '&a/rtp chunky N- &6开始生成N个区块。'
+    - '&a/rtp chunky stop- &6停止在当前玩家世界中生成区块。'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -121,3 +131,64 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &c插件已禁用! %mc% ms'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &c半径必须在1到10之间！'
+  error-portal-name:
+    - '&a[sRandomRTP] &c无效的传送门名称。只能使用字母和数字。不允许使用特殊字符和空格。'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &c不能创建超过 &e90 &c个字符的传送门。您超出了限制 &e %excessCharacters% &c个字符。'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &c名为 &6%portalName% &c的传送门已存在。'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &c没有足够的空间创建半径为 &6%radius%&c 的传送门！'
+  success-portal-created:
+    - '&a[sRandomRTP] &a已创建半径为 &6%radius% &a的传送门 &6%portalName%'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &c请等待后再次传送！'
+  error-page-number-invalid:
+    - '&c无效的页码。'
+  error-command-format:
+    - '&c无效的命令格式。示例：/rtp listportal -p:2'
+  error-no-portals:
+    - '&c您没有创建任何传送门。'
+  error-page-not-found:
+    - '&c页面 %page% 不存在。'
+  error-portal-not-found:
+    - '&c未找到名为 &e%portal% &c的传送门。'
+  error-world-not-found:
+    - '&c未找到传送门世界。'
+  portal-list-header:
+    - '&6&l传送门列表（第 %page% 页，共 %total% 页）：'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7点击删除传送门 &e%portal%'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7点击传送到传送门 &e%portal%'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[上一页]'
+  portal-prev-hover: '&7点击前往上一页'
+  portal-prev-disabled: '&c您已在第一页'
+  portal-next-button: '&a[下一页]'
+  portal-next-hover: '&7点击前往下一页'
+  portal-next-disabled: '&c您已在最后一页'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&a您已被传送到传送门 &e%portal%&a。'
+  portal-delete-success:
+    - '&a传送门 &e%portal% &a及其所有方块已成功删除。'
+  redirect-world:
+    - '&a[sRandomRTP] &6从世界 &e%from_world% &4传送被禁止。&6您将被传送到世界 &e%to_world%'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6您不能将玩家 &e%player% &e传送到被禁止的世界 &e%world%&c！'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6已开始在半径 &e%radius% &e个方块内生成区块&c！'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6已在世界 &e%world%&c 中停止区块生成！'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6此世界中没有活动的区块生成任务！'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6半径必须是一个数字！'
+  worldborder-error:
+    - '&a[sRandomRTP] &6传送已取消：您不能移动到世界边界之外。'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6重定向世界中没有玩家！'
