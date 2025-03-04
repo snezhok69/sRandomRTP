@@ -19,7 +19,7 @@
 #
 # (sRandomRtp.Cooldown.N - replace “N” with your time. With this permission you can set a custom cooldown on the /rtp command.
 # If the permission is not set, the cooldown for the command is taken from the config. If cooldown on the command is disabled, the permission will not work.);
-# (sRandomRTP.Cooldown.bypass - bypass the cooldown for commands and teleportation.);
+# (sRandomRTP.Command.bypass - bypass the cooldown for commands and teleportation.);
 # (sRandomRTP.Command.Rtp - allow using the /rtp command.);
 # (sRandomRTP.Command.Reload - allow using the /rtp reload command.);
 # (sRandomRTP.Command.Near - allow using the /rtp near command.);
@@ -29,7 +29,7 @@
 # (sRandomRTP.Command.Cancel - allow cancelling rtp with the command - /rtp cancel.);
 # (sRandomRTP.Command.Back - allows you to use the command - /rtp back.);
 # (sRandomRTP.Command.Base - allows you to use the command - /rtp base.);
-# (sRandomRTP.Command.Biome - allows you to use the command - /rtp player.);
+# (sRandomRTP.Cooldown.Chunky - allows you to use the command - /rtp chunky.);
 # (sRandomRTP.Command.Player - allows to use the command - /rtp player.);
 # (sRandomRTP.Command.Deny - allows the use of the /rtp deny command (this command works exclusively with the /rtp player command!).
 # (sRandomRTP.Command.Accept - allows the use of the /rtp accept command (this command works exclusively with the /rtp player command!).

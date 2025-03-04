@@ -37,18 +37,17 @@ public class LoadPortalsPlayerFromDatabaseSQL {
                             String[] portalDetails = data[i].split(" -> ");
                             if (portalDetails.length == 2) {
                                 String[] coordinates = portalDetails[0].split(", ");
-                                String shape = "circle"; // По умолчанию круглый
+                                String shape = "circle";
                                 if (coordinates.length >= 5) {
                                     String worldName = coordinates[0];
                                     double x = Double.parseDouble(coordinates[1]);
                                     double y = Double.parseDouble(coordinates[2]);
                                     double z = Double.parseDouble(coordinates[3]);
-                                    shape = coordinates[4]; // Добавлено чтение типа портала
+                                    shape = coordinates[4];
                                     String portalNameWithIndex = portalDetails[1];
                                     PortalData playersDataPortals = new PortalData(playerName, worldName, portalNameWithIndex, String.valueOf(x), String.valueOf(y), String.valueOf(z), shape);
                                     playerPortals.put(portalNameWithIndex, playersDataPortals);
                                 } else if (coordinates.length == 4) {
-                                    // Для обратной совместимости со старыми записями
                                     String worldName = coordinates[0];
                                     double x = Double.parseDouble(coordinates[1]);
                                     double y = Double.parseDouble(coordinates[2]);
@@ -80,14 +79,13 @@ public class LoadPortalsPlayerFromDatabaseSQL {
                     String playerName = resultSet.getString("player_Name");
                     String portalName = resultSet.getString("portal_Name");
                     String blockData = resultSet.getString("block_Data");
-                    String shape = "circle"; // По умолчанию круглый
+                    String shape = "circle";
                     try {
                         shape = resultSet.getString("shape");
                         if (shape == null || shape.isEmpty()) {
                             shape = "circle";
                         }
                     } catch (SQLException e) {
-                        // Для обратной совместимости со старыми записями без столбца shape
                     }
 
                     String[] blocks = blockData.split(" \\| ");
