@@ -1,3 +1,4 @@
+# 座標を指定するには %y% %z% %x% を使用してください (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cプラグインをリロードする権限がありません。'
@@ -5,8 +6,6 @@ messages:
     - '&a[sRandomRTP] &cプラグインを再読み込み中です。しばらくお待ちください...'
   reloading-start:
     - '&a[sRandomRTP] &cプラグインをリロードしています。しばらくお待ちください...'
-  reloading-process:
-    - '&a[sRandomRTP] &6プラグインをリロードしています。しばらくお待ちください...'
   successfully-reload:
     - '&a[sRandomRTP] &aプラグインが正常にリロードされました。%mc% ミリ秒'
   no-permission:
@@ -18,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &cテレポートはキャンセルされました。'
   teleported:
-    - '&a[sRandomRTP] &f座標 &aX: %x% Z: %z% にテレポートしました。'
+    - '&a[sRandomRTP] &fあなたは座標 &aX: %x% Y: %y% Z: %z% にテレポートされました。'
   loading:
     - '&a[sRandomRTP] &6適切な場所を探しています...'
   locationNotFound:
@@ -38,7 +37,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6現在テレポートしていません。'
   titleMessage: "&aテレポートが成功しました！"
-  subtitleMessage: "&e新しい場所に移動されました。"
+  subtitleMessage: "&eあなたは新しい場所に移動しました。座標 &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6サーバーに/rtp nearコマンドを使用するプレイヤーはいません。'
   noplayerworldnear:
@@ -94,6 +93,12 @@ messages:
     - '&a[sRandomRTP] &6プレイヤーにはすでにアクティブなテレポートリクエストがあります。'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6プレイヤー &a%player% にテレポートリクエストを正常に送信しました'
+  error-radius:
+    - '&a[sRandomRTP] &6エラー: &4radius と &4minRadius &6は同じ値にすることはできません。テレポートを中止しました。'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6自分自身をテレポートすることはできません。'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &cテレポートリクエストが見つからないか、有効期限が切れています。'
   commandhelp:
     - ' '
     - '&cプラグインコマンドのヘルプ：'
@@ -107,9 +112,14 @@ messages:
     - '&a/rtp cancel - &6ボスバー中のテレポートをキャンセル。'
     - '&a/rtp back - &6テレポート前の場所に戻る。'
     - '&a/rtp base - &6WorldGuardリージョンの近くにテレポート。'
-    - '&a/rtp player <プレイヤー名> - &6指定されたプレイヤーをテレポート。'
+    - '&a/rtp player <プレイヤー名>(または追加引数 <world>、指定したプレイヤーを別のワールドにテレポート) - &6指定されたプレイヤーをテレポート。'
     - '&a/rtp accept - &6他のプレイヤーからのテレポートを承認。'
     - '&a/rtp deny - &6他のプレイヤーからのテレポートを拒否。'
+    - '&a/rtp setportal - &6ポータルを作成。'
+    - '&a/rtp delportal - &6ポータルを削除。'
+    - '&a/rtp listportal - &6ポータル一覧を表示。'
+    - '&a/rtp chunky N- &6N個のチャンク生成を開始。'
+    - '&a/rtp chunky stop- &6現在のプレイヤーのワールドでのチャンク生成を停止。'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -121,3 +131,64 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &cプラグインが無効になりました! %mc% ms'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &c半径は1から10の間でなければなりません！'
+  error-portal-name:
+    - '&a[sRandomRTP] &c無効なポータル名です。文字と数字のみを使用してください。特殊文字とスペースは使用できません。'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &c&e90 &c文字を超えるポータルは作成できません。&e %excessCharacters% &c文字制限を超えています。'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &c名前 &6%portalName% &cのポータルは既に存在します。'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &c半径 &6%radius%&c のポータルを作成するスペースが不足しています！'
+  success-portal-created:
+    - '&a[sRandomRTP] &aポータル &6%portalName% &aを半径 &6%radius% で作成しました'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &c再度テレポートする前にお待ちください！'
+  error-page-number-invalid:
+    - '&c無効なページ番号です。'
+  error-command-format:
+    - '&c無効なコマンド形式です。例: /rtp listportal -p:2'
+  error-no-portals:
+    - '&c作成したポータルがありません。'
+  error-page-not-found:
+    - '&cページ %page% は存在しません。'
+  error-portal-not-found:
+    - '&c名前 &e%portal% &cのポータルが見つかりません。'
+  error-world-not-found:
+    - '&cポータルのワールドが見つかりません。'
+  portal-list-header:
+    - '&6&lポータル一覧 (ページ %page% / %total%):'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7クリックしてポータル &e%portal% を削除'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7クリックしてポータル &e%portal% にテレポート'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[前へ]'
+  portal-prev-hover: '&7クリックして前のページへ'
+  portal-prev-disabled: '&c最初のページです'
+  portal-next-button: '&a[次へ]'
+  portal-next-hover: '&7クリックして次のページへ'
+  portal-next-disabled: '&c最後のページです'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&aポータル &e%portal%&a にテレポートしました。'
+  portal-delete-success:
+    - '&aポータル &e%portal% &aとそのすべてのブロックを削除しました。'
+  redirect-world:
+    - '&a[sRandomRTP] &6ワールド &e%from_world% &4からのテレポートは禁止されています。&6ワールド &e%to_world% にテレポートされます'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6プレイヤー &e%player% &eを禁止されたワールド &e%world%&c にテレポートできません！'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6半径 &e%radius% &eブロックのチャンク生成を開始しました&c！'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6ワールド &e%world%&c でのチャンク生成を停止しました！'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6このワールドにはアクティブなチャンク生成タスクがありません！'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6半径は数値でなければなりません！'
+  worldborder-error:
+    - '&a[sRandomRTP] &6テレポートがキャンセルされました：ワールドの境界を超えて移動することはできません。'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6リダイレクト先のワールドにプレイヤーがいません！'
