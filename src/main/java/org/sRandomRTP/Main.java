@@ -116,22 +116,22 @@ public class Main extends JavaPlugin {
             LoadKeys.loadKeys(config);
             Variables.setupEconomy();
             //
-            CheckingFile checkingFile = new CheckingFile();
-            checkingFile.compareLanguageFiles("ar.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("custom_messages.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("de.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("en.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("es.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("fr.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("it.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("ja.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("ko.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("pl.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("pt.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("ua.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("vi.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("zh.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("tr.yml", "ru.yml");
+            //CheckingFile checkingFile = new CheckingFile();
+            //checkingFile.compareLanguageFiles("ar.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("custom_messages.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("de.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("en.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("es.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("fr.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("it.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("ja.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("ko.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("pl.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("pt.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("ua.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("vi.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("zh.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("tr.yml", "ru.yml");
             //
             LoadLanguageFile loadLanguageFile = new LoadLanguageFile();
             loadLanguageFile.loadLanguageFile();
