@@ -37,31 +37,45 @@ public class CommandArgs implements CommandExecutor {
                         sender.sendMessage(Variables.pluginName + " §cInvalid command!");
                     }
                     break;
+                // ARGUMENT SETPORTAL \\
                 case "setportal":
                     if (args.length == 3) {
                         try {
                             int radius = Integer.parseInt(args[2]);
                             CommandSetPortal.commandSetPortal(sender, radius, args[1], "circle");
                         } catch (NumberFormatException e) {
-                            sender.sendMessage(Variables.pluginName + " §cРадиус должен быть числом!");
+                            List<String> formattedMessage = LoadMessages.portalradius;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                sender.sendMessage(formattedLine);
+                            }
                         }
                     } else if (args.length == 4) {
                         try {
                             int radius = Integer.parseInt(args[2]);
                             String shape = args[3].toLowerCase();
                             if (!shape.equals("circle") && !shape.equals("square")) {
-                                sender.sendMessage(Variables.pluginName + " §cФорма портала должна быть 'circle' или 'square'!");
+                                List<String> formattedMessage = LoadMessages.portalform;
+                                for (String line : formattedMessage) {
+                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                    sender.sendMessage(formattedLine);
+                                }
                                 return true;
                             }
                             CommandSetPortal.commandSetPortal(sender, radius, args[1], shape);
                         } catch (NumberFormatException e) {
-                            sender.sendMessage(Variables.pluginName + " §cРадиус должен быть числом!");
+                            List<String> formattedMessage = LoadMessages.portalradius;
+                            for (String line : formattedMessage) {
+                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                sender.sendMessage(formattedLine);
+                            }
                         }
                     } else {
                         sender.sendMessage(Variables.pluginName + " §cUsage: /rtp setportal <name> <radius> [shape]");
-                        sender.sendMessage(Variables.pluginName + " §7shape: circle (по умолчанию) или square");
+                        sender.sendMessage(Variables.pluginName + " §7shape: circle (by default) or square");
                     }
                     break;
+                // ARGUMENT DELPORTAL \\
                 case "delportal":
                     if (args.length == 2) {
                         CommandDelPortal.commandDelPortal(sender, args[1]);
@@ -69,8 +83,13 @@ public class CommandArgs implements CommandExecutor {
                         sender.sendMessage(Variables.pluginName + " §cUsage: /rtp delportal <name>");
                     }
                     break;
+                // ARGUMENT LISTPORTAL \\
                 case "listportal":
-                    CommandListPortals.commandListPortals(sender, args);
+                    if (args.length == 2) {
+                        CommandDelPortal.commandDelPortal(sender, args[1]);
+                    } else {
+                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp listportal <name>");
+                    }
                     break;
                 // ARGUMENT CHUNKY \\
                 case "chunky":

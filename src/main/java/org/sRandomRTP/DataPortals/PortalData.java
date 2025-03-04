@@ -10,7 +10,7 @@ public class PortalData {
     private String shape;
 
     public PortalData(String playerName, String worldName, String portalName, String x, String y, String z) {
-        this(playerName, worldName, portalName, x, y, z, "circle"); // По умолчанию круглый
+        this(playerName, worldName, portalName, x, y, z, "circle");
     }
 
     public PortalData(String playerName, String worldName, String portalName, String x, String y, String z, String shape) {

@@ -10,8 +10,8 @@ public class CheckingInstalledChunky {
         String[] versionParts = version.split("\\.");
         if (versionParts.length >= 2) {
             try {
-                int majorVersion = Integer.parseInt(versionParts[0]); // 1
-                int minorVersion = Integer.parseInt(versionParts[1].split("-")[0]); // 12, 13, 14 и т.д.
+                int majorVersion = Integer.parseInt(versionParts[0]);
+                int minorVersion = Integer.parseInt(versionParts[1].split("-")[0]);
 
                 if (majorVersion == 1 && minorVersion < 13) {
                     Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChunky API не поддерживается на версии " + version);

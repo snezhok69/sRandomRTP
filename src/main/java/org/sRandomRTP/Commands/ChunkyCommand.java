@@ -39,7 +39,11 @@ public class ChunkyCommand {
         try {
             radius = Double.parseDouble(args[1]);
         } catch (NumberFormatException e) {
-            player.sendMessage(Variables.pluginName + " §cThe radius should be a number!");
+            List<String> formattedMessage = LoadMessages.chunkyradius_chunky;
+            for (String line : formattedMessage) {
+                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                sender.sendMessage(formattedLine);
+            }
             return;
         }
 
