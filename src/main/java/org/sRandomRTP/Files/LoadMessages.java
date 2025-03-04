@@ -91,9 +91,10 @@ public class LoadMessages {
     public static List<String> successMessage_chunky;
     public static List<String> cancelMessage_chunky;
     public static List<String> chunkyradius_chunky;
-    public static List<String> chunkyradius2_chunky;
+    public static List<String> portalradius;
     public static List<String> worldborder_error;
     public static List<String> rederictworldnear_error;
+    public static List<String> portalform;
 
     public static void loadMessages(YamlConfiguration langFile) {
         nopermissionreload = langFile.getStringList("messages.no-permission-reload");
@@ -183,7 +184,8 @@ public class LoadMessages {
         successMessage_chunky = langFile.getStringList("messages.successMessage-chunky");
         cancelMessage_chunky = langFile.getStringList("messages.cancelMessage-chunky");
         chunkyradius_chunky = langFile.getStringList("messages.chunkyradius-chunky");
-        chunkyradius2_chunky = langFile.getStringList("messages.chunkyradius2-chunky");
+        portalradius = langFile.getStringList("messages.portalradius");
+        portalform = langFile.getStringList("messages.portalform");
         worldborder_error = langFile.getStringList("messages.worldborder-error");
         rederictworldnear_error = langFile.getStringList("messages.rederictworldnear-error");
     }

@@ -155,8 +155,10 @@ messages:
     - '&a[sRandomRTP] &6Прогрузка чанков была остановлена в мире &e%world%&c!'
   chunkyradius-chunky:
     - '&a[sRandomRTP] &6Нет активных задач прогрузки чанков в этом мире!'
-  chunkyradius2-chunky:
+  portalradius:
     - '&a[sRandomRTP] &6Радиус должен быть числом!'
+  portalform:
+    - '&a[sRandomRTP] &6Форма портала должна быть ''circle'' или ''square''!'
   worldborder-error:
     - '&a[sRandomRTP] &6Телепортация отменена: Вы не можете переместиться за границы мира.'
   rederictworldnear-error:

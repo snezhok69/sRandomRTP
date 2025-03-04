@@ -19,7 +19,6 @@ public class SavePortalPlayerToDatabaseSQL {
     public static CompletableFuture<Void> savePortalPlayerToDatabaseSQL(String playerName, String worldName, String portalName, String x, String y, String z, String shape) {
         return CompletableFuture.runAsync(() -> {
             try {
-                // Ensure the connection is initialized
                 if (Variables.connectionSQLPortal == null || Variables.connectionSQLPortal.isClosed()) {
                     Variables.connectionSQLPortal = SQLManagerPortals.getConnectionSQL();
                     if (Variables.connectionSQLPortal == null) {
@@ -28,7 +27,6 @@ public class SavePortalPlayerToDatabaseSQL {
                     }
                 }
 
-                // Ensure table exists
                 SQLManagerPortals.createTableSQL().get();
 
                 PreparedStatement checkStatement = Variables.connectionSQLPortal.prepareStatement(
