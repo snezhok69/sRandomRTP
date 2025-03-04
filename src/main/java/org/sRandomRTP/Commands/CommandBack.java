@@ -23,7 +23,7 @@ public class CommandBack {
         }
         if (Variables.initialPositions.containsKey(player)) {
             Location initialLocation = Variables.initialPositions.get(player);
-            player.teleport(initialLocation);
+            player.teleportAsync(initialLocation);
             List<String> formattedMessage = LoadMessages.teleportBackSuccess;
             for (String line : formattedMessage) {
                 String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));

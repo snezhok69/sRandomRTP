@@ -1,3 +1,4 @@
+# Використовуйте %y% %z% %x% для вказівки координат (teleported, titleMessage, subtitleMessage)
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cУ вас немає прав для перезавантаження плагіна.'
@@ -16,7 +17,7 @@ messages:
   teleport-cancel:
     - '&a[sRandomRTP] &cТелепортацію було скасовано.'
   teleported:
-    - '&a[sRandomRTP] &fВи були телепортовані до координат &aX: %x% Z: %z%.'
+    - '&a[sRandomRTP] &fВас було телепортовано до координат &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Шукаємо для вас підходяще місце...'
   locationNotFound:
@@ -36,7 +37,7 @@ messages:
   no-searching:
     - '&a[sRandomRTP] &6В даний момент ви не телепортуєтеся.'
   titleMessage: "&aТелепортація успішна!"
-  subtitleMessage: "&eВи були переміщені в нове місце."
+  subtitleMessage: "&eВас переміщено на нове місце з координатами &aX: %x% Y: %y% Z: %z%."
   noplayerservenear:
     - '&a[sRandomRTP] &6На сервері немає людей для використання команди /rtp near.'
   noplayerworldnear:
@@ -92,6 +93,12 @@ messages:
     - '&a[sRandomRTP] &6Гравець вже має активний запит на телепортацію.'
   rtp-player-teleport-request-sent:
     - '&a[sRandomRTP] &6Ви успішно надіслали запит на телепортацію гравцю &a%player%'
+  error-radius:
+    - '&a[sRandomRTP] &6Помилка: &4radius і &4minRadius &6не можуть бути рівними. Телепортацію скасовано.'
+  error-teleport-yourself:
+    - '&a[sRandomRTP] &6Ви не можете телепортувати самого себе.'
+  no-active-requests-accept:
+    - '&a[sRandomRTP] &cЗапит на телепортацію не знайдено або термін дії закінчився.'
   commandhelp:
     - ' '
     - '&cДопомога з командами плагіну:'
@@ -105,9 +112,14 @@ messages:
     - '&a/rtp cancel - &6скасувати телепортацію під час смуги боса.'
     - '&a/rtp back - &6повернення на місце перед телепортацією.'
     - '&a/rtp base - &6телепортуватися біля регіонів WorldGuard.'
-    - '&a/rtp player <ім''я гравця> - &6телепортувати вказаного гравця.'
+    - '&a/rtp player <ім''я гравця>(або додатковий аргумент <world>, для телепортації вказаного гравця до іншого світу) - &6телепортувати вказаного гравця.'
     - '&a/rtp accept - &6прийняти телепортацію від іншого гравця.'
     - '&a/rtp deny - &6відхилити телепортацію від іншого гравця.'
+    - '&a/rtp setportal - &6створити портал.'
+    - '&a/rtp delportal - &6видалити портал.'
+    - '&a/rtp listportal - &6переглянути список порталів.'
+    - '&a/rtp chunky N- &6почати генерацію N чанків.'
+    - '&a/rtp chunky stop- &6зупинити генерацію чанків у поточному світі гравця.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -119,3 +131,64 @@ messages:
     - ''
     - '&a[sRandomRTP] &6- &cПлагін вимкнено! %mc% мс'
     - ''
+  # Portal
+  error-radius-portal:
+    - '&a[sRandomRTP] &cРадіус має бути від 1 до 10!'
+  error-portal-name:
+    - '&a[sRandomRTP] &cНеправильна назва порталу. Використовуйте лише літери та цифри. Спеціальні символи та пробіли заборонені.'
+  error-portal-name-characters:
+    - '&a[sRandomRTP] &cНеможливо створити портал довший за &e90 &cсимволів. Ви перевищили ліміт на &e %excessCharacters% &cсимволів.'
+  error-portal-name-already-exists:
+    - '&a[sRandomRTP] &cПортал з назвою &6%portalName% &cвже існує.'
+  error-insufficient-space:
+    - '&a[sRandomRTP] &cНедостатньо місця для створення порталу з радіусом &6%radius%&c!'
+  success-portal-created:
+    - '&a[sRandomRTP] &aПортал &6%portalName% &aстворено з радіусом: &6%radius%'
+  error-cooldown-wait:
+    - '&a[sRandomRTP] &cБудь ласка, зачекайте перед наступною телепортацією!'
+  error-page-number-invalid:
+    - '&cНеправильний номер сторінки.'
+  error-command-format:
+    - '&cНеправильний формат команди. Приклад: /rtp listportal -p:2'
+  error-no-portals:
+    - '&cУ вас немає створених порталів.'
+  error-page-not-found:
+    - '&cСторінка %page% не існує.'
+  error-portal-not-found:
+    - '&cПортал з назвою &e%portal% &cне знайдено.'
+  error-world-not-found:
+    - '&cСвіт порталу не знайдено.'
+  portal-list-header:
+    - '&6&lСПИСОК ПОРТАЛІВ (Сторінка %page% з %total%):'
+  portal-delete-button: ' &c&l[✖]'
+  portal-delete-hover: '&7Натисніть, щоб видалити портал &e%portal%'
+  portal-tp-button: '&e%portal% &7- &d%coordinates%'
+  portal-tp-hover: '&7Натисніть, щоб телепортуватися до порталу &e%portal%'
+  portal-coordinates: '%s %d, %d, %d'
+  portal-prev-button: '&c[Попередня]'
+  portal-prev-hover: '&7Натисніть, щоб перейти на попередню сторінку'
+  portal-prev-disabled: '&cВи на першій сторінці'
+  portal-next-button: '&a[Наступна]'
+  portal-next-hover: '&7Натисніть, щоб перейти на наступну сторінку'
+  portal-next-disabled: '&cВи на останній сторінці'
+  portal-space: ' | '
+  portal-teleport-success:
+    - '&aВас телепортовано до порталу &e%portal%&a.'
+  portal-delete-success:
+    - '&aПортал &e%portal% &aта всі його блоки успішно видалено.'
+  redirect-world:
+    - '&a[sRandomRTP] &6Телепортація зі світу &e%from_world% &4заборонена. &6Вас буде телепортовано до світу &e%to_world%'
+  banned-world-sender:
+    - '&a[sRandomRTP] &6Ви не можете телепортувати гравця &e%player% &eдо забороненого світу &e%world%&c!'
+  successMessage-chunky:
+    - '&a[sRandomRTP] &6Розпочато генерацію чанків у радіусі &e%radius% &eблоків&c!'
+  cancelMessage-chunky:
+    - '&a[sRandomRTP] &6Генерацію чанків зупинено у світі &e%world%&c!'
+  chunkyradius-chunky:
+    - '&a[sRandomRTP] &6Немає активних завдань генерації чанків у цьому світі!'
+  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6Радіус має бути числом!'
+  worldborder-error:
+    - '&a[sRandomRTP] &6Телепортацію скасовано: Ви не можете переміститися за межі світу.'
+  rederictworldnear-error:
+    - '&a[sRandomRTP] &6У світі перенаправлення немає гравців!'

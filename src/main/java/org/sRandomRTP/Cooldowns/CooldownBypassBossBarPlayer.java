@@ -1,51 +1,55 @@
 package org.sRandomRTP.Cooldowns;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.Data.DataSave;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Rtp.RtpRtpPlayer;
-
 import java.util.List;
+import static org.sRandomRTP.DifferentMethods.Variables.teleportTasks;
 
 public class CooldownBypassBossBarPlayer {
 
-    public static boolean cooldownBypassBossBarplayer(CommandSender sender, Player targetPlayer) {
+    public static boolean cooldownBypassBossBarplayer(CommandSender sender, Player targetPlayer, World world) {
         try {
             if (targetPlayer.hasPermission("sRandomRTP.Cooldown.bypass")) {
-                RtpRtpPlayer.rtprtpplayer(sender, targetPlayer);
+                RtpRtpPlayer.rtprtpplayer(sender, targetPlayer, world);
             } else {
                 if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
                     List<String> formattedMessage = LoadMessages.rtpplayeralreadyrequested;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                         sender.sendMessage(formattedLine);
-                        return false;
                     }
+                    return false;
                 }
+
+                Variables.playerConfirmStatus.put(targetPlayer.getName(), true);
+
                 List<String> formattedMessage1 = LoadMessages.rtpplayerteleportrequestsent;
                 for (String line : formattedMessage1) {
                     line = line.replace("%player%", targetPlayer.getName());
                     String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                     sender.sendMessage(formattedLine);
                 }
+
                 if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
                     Variables.commandSenderMap.put(targetPlayer.getName(), sender);
-                    sendInitialMessage(sender, targetPlayer);
+                    sendInitialMessage(sender, targetPlayer); // Отправляем запрос игроку
                     return true;
                 } else {
                     if (targetPlayer.hasPermission("sRandomRTP.Cooldown.bypass")) {
-                        RtpRtpPlayer.rtprtpplayer(sender, targetPlayer);
+                        RtpRtpPlayer.rtprtpplayer(sender, targetPlayer, world);
                     } else {
-                        CooldownBypassBossBarPlayer.startBossBarCountdown(sender, targetPlayer);
+                        CooldownBypassBossBarPlayer.startBossBarCountdown(sender, targetPlayer, world);
                     }
                 }
             }
@@ -64,19 +68,16 @@ public class CooldownBypassBossBarPlayer {
             String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
             targetPlayer.sendMessage(formattedLine);
 
-            Bukkit.getScheduler().runTaskLaterAsynchronously(Variables.getInstance(), new Runnable() {
-                @Override
-                public void run() {
-                    if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
-                        List<String> formattedMessage = LoadMessages.rtpplayertimeout;
-                        for (String line : formattedMessage) {
-                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                            targetPlayer.sendMessage(formattedLine);
-                        }
-                        Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
-                    } else {
-                        Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
+            Variables.getFoliaLib().getImpl().runLaterAsync(() -> {
+                if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
+                    List<String> formattedMessage1 = LoadMessages.rtpplayertimeout;
+                    for (String line1 : formattedMessage1) {
+                        String formattedLine1 = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line1));
+                        targetPlayer.sendMessage(formattedLine1);
                     }
+                    Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
+                } else {
+                    Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
                 }
             }, 200);
         }
@@ -110,44 +111,42 @@ public class CooldownBypassBossBarPlayer {
         }
     }
 
-    public static void startBossBarCountdown(CommandSender sender, Player targetPlayer) {
+    public static void startBossBarCountdown(CommandSender sender, Player targetPlayer, World world) {
         int countdownTime = Variables.bossbarfile.getInt("teleport.bossbar-time");
-        BukkitTask[] tasks = new BukkitTask[2];
-        BukkitTask progressTask = new BukkitRunnable() {
-            double timeLeft = countdownTime;
-
-            @Override
-            public void run() {
-                timeLeft -= 0.06;
-                if (timeLeft <= 0) {
-                    cancel();
-                    RemoveBossBar.removeBossBar(targetPlayer);
-                    Variables.playerSearchStatus.put(targetPlayer.getName(), false);
-                    RtpRtpPlayer.rtprtpplayer(sender, targetPlayer);
-                    Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
-                    int totalUses = Variables.rtpCount.getOrDefault(1, 0);
-                    Variables.rtpCount.put(1, totalUses + 1);
-                    DataSave.dataSave();
-                    tasks[1].cancel();
-                } else {
-                    double progress = timeLeft / countdownTime;
-                    String bossbarmessage = LoadMessages.bossbar;
-                    bossbarmessage = bossbarmessage.replace("%time%", String.valueOf((int) Math.ceil(timeLeft)));
-                    bossbarmessage = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', bossbarmessage));
-                    if (Variables.bossbarfile.getBoolean("teleport.bossbarEnabled")) {
-                        SetBossBarProgress.setBossBarProgress(sender, targetPlayer, progress, bossbarmessage);
-                    }
-                    if (Variables.bossbarfile.getBoolean("teleport.actionBarEnabled")) {
-                        String formattedLine = String.format(LoadMessages.actionBarMessage, (int) Math.ceil(timeLeft));
-                        formattedLine = TranslateRGBColors.translateRGBColors(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', formattedLine));
-                        targetPlayer.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(formattedLine));
-                    }
+        WrappedTask[] tasks = new WrappedTask[2];
+        final double[] timeLeft = {countdownTime};
+        WrappedTask progressTask = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
+            timeLeft[0] -= 0.06;
+            if (timeLeft[0] <= 0) {
+                WrappedTask checkProximityTaskTask = teleportTasks.get(targetPlayer);
+                if (checkProximityTaskTask != null) {
+                    checkProximityTaskTask.cancel();
+                    teleportTasks.remove(targetPlayer);
+                }
+                RemoveBossBar.removeBossBar(targetPlayer);
+                Variables.playerSearchStatus.put(targetPlayer.getName(), false);
+                RtpRtpPlayer.rtprtpplayer(sender, targetPlayer, world);
+                Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
+                int totalUses = Variables.rtpCount.getOrDefault(1, 0);
+                Variables.rtpCount.put(1, totalUses + 1);
+                DataSave.dataSave();
+                tasks[1].cancel();
+            } else {
+                double progress = timeLeft[0] / countdownTime;
+                String bossbarmessage = LoadMessages.bossbar;
+                bossbarmessage = bossbarmessage.replace("%time%", String.valueOf((int) Math.ceil(timeLeft[0])));
+                bossbarmessage = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', bossbarmessage));
+                if (Variables.bossbarfile.getBoolean("teleport.bossbarEnabled")) {
+                    SetBossBarProgress.setBossBarProgress(sender, targetPlayer, progress, bossbarmessage);
+                }
+                if (Variables.bossbarfile.getBoolean("teleport.actionBarEnabled")) {
+                    String formattedLine = String.format(LoadMessages.actionBarMessage, (int) Math.ceil(timeLeft[0]));
+                    formattedLine = TranslateRGBColors.translateRGBColors(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', formattedLine));
+                    targetPlayer.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(formattedLine));
                 }
             }
-        }.runTaskTimer(Variables.getInstance(), 0, 1);
-        BukkitTask soundTask = new BukkitRunnable() {
-            @Override
-            public void run() {
+        }, 0, 1);
+        WrappedTask soundTask = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
                 if (Variables.soundfile.getBoolean("teleport.boss-bar-teleport-sound.enabled")) {
                     String soundName = Variables.soundfile.getString("teleport.boss-bar-teleport-sound.sound");
                     float volume = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.volume");
@@ -160,13 +159,12 @@ public class CooldownBypassBossBarPlayer {
                         Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
                     }
                 }
-            }
-        }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 20);
+        }, 0, 20);
 
         tasks[0] = progressTask;
         tasks[1] = soundTask;
 
-        Variables.teleportTasks.put(targetPlayer.getPlayer(), tasks);
+        Variables.teleportTasks.put(targetPlayer.getPlayer(), tasks[0]);
         Variables.playerSearchStatus.put(targetPlayer.getName(), true);
     }
 }

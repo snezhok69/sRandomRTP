@@ -14,10 +14,7 @@
 # Placeholders:
 # %sRandomRTP_rtp_count% - counts how many people have been teleported. Teleportations are counted after successful teleportation by /rtp, /rtp near, /rtp world.
 #
-#
-#
-#
-# permissions:
+# Permissions:
 #
 #
 # (sRandomRtp.Cooldown.N - replace “N” with your time. With this permission you can set a custom cooldown on the /rtp command.
@@ -33,9 +30,9 @@
 # (sRandomRTP.Command.Back - allows you to use the command - /rtp back.);
 # (sRandomRTP.Command.Base - allows you to use the command - /rtp base.);
 # (sRandomRTP.Command.Biome - allows you to use the command - /rtp player.);
-# (sRandomRTP.Command.Player - allows to use the command - /rtp biome.);
-# (sRandomRTP.Command.Deny - разрешает использовать команду /rtp deny(!!ЭТО КОМАНДА РАБОТАЕТ ИСКЛЮЧИТЕЛЬНО С КОМАНДОЙ /RTP PLAYER!!);
-# (sRandomRTP.Command.Accept - allows to use the command - /rtp biome.);
+# (sRandomRTP.Command.Player - allows to use the command - /rtp player.);
+# (sRandomRTP.Command.Deny - allows the use of the /rtp deny command (this command works exclusively with the /rtp player command!).
+# (sRandomRTP.Command.Accept - allows the use of the /rtp accept command (this command works exclusively with the /rtp player command!).
 #
 #
 
@@ -49,7 +46,7 @@ Auto-Checking-New-Version-Console-Enabled: true
 Period-Checking-New-Version: 1800
 # Default language for the plugin, English by default.
 # This file custom_messages is created to be translated into any language you want
-# de_de - Deutsch (German) || en_us - English (United States) || es_es - Español (Spanish) || fr_fr - Français (French) || it_it - Italiano (Italian) ||
-# ja_jp - 日本語 (Japanese) || ko_kr - 한국어 (Korean) || pl_pl - Polski (Polish) || pt_br - Português (Brazilian Portuguese) || ru_ru - Русский (Russian) ||
-# uk_ua - Українська (Ukrainian) || vi_vn - Tiếng Việt (Vietnamese) || zh_cn - 中文 (Simplified Chinese) || ar_sa - العربية (Arabic)
-Language: en_us
+# de - Deutsch (German) || en - English (United States) || es - Español (Spanish) || fr - Français (French) || it - Italiano (Italian) ||
+# ja - 日本語 (Japanese) || ko - 한국어 (Korean) || pl - Polski (Polish) || pt - Português (Brazilian Portuguese) || ru - Русский (Russian) ||
+# ua - Українська (Ukrainian) || vi - Tiếng Việt (Vietnamese) || zh - 中文 (Simplified Chinese) || ar - العربية (Arabic)
+Language: en

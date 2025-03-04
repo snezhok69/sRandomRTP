@@ -16,11 +16,11 @@ public class CheckingServerVersion {
                 String version = packageParts[3];
                 String minorVersionStr = version.split("_")[1];
                 int minorVersion = Integer.parseInt(minorVersionStr);
-                if (minorVersion < 9) {
+                if (minorVersion < 16) {
                     Variables.pluginToggle = true;
                     Bukkit.getConsoleSender().sendMessage("");
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cYour server version is lower than §61.9 §cPlugin has been disabled!");
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cIt is recommended to update to version §61.9 §cor higher");
+                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cYour server version is lower than §61.16 §cPlugin has been disabled!");
+                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cIt is recommended to update to version §61.16 §cor higher");
                     Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cfor full compatibility.");
                     Bukkit.getConsoleSender().sendMessage("");
                     Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c>==========================================<");

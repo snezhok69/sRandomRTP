@@ -6,9 +6,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class IsOutdatedByMultipleVersionsTask {
     public static void isOutdatedByMultipleVersionsTask() {
         try {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
+            Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
                     String currentVersion = Variables.getInstance().getDescription().getVersion();
                     String latestVersion = "2.9";
                     String[] currentVersionParts = currentVersion.split("\\.");
@@ -30,8 +28,7 @@ public class IsOutdatedByMultipleVersionsTask {
                         Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c> WARNING ========================================== WARNING <");
                         Bukkit.getConsoleSender().sendMessage("");
                     }
-                }
-            }.runTaskTimerAsynchronously(Variables.getInstance(), 0, 20);
+            }, 60 * 20, 60 * 20);
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
