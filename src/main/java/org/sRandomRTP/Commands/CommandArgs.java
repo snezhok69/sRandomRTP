@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Cooldowns.CooldownBypassBossBarPlayer;
 import org.sRandomRTP.DifferentMethods.*;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 
 import java.util.List;
@@ -37,58 +38,91 @@ public class CommandArgs implements CommandExecutor {
                         sender.sendMessage(Variables.pluginName + " §cInvalid command!");
                     }
                     break;
-                // ARGUMENT SETPORTAL \\
-                case "setportal":
-                    if (args.length == 3) {
-                        try {
-                            int radius = Integer.parseInt(args[2]);
-                            CommandSetPortal.commandSetPortal(sender, radius, args[1], "circle");
-                        } catch (NumberFormatException e) {
-                            List<String> formattedMessage = LoadMessages.portalradius;
-                            for (String line : formattedMessage) {
-                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                sender.sendMessage(formattedLine);
-                            }
-                        }
-                    } else if (args.length == 4) {
-                        try {
-                            int radius = Integer.parseInt(args[2]);
-                            String shape = args[3].toLowerCase();
-                            if (!shape.equals("circle") && !shape.equals("square")) {
-                                List<String> formattedMessage = LoadMessages.portalform;
-                                for (String line : formattedMessage) {
-                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                    sender.sendMessage(formattedLine);
+                // ARGUMENT FAR \\
+                case "far":
+                    if (args.length < 2) {
+                        CommandFar.commandFar(sender);
+                    } else {
+                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                    }
+                    break;
+                // ARGUMENT MIDDLE \\
+                case "middle":
+                    if (args.length < 2) {
+                        CommandMiddle.commandMiddle(sender);
+                    } else {
+                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                    }
+                    break;
+                // ARGUMENT PORTAL \\
+                case "portal":
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+                        return false;
+                    }
+
+                    if (args.length < 2) {
+                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal <set|del|list> [parameters]");
+                        return true;
+                    }
+
+                    String portalAction = args[1].toLowerCase();
+
+                    switch (portalAction) {
+                        case "set":
+                            if (args.length == 4) {
+                                try {
+                                    int radius = Integer.parseInt(args[3]);
+                                    CommandSetPortal.commandSetPortal(sender, radius, args[2], "circle");
+                                } catch (NumberFormatException e) {
+                                    List<String> formattedMessage = LoadMessages.portalradius;
+                                    for (String line : formattedMessage) {
+                                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                        sender.sendMessage(formattedLine);
+                                    }
                                 }
-                                return true;
+                            } else if (args.length == 5) {
+                                try {
+                                    int radius = Integer.parseInt(args[3]);
+                                    String shape = args[4].toLowerCase();
+                                    if (!shape.equals("circle") && !shape.equals("square")) {
+                                        List<String> formattedMessage = LoadMessages.portalform;
+                                        for (String line : formattedMessage) {
+                                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                            sender.sendMessage(formattedLine);
+                                        }
+                                        return true;
+                                    }
+                                    CommandSetPortal.commandSetPortal(sender, radius, args[2], shape);
+                                } catch (NumberFormatException e) {
+                                    List<String> formattedMessage = LoadMessages.portalradius;
+                                    for (String line : formattedMessage) {
+                                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                                        sender.sendMessage(formattedLine);
+                                    }
+                                }
+                            } else {
+                                sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal set <name> <radius> [shape]");
+                                sender.sendMessage(Variables.pluginName + " §7shape: circle (by default) or square");
                             }
-                            CommandSetPortal.commandSetPortal(sender, radius, args[1], shape);
-                        } catch (NumberFormatException e) {
-                            List<String> formattedMessage = LoadMessages.portalradius;
-                            for (String line : formattedMessage) {
-                                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                sender.sendMessage(formattedLine);
+                            break;
+                        case "del":
+                            if (args.length == 3) {
+                                CommandDelPortal.commandDelPortal(sender, args[2]);
+                            } else {
+                                sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal del <name>");
                             }
-                        }
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp setportal <name> <radius> [shape]");
-                        sender.sendMessage(Variables.pluginName + " §7shape: circle (by default) or square");
-                    }
-                    break;
-                // ARGUMENT DELPORTAL \\
-                case "delportal":
-                    if (args.length == 2) {
-                        CommandDelPortal.commandDelPortal(sender, args[1]);
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp delportal <name>");
-                    }
-                    break;
-                // ARGUMENT LISTPORTAL \\
-                case "listportal":
-                    if (args.length == 2) {
-                        CommandDelPortal.commandDelPortal(sender, args[1]);
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp listportal <name>");
+                            break;
+                        case "list":
+                            String[] newArgs = new String[args.length - 2];
+                            if (args.length > 2) {
+                                System.arraycopy(args, 2, newArgs, 0, args.length - 2);
+                            }
+                            CommandListPortals.commandListPortals(sender, newArgs);
+                            break;
+                        default:
+                            sender.sendMessage(Variables.pluginName + " §cInvalid portal command! Use: set, del or list");
+                            break;
                     }
                     break;
                 // ARGUMENT CHUNKY \\
@@ -130,7 +164,7 @@ public class CommandArgs implements CommandExecutor {
                                             }
                                             if (!redirectWorld.getPlayers().isEmpty()) {
                                                 Variables.targetWorlds.put(player.getName(), redirectWorld);
-                                                player.teleport(redirectWorld.getSpawnLocation());
+                                                player.teleportAsync(redirectWorld.getSpawnLocation());
                                                 CommandNear.commandnear(player);
                                             } else {
                                                 List<String> formattedMessage3 = LoadMessages.rederictworldnear_error;
@@ -185,6 +219,10 @@ public class CommandArgs implements CommandExecutor {
                     break;
                 // ARGUMENT HELP \\
                 case "help":
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+                        return false;
+                    }
                     if (args.length < 2) {
                         CommandHelp.commandhelp(sender);
                     } else {
@@ -193,6 +231,10 @@ public class CommandArgs implements CommandExecutor {
                     break;
                 // ARGUMENT DENY \\
                 case "deny":
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+                        return false;
+                    }
                     if (args.length < 2) {
                         Player targetPlayer = (Player) sender;
                         if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
@@ -207,6 +249,10 @@ public class CommandArgs implements CommandExecutor {
                     break;
                 // ARGUMENT ACCEPT \\
                 case "accept":
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+                        return false;
+                    }
                     if (args.length < 2) {
                         Player targetPlayer = (Player) sender;
                         if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {

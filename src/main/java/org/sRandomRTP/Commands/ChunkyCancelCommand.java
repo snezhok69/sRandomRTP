@@ -3,7 +3,7 @@ package org.sRandomRTP.Commands;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 
@@ -21,7 +21,7 @@ public class ChunkyCancelCommand {
 
         Player player = (Player) sender;
 
-        if (!player.hasPermission("sRandomRTP.Cooldown.Chunky")) {
+        if (!player.hasPermission("sRandomRTP.Command.Chunky")) {
             List<String> formattedMessage = LoadMessages.nopermissioncommand;
             for (String line : formattedMessage) {
                 String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));

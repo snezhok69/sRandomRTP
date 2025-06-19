@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &f좌표 &aX: %x% Y: %y% Z: %z% 로 텔레포트되었습니다.'
   loading:
     - '&a[sRandomRTP] &6적합한 장소를 찾고 있습니다...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6텔레포트가 조금 더 오래 걸리고 있습니다. 기다려 주세요...'
   locationNotFound:
     - '&a[sRandomRTP] &c적합한 장소를 찾지 못했습니다!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6새 플러그인 버전을 사용할 수 있습니다: &6%new-CommandVersion%. &a현재 버전: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6다음 링크에서 다운로드할 수 있습니다: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &a새 플러그인 버전을 사용할 수 있습니다: &6%new-CommandVersion%. &a현재 버전: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &a다음 링크에서 다운로드할 수 있습니다: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&b%time% 초 후에 텔레포트됩니다'
   CheckingVersion:
     - '&a[sRandomRTP] &6새 플러그인 버전을 확인 중입니다...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6현재 텔레포트 중이 아닙니다.'
   titleMessage: "&a텔레포트 성공!"
   subtitleMessage: "&e새로운 장소로 이동되었습니다. 좌표: &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aテレポート中...!"
+  subtitleMessage-loading: "&eお待ちください..."
   noplayerservenear:
     - '&a[sRandomRTP] &6서버에 /rtp near 명령어를 사용할 수 있는 플레이어가 없습니다.'
   noplayerworldnear:
@@ -112,9 +116,14 @@ messages:
     - '&a/rtp cancel - &6보스바 동안 텔레포트를 취소.'
     - '&a/rtp back - &6텔레포트 전 위치로 돌아가기.'
     - '&a/rtp base - &6WorldGuard 지역 근처로 텔레포트.'
-    - '&a/rtp player <플레이어 이름> - &6지정된 플레이어를 텔레포트.'
+    - '&a/rtp player <플레이어 이름>(또는 추가 인수 <world>, 지정된 플레이어를 다른 월드로 텔레포트) - &6지정된 플레이어를 텔레포트.'
     - '&a/rtp accept - &6다른 플레이어의 텔레포트를 수락.'
     - '&a/rtp deny - &6다른 플레이어의 텔레포트를 거부.'
+    - '&a/rtp setportal - &6포털 생성.'
+    - '&a/rtp delportal - &6포털 삭제.'
+    - '&a/rtp listportal - &6포털 목록 보기.'
+    - '&a/rtp chunky N - &6N개의 청크 생성 시작.'
+    - '&a/rtp chunky stop - &6현재 플레이어의 월드에서 청크 생성 중지.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -137,6 +146,8 @@ messages:
     - '&a[sRandomRTP] &c이름이 &6%portalName% &c인 포털이 이미 존재합니다.'
   error-insufficient-space:
     - '&a[sRandomRTP] &c반경 &6%radius%&c의 포털을 생성할 공간이 부족합니다!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &c''%shape%'' 형태의 반경 &6%radius%&c 포털을 생성할 공간이 부족합니다!'
   success-portal-created:
     - '&a[sRandomRTP] &a포털 &6%portalName% &a이(가) 반경 &6%radius%로 생성되었습니다'
   error-cooldown-wait:
@@ -180,32 +191,14 @@ messages:
   cancelMessage-chunky:
     - '&a[sRandomRTP] &6월드 &e%world%&c에서 청크 생성이 중지되었습니다!'
   chunkyradius-chunky:
-    - '&a[sRandomRTP] &6이 월드에 활성화된 청크 생성 작업이 없습니다!'
-  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6이 월드에서 활성화된 청크 생성 작업이 없습니다!'
+  portalradius:
     - '&a[sRandomRTP] &6반경은 숫자여야 합니다!'
-  commandhelp:
-    - ' '
-    - '&c플러그인 명령어 도움말:'
-    - ' '
-    - '&a/rtp - &6랜덤 텔레포트.'
-    - '&a/rtp world <당신의 세계> - &6지정된 세계로 텔레포트.'
-    - '&a/rtp near - &6플레이어 근처로 텔레포트.'
-    - '&a/rtp help - &6명령어 도움말을 표시.'
-    - '&a/rtp version - &6새 플러그인 버전을 확인.'
-    - '&a/rtp reload - &6플러그인을 리로드.'
-    - '&a/rtp cancel - &6보스바 동안 텔레포트를 취소.'
-    - '&a/rtp back - &6텔레포트 전 위치로 돌아가기.'
-    - '&a/rtp base - &6WorldGuard 지역 근처로 텔레포트.'
-    - '&a/rtp player <플레이어 이름>(또는 추가 인수 <world>, 지정된 플레이어를 다른 월드로 텔레포트) - &6지정된 플레이어를 텔레포트.'
-    - '&a/rtp accept - &6다른 플레이어의 텔레포트를 수락.'
-    - '&a/rtp deny - &6다른 플레이어의 텔레포트를 거부.'
-    - '&a/rtp setportal - &6포털 생성.'
-    - '&a/rtp delportal - &6포털 삭제.'
-    - '&a/rtp listportal - &6포털 목록 보기.'
-    - '&a/rtp chunky N- &6N개의 청크 생성 시작.'
-    - '&a/rtp chunky stop- &6현재 플레이어의 월드에서 청크 생성 중지.'
-    - ' '
+  portalform:
+    - '&a[sRandomRTP] &6포털 모양은 ''circle'' 또는 ''square''여야 합니다!'
   worldborder-error:
     - '&a[sRandomRTP] &6텔레포트가 취소되었습니다: 월드 경계를 넘어 이동할 수 없습니다.'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6리다이렉트 월드에 플레이어가 없습니다!'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6이 블록을 파괴할 수 없습니다.'

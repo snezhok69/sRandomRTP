@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &fВы были телепортированы на координаты &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Ищем для вас подходящее место...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6Телепортация длится чуть дольше, пожалуйста, ожидайте...'
   locationNotFound:
     - '&a[sRandomRTP] &cНе удалось найти подходящую локацию!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6Доступна новая версия плагина: &6%new-CommandVersion%. &aВаша текущая версия: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6Вы можете скачать её по ссылке: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aДоступна новая версия плагина: &6%new-CommandVersion%. &aВаша текущая версия: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &aВы можете скачать её по ссылке: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&bТелепортация через &6%time% &bсекунд'
   CheckingVersion:
     - '&a[sRandomRTP] &6Проверка новой версии плагина...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6В данный момент вы не телепортируетесь.'
   titleMessage: "&aТелепортация успешна!"
   subtitleMessage: "&eВы были перемещены в новое место по координатам &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aТелепортация...!"
+  subtitleMessage-loading: "&eПожалуйста, ожидайте..."
   noplayerservenear:
     - '&a[sRandomRTP] &6На сервере нет людей для использования команды /rtp near.'
   noplayerworldnear:
@@ -110,6 +114,8 @@ messages:
     - '&a[sRandomRTP] &cПортал с именем &6%portalName% &cуже существует.'
   error-insufficient-space:
     - '&a[sRandomRTP] &cНедостаточно места для создания портала с радиусом &6%radius%&c!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &cНедостаточно места для создания портала формы ''%shape%'' с радиусом &6%radius%&c!'
   success-portal-created:
     - '&a[sRandomRTP] &aПортал &6%portalName% &aсоздан с радиусом: &6%radius%'
   error-cooldown-wait:
@@ -144,7 +150,8 @@ messages:
     - '&aВы были телепортированы к порталу &e%portal%&a.'
   portal-delete-success:
     - '&aПортал &e%portal% &aи все его блоки были успешно удалены.'
-  # Portal
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6Вы не можете ломать данный блок.'
   redirect-world:
     - '&a[sRandomRTP] &6Телепортация из мира &e%from_world% &4запрещена. &6Вы будете телепортированы в мир &e%to_world%'
   banned-world-sender:
@@ -182,8 +189,8 @@ messages:
     - '&a/rtp setportal - &6создать портал.'
     - '&a/rtp delportal - &6удалить портал.'
     - '&a/rtp listportal - &6посмотреть список порталов.'
-    - '&a/rtp chunky N- &6начать прогрузку N чанков.'
-    - '&a/rtp chunky stop- &6остановить прогрузку чанков в текущем мире игрока.'
+    - '&a/rtp chunky N - &6начать прогрузку N чанков.'
+    - '&a/rtp chunky stop - &6остановить прогрузку чанков в текущем мире игрока.'
     - ' '
   Plugin-Enabled-Message:
     - ''

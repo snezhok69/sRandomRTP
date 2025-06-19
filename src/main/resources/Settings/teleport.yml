@@ -4,11 +4,27 @@ teleport:
   # '' - write without this symbol. Write in a column as in blocks.
   bannedBiomes:
   - ''
+  # Minimum height (Y-coordinate) for teleportation
+  # This prevents teleportation to caves and underground areas
+  minY: 60
+  minY-end: 55
+  minY-nether: 30
+  # If true, automatically blocks all biomes that have "CAVES" in their name
+  # This helps prevent teleportation to cave biomes like LUSH_CAVES, DRIPSTONE_CAVES, etc.
+  block-cave-biomes: true
+    # Setting the radius for the normal teleportation command
   # Here you can specify the radius of random teleportation from the center of the world.
   radius: 1000
-  # Минимальный радиус при телепортации, то есть если радиус 10, а минимальный радиус 1 вас будет телепортировать в этом радиусе.
-  # НЕ РЕКОМЕНДУЕТСЯ СТАВИТЬ РАДИУС И МИНИМАЛЬНЫЙ РАДИУС ОДИНАКОВЫМ СЕРВЕР МОЖЕТ КРАШНУТЬСЯ!!!
-  minradius: 10
+  # The minimum teleportation radius, that is, if the radius is 10 and the minimum radius is 1, you will be teleported within that radius.
+  # IT IS NOT RECOMMENDED TO SET THE RADIUS AND MINIMUM RADIUS TO THE SAME, THE SERVER MAY CRASH!!!
+  minradius: 100
+  # Coordinate generation method: CIRCLE, SQUARE
+  # CIRCLE - generates coordinates in a circular area (default)
+  # SQUARE - generates coordinates in a square area
+  coordinate-generation: CIRCLE
+  # If true, minradius will be treated as absolute coordinates
+  # For example, if minradius is 500000, coordinates will be at least 500000 blocks from center
+  use-absolute-coordinates: true
   # Radius to the nearest teleportation point to the region by command /rtp base. The recommended minimum number is 10, if you set the number lower the /rtp base command may stop working.
   regionradius: 10
   # If true – when someone tries to teleport you using the /rtp player command, you will see a message notifying you of the teleportation attempt.
@@ -51,6 +67,7 @@ teleport:
     # If true, cooldown will be issued on the command.
     # If false, cooldown will not be issued on the command.
     enabled: true
+    # Cooldown that will be imposed on the command in seconds.
     cooldown: 60
   # If true - teleportation will be canceled if you take damage.
   # If false - you will be teleported even if you take damage.
@@ -79,8 +96,11 @@ teleport:
       - world
       - world1
       - world2
+    # Redirect Setup.
     redirect:
+      # If enabled(true), if you try to teleport in a forbidden world, you will get a message saying that the world is forbidden, and then immediately start teleporting to the redirect world.
       enabled: true
+      # A world for redirect.
       world: world
   achievement:
     # Player achievement check. Works on the /rtp world command. Achievements required: 'Fiery bowels' for infernal world; 'The end?' for edge world(ender world);
