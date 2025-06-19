@@ -52,57 +52,56 @@ public class onTabCompletes implements TabCompleter {
                 if (sender.hasPermission("sRandomRTP.Command.Deny")) {
                     arguments.add("deny");
                 }
-                if (sender.hasPermission("sRandomRTP.Command.SetPortal")) {
-                    arguments.add("setportal");
+                if (sender.hasPermission("sRandomRTP.Command.Portal")) {
+                    arguments.add("portal");
                 }
-                if (sender.hasPermission("sRandomRTP.Command.DelPortal")) {
-                    arguments.add("delportal");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.ListPortal")) {
-                    arguments.add("listportal");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.ListPortal")) {
+                if (sender.hasPermission("sRandomRTP.Command.Chunky")) {
                     arguments.add("chunky");
                 }
-            } else if (args.length == 2 && args[0].equalsIgnoreCase("world") && sender.hasPermission("sRtp.Command.World")) {
-                int count = 0;
-                boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
-                List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                for (World world : Bukkit.getWorlds()) {
-                    if (count >= 100) {
-                        break;
+                if (sender.hasPermission("sRandomRTP.Command.Far")) {
+                    arguments.add("far");
+                }
+                if (sender.hasPermission("sRandomRTP.Command.Middle")) {
+                    arguments.add("middle");
+                }
+            } else if (args.length == 2) {
+                if (args[0].equalsIgnoreCase("portal") && sender.hasPermission("sRandomRTP.Command.Portal")) {
+                    arguments.add("set");
+                    arguments.add("del");
+                    arguments.add("list");
+                } else if (args[0].equalsIgnoreCase("world") && sender.hasPermission("sRandomRTP.Command.World")) {
+                    int count = 0;
+                    boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
+                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+                    for (World world : Bukkit.getWorlds()) {
+                        if (count >= 10) {
+                            break;
+                        }
+                        if (isEnabled && bannedWorlds.contains(world.getName())) {
+                            continue;
+                        }
+                        arguments.add(world.getName());
+                        count++;
                     }
-                    if (isEnabled && bannedWorlds.contains(world.getName())) {
-                        continue;
+                } else if (args[0].equalsIgnoreCase("player")) {
+                    List<String> playerNames = new ArrayList<>();
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        playerNames.add(player.getName());
                     }
-                    arguments.add(world.getName());
-                    count++;
+                    return playerNames;
                 }
-            } else if (args.length == 2 && args[0].equalsIgnoreCase("player")) {
-                List<String> playerNames = new ArrayList<>();
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    playerNames.add(player.getName());
-                }
-                return playerNames;
-            } else if (args.length == 2 && args[0].equalsIgnoreCase("delportal")) {
-                String partialPortalName = args[1];
-                Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
-                if (playerPortals != null) {
-                    playerPortals.keySet().stream()
-                            .filter(portalName -> portalName.toLowerCase().startsWith(partialPortalName))
-                            .limit(8)
-                            .forEach(arguments::add);
-                    return arguments;
-                }
-            } else if (args.length == 2 && args[0].equalsIgnoreCase("listportal")) {
-                String partialPortalName = args[1];
-                Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
-                if (playerPortals != null) {
-                    playerPortals.keySet().stream()
-                            .filter(portalName -> portalName.toLowerCase().startsWith(partialPortalName))
-                            .limit(8)
-                            .forEach(arguments::add);
-                    return arguments;
+            } else if (args.length == 3) {
+                if (args[0].equalsIgnoreCase("portal")) {
+                    if (args[1].equalsIgnoreCase("del") || args[1].equalsIgnoreCase("list")) {
+                        String partialPortalName = args[2].toLowerCase();
+                        Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
+                        if (playerPortals != null) {
+                            playerPortals.keySet().stream()
+                                    .filter(portalName -> portalName.toLowerCase().startsWith(partialPortalName))
+                                    .limit(8)
+                                    .forEach(arguments::add);
+                        }
+                    }
                 }
             }
             return arguments;
@@ -125,31 +124,80 @@ public class onTabCompletes implements TabCompleter {
                         completions.add(argument);
                     }
                 }
-            } else if (args.length == 2 && args[0].equalsIgnoreCase("player")) {
+            } else if (args.length == 2) {
                 String input = args[1].toLowerCase();
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (player.getName().toLowerCase().startsWith(input)) {
-                        completions.add(player.getName());
+                if (args[0].equalsIgnoreCase("player")) {
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        if (player.getName().toLowerCase().startsWith(input)) {
+                            completions.add(player.getName());
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("portal") && sender.hasPermission("sRandomRTP.Command.Portal")) {
+                    if ("set".startsWith(input)) completions.add("set");
+                    if ("del".startsWith(input)) completions.add("del");
+                    if ("list".startsWith(input)) completions.add("list");
+                } else if (args[0].equalsIgnoreCase("chunky")) {
+                    if ("stop".startsWith(input)) completions.add("stop");
+                } else if (args[0].equalsIgnoreCase("world")) {
+                    boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
+                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+                    for (World world : Bukkit.getWorlds()) {
+                        if (isEnabled && bannedWorlds.contains(world.getName())) {
+                            continue;
+                        }
+                        if (world.getName().toLowerCase().startsWith(input)) {
+                            completions.add(world.getName());
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("reload") ||
+                        args[0].equalsIgnoreCase("cancel") ||
+                        args[0].equalsIgnoreCase("near") ||
+                        args[0].equalsIgnoreCase("help") ||
+                        args[0].equalsIgnoreCase("base") ||
+                        args[0].equalsIgnoreCase("back") ||
+                        args[0].equalsIgnoreCase("accept") ||
+                        args[0].equalsIgnoreCase("deny") ||
+                        args[0].equalsIgnoreCase("chunky") ||
+                        args[0].equalsIgnoreCase("far") ||
+                        args[0].equalsIgnoreCase("middle") ||
+                        args[0].equalsIgnoreCase("version")) {
+                    for (String argument : getAllArguments(sender, args)) {
+                        if (argument.toLowerCase().startsWith(input)) {
+                            completions.add(argument);
+                        }
                     }
                 }
-            } else if (args.length == 2 && (args[0].equalsIgnoreCase("reload") ||
-                    args[0].equalsIgnoreCase("cancel") ||
-                    args[0].equalsIgnoreCase("near") ||
-                    args[0].equalsIgnoreCase("world") ||
-                    args[0].equalsIgnoreCase("help") ||
-                    args[0].equalsIgnoreCase("player") ||
-                    args[0].equalsIgnoreCase("base") ||
-                    args[0].equalsIgnoreCase("back") ||
-                    args[0].equalsIgnoreCase("accept") ||
-                    args[0].equalsIgnoreCase("delportal") ||
-                    args[0].equalsIgnoreCase("listportal") ||
-                    args[0].equalsIgnoreCase("chunky") ||
-                    args[0].equalsIgnoreCase("version"))) {
-                String input = args[1].toLowerCase();
-                for (String argument : getAllArguments(sender, args)) {
-                    if (argument.toLowerCase().startsWith(input)) {
-                        completions.add(argument);
+            } else if (args.length == 3) {
+                String input = args[2].toLowerCase();
+                if (args[0].equalsIgnoreCase("portal")) {
+                    if (args[1].equalsIgnoreCase("del") || args[1].equalsIgnoreCase("list")) {
+                        Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
+                        if (playerPortals != null) {
+                            playerPortals.keySet().stream()
+                                    .filter(portalName -> portalName.toLowerCase().startsWith(input))
+                                    .limit(8)
+                                    .forEach(completions::add);
+                        }
                     }
+                } else if (args[0].equalsIgnoreCase("player")) {
+                    boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
+                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+                    for (World world : Bukkit.getWorlds()) {
+                        if (isEnabled && bannedWorlds.contains(world.getName())) {
+                            continue;
+                        }
+                        if (world.getName().toLowerCase().startsWith(input)) {
+                            completions.add(world.getName());
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("chunky") && !args[1].equalsIgnoreCase("stop")) {
+                    if ("stop".startsWith(input)) completions.add("stop");
+                }
+            } else if (args.length == 5) {
+                String input = args[4].toLowerCase();
+                if (args[0].equalsIgnoreCase("portal") && args[1].equalsIgnoreCase("set")) {
+                    if ("circle".startsWith(input)) completions.add("circle");
+                    if ("square".startsWith(input)) completions.add("square");
                 }
             }
             return completions;

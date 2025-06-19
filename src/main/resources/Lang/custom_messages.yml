@@ -1,5 +1,5 @@
-# Here you can translate the messages in the plugin as you want.
 # Use %y% %z% %x% to specify coordinates (teleported, titleMessage, subtitleMessage)
+# Here you can translate the messages in the plugin as you want.
 messages:
   no-permission-reload:
     - '&a[sRandomRTP] &cYou do not have permission to reload the plugin.'
@@ -21,11 +21,13 @@ messages:
     - '&a[sRandomRTP] &fYou have been teleported to coordinates &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Searching for a suitable location...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6Teleportation is taking a bit longer, please wait...'
   locationNotFound:
     - '&a[sRandomRTP] &cFailed to find a suitable location!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6A new version of the plugin is available: &6%new-CommandVersion%. &aYour current version: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6You can download it at: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aA new version of the plugin is available: &6%new-CommandVersion%. &aYour current version: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &aYou can download it at: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&bTeleporting in &6%time% &bseconds'
   CheckingVersion:
     - '&a[sRandomRTP] &6Checking for a new version of the plugin...'
@@ -39,6 +41,8 @@ messages:
     - '&a[sRandomRTP] &6You are not currently teleporting.'
   titleMessage: "&aTeleportation successful!"
   subtitleMessage: "&eYou have been moved to a new location at coordinates &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aTeleporting...!"
+  subtitleMessage-loading: "&ePlease wait..."
   noplayerservenear:
     - '&a[sRandomRTP] &6There are no players on the server to use the /rtp near command.'
   noplayerworldnear:
@@ -119,8 +123,8 @@ messages:
     - '&a/rtp setportal - &6create a portal.'
     - '&a/rtp delportal - &6delete a portal.'
     - '&a/rtp listportal - &6view list of portals.'
-    - '&a/rtp chunky N- &6start generating N chunks.'
-    - '&a/rtp chunky stop- &6stop chunk generation in current player world.'
+    - '&a/rtp chunky N - &6start generating N chunks.'
+    - '&a/rtp chunky stop - &6stop chunk generation in current player world.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -143,6 +147,8 @@ messages:
     - '&a[sRandomRTP] &cPortal with name &6%portalName% &calready exists.'
   error-insufficient-space:
     - '&a[sRandomRTP] &cNot enough space to create a portal with radius &6%radius%&c!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &cNot enough space to create a portal of shape ''%shape%'' with radius &6%radius%&c!'
   success-portal-created:
     - '&a[sRandomRTP] &aPortal &6%portalName% &acreated with radius: &6%radius%'
   error-cooldown-wait:
@@ -187,9 +193,13 @@ messages:
     - '&a[sRandomRTP] &6Chunk generation was stopped in world &e%world%&c!'
   chunkyradius-chunky:
     - '&a[sRandomRTP] &6No active chunk generation tasks in this world!'
-  chunkyradius2-chunky:
+  portalradius:
     - '&a[sRandomRTP] &6Radius must be a number!'
+  portalform:
+    - '&a[sRandomRTP] &6Portal shape must be ''circle'' or ''square''!'
   worldborder-error:
     - '&a[sRandomRTP] &6Teleportation cancelled: You cannot move beyond world borders.'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6There are no players in the redirect world!'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6You cannot break this block.'

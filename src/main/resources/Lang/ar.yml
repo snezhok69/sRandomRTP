@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &fتم نقلك إلى الإحداثيات &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6جارٍ البحث عن مكان مناسب...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6عملية النقل تستغرق وقتًا أطول، يرجى الانتظار...'
   locationNotFound:
     - '&a[sRandomRTP] &cفشل في العثور على موقع مناسب!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6الإصدار الجديد من الإضافة متاح%new-CommandVersion%. &aإصدارك الحالي: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6يمكنك تحميله من الرابطhttps://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aمتوفر إصدار جديد من الإضافة: &6%new-CommandVersion%. &aالإصدار الحالي: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &aيمكنك تنزيله من الرابط: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&bالنقل الفوري خلال &6%time% &bثوانٍ'
   CheckingVersion:
     - '&a[sRandomRTP] &6جارٍ التحقق من إصدار المكون الإضافي الجديد...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6أنت لا تنتقل الآن.'
   titleMessage: "&aتمت عملية النقل بنجاح!"
   subtitleMessage: "&eلقد تم نقلك إلى موقع جديد عند الإحداثيات &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aجاري النقل...!"
+  subtitleMessage-loading: "&eيرجى الانتظار..."
   noplayerservenear:
     - '&a[sRandomRTP] &6لا يوجد أحد على الخادم لاستخدام الأمر /rtp near.'
   noplayerworldnear:
@@ -118,8 +122,8 @@ messages:
     - '&a/rtp setportal - &6إنشاء بوابة.'
     - '&a/rtp delportal - &6حذف بوابة.'
     - '&a/rtp listportal - &6عرض قائمة البوابات.'
-    - '&a/rtp chunky N- &6بدء تحميل N تشانك.'
-    - '&a/rtp chunky stop- &6إيقاف تحميل التشانكات في العالم الحالي للاعب.'
+    - '&a/rtp chunky N - &6بدء تحميل N تشانك.'
+    - '&a/rtp chunky stop - &6إيقاف تحميل التشانكات في العالم الحالي للاعب.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -142,6 +146,8 @@ messages:
     - '&a[sRandomRTP] &cالبوابة باسم &6%portalName% &cموجودة بالفعل.'
   error-insufficient-space:
     - '&a[sRandomRTP] &cلا توجد مساحة كافية لإنشاء بوابة بنصف قطر &6%radius%&c!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &cلا توجد مساحة كافية لإنشاء بوابة بشكل ''%shape%'' بنصف قطر &6%radius%&c!'
   success-portal-created:
     - '&a[sRandomRTP] &aتم إنشاء البوابة &6%portalName% &aبنصف قطر: &6%radius%'
   error-cooldown-wait:
@@ -185,10 +191,14 @@ messages:
   cancelMessage-chunky:
     - '&a[sRandomRTP] &6تم إيقاف تحميل التشانكات في عالم &e%world%&c!'
   chunkyradius-chunky:
-    - '&a[sRandomRTP] &6لا توجد مهام تحميل تشانكات نشطة في هذا العالم!'
-  chunkyradius2-chunky:
-    - '&a[sRandomRTP] &6يجب أن يكون نصف القطر رقماً!'
+    - '&a[sRandomRTP] &6لا توجد مهام توليد قطع نشطة في هذا العالم!'
+  portalradius:
+    - '&a[sRandomRTP] &6يجب أن يكون نصف القطر رقمًا!'
+  portalform:
+    - '&a[sRandomRTP] &6يجب أن يكون شكل البوابة ''circle'' أو ''square''!'
   worldborder-error:
     - '&a[sRandomRTP] &6تم إلغاء النقل: لا يمكنك الانتقال خارج حدود العالم.'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6لا يوجد لاعبون في عالم إعادة التوجيه!'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6لا يمكنك كسر هذه الكتلة.'

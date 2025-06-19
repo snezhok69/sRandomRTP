@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &fBạn đã được dịch chuyển đến tọa độ &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Đang tìm vị trí phù hợp cho bạn...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6Quá trình dịch chuyển đang mất nhiều thời gian hơn, vui lòng đợi...'
   locationNotFound:
     - '&a[sRandomRTP] &cKhông tìm thấy vị trí phù hợp!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6Phiên bản mới của plugin đã có sẵn: &6%new-CommandVersion%. &aPhiên bản hiện tại của bạn: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6Bạn có thể tải xuống tại: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aPhiên bản mới của plugin đã có sẵn: &6%new-CommandVersion%. &aPhiên bản hiện tại của bạn: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &aBạn có thể tải xuống tại: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&bDịch chuyển sau &6%time% &bgiây'
   CheckingVersion:
     - '&a[sRandomRTP] &6Đang kiểm tra phiên bản mới của plugin...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6Hiện tại bạn không đang được dịch chuyển.'
   titleMessage: "&aDịch chuyển thành công!"
   subtitleMessage: "&eBạn đã được di chuyển đến một địa điểm mới tại tọa độ &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aĐang dịch chuyển...!"
+  subtitleMessage-loading: "&eVui lòng đợi..."
   noplayerservenear:
     - '&a[sRandomRTP] &6Không có người chơi nào trên máy chủ để sử dụng lệnh /rtp near.'
   noplayerworldnear:
@@ -118,8 +122,8 @@ messages:
     - '&a/rtp setportal - &6tạo cổng.'
     - '&a/rtp delportal - &6xóa cổng.'
     - '&a/rtp listportal - &6xem danh sách cổng.'
-    - '&a/rtp chunky N- &6bắt đầu tạo N chunk.'
-    - '&a/rtp chunky stop- &6dừng tạo chunk trong thế giới hiện tại của người chơi.'
+    - '&a/rtp chunky N - &6bắt đầu tạo N chunk.'
+    - '&a/rtp chunky stop - &6dừng tạo chunk trong thế giới hiện tại của người chơi.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -142,6 +146,8 @@ messages:
     - '&a[sRandomRTP] &cCổng có tên &6%portalName% &cđã tồn tại.'
   error-insufficient-space:
     - '&a[sRandomRTP] &cKhông đủ không gian để tạo cổng với bán kính &6%radius%&c!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &cKhông đủ không gian để tạo cổng hình ''%shape%'' với bán kính &6%radius%&c!'
   success-portal-created:
     - '&a[sRandomRTP] &aCổng &6%portalName% &ađã được tạo với bán kính: &6%radius%'
   error-cooldown-wait:
@@ -185,10 +191,14 @@ messages:
   cancelMessage-chunky:
     - '&a[sRandomRTP] &6Đã dừng tạo chunk trong thế giới &e%world%&c!'
   chunkyradius-chunky:
-    - '&a[sRandomRTP] &6Không có tác vụ tạo chunk đang hoạt động trong thế giới này!'
-  chunkyradius2-chunky:
+    - '&a[sRandomRTP] &6Không có nhiệm vụ tạo chunk đang hoạt động trong thế giới này!'
+  portalradius:
     - '&a[sRandomRTP] &6Bán kính phải là một số!'
+  portalform:
+    - '&a[sRandomRTP] &6Hình dạng cổng phải là ''circle'' hoặc ''square''!'
   worldborder-error:
     - '&a[sRandomRTP] &6Dịch chuyển đã bị hủy: Bạn không thể di chuyển ra ngoài ranh giới thế giới.'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6Không có người chơi nào trong thế giới chuyển hướng!'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6Bạn không thể phá vỡ khối này.'

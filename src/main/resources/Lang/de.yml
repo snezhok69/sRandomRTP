@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &fSie wurden zu den Koordinaten &aX: %x% Z: %z% teleportiert.'
   loading:
     - '&a[sRandomRTP] &6Suche nach einem geeigneten Ort...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6Die Teleportation dauert etwas länger, bitte warten...'
   locationNotFound:
     - '&a[sRandomRTP] &cEs konnte kein geeigneter Ort gefunden werden!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6Eine neue Version des Plugins ist verfügbar: &6%new-CommandVersion%. &aIhre aktuelle Version: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6Sie können sie unter folgendem Link herunterladen: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aEine neue Version des Plugins ist verfügbar: &6%new-CommandVersion%. &aIhre aktuelle Version: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &aSie können sie unter folgendem Link herunterladen: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&bTeleportation in &6%time% &bSekunden'
   CheckingVersion:
     - '&a[sRandomRTP] &6Überprüfen auf eine neue Plugin-Version...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6Sie teleportieren sich momentan nicht.'
   titleMessage: "&aTeleportation erfolgreich!"
   subtitleMessage: "&eSie wurden an einen neuen Ort versetzt."
+  titleMessage-loading: "&aTeleportiere...!"
+  subtitleMessage-loading: "&eBitte warten..."
   noplayerservenear:
     - '&a[sRandomRTP] &6Es gibt keine Spieler auf dem Server, um den Befehl /rtp near zu verwenden.'
   noplayerworldnear:
@@ -118,8 +122,8 @@ messages:
     - '&a/rtp setportal - &6erstellt ein Portal.'
     - '&a/rtp delportal - &6löscht ein Portal.'
     - '&a/rtp listportal - &6zeigt die Liste der Portale.'
-    - '&a/rtp chunky N- &6startet die Generierung von N Chunks.'
-    - '&a/rtp chunky stop- &6stoppt die Chunk-Generierung in der aktuellen Spielerwelt.'
+    - '&a/rtp chunky N - &6startet die Generierung von N Chunks.'
+    - '&a/rtp chunky stop - &6stoppt die Chunk-Generierung in der aktuellen Spielerwelt.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -142,6 +146,8 @@ messages:
     - '&a[sRandomRTP] &cEin Portal mit dem Namen &6%portalName% &cexistiert bereits.'
   error-insufficient-space:
     - '&a[sRandomRTP] &cNicht genügend Platz, um ein Portal mit Radius &6%radius%&c zu erstellen!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &cNicht genug Platz, um ein Portal der Form ''%shape%'' mit Radius &6%radius%&c zu erstellen!'
   success-portal-created:
     - '&a[sRandomRTP] &aPortal &6%portalName% &amit Radius: &6%radius% erstellt'
   error-cooldown-wait:
@@ -186,9 +192,13 @@ messages:
     - '&a[sRandomRTP] &6Chunk-Generierung in Welt &e%world%&c gestoppt!'
   chunkyradius-chunky:
     - '&a[sRandomRTP] &6Keine aktiven Chunk-Generierungsaufgaben in dieser Welt!'
-  chunkyradius2-chunky:
+  portalradius:
     - '&a[sRandomRTP] &6Der Radius muss eine Zahl sein!'
+  portalform:
+    - '&a[sRandomRTP] &6Die Portalform muss ''circle'' oder ''square'' sein!'
   worldborder-error:
     - '&a[sRandomRTP] &6Teleportation abgebrochen: Sie können sich nicht außerhalb der Weltgrenzen bewegen.'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6Es gibt keine Spieler in der Umleitungswelt!'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6Sie können diesen Block nicht abbauen.'

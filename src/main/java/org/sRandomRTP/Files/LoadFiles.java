@@ -15,5 +15,9 @@ public class LoadFiles {
         Variables.titlefile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/title.yml"));
         Variables.economyfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/economy.yml"));
         Variables.soundfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/sound.yml"));
+        Variables.farfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/far.yml"));
+        Variables.middlefile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/middle.yml"));
+        Variables.portalfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/portal.yml"));
+
     }
 }

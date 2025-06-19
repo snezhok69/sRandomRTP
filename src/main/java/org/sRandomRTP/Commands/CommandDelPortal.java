@@ -5,7 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DataPortals.RemovePortalPlayerFromDatabaseSQL;
-import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 
@@ -14,9 +14,16 @@ import java.util.*;
 public class CommandDelPortal {
 
     public static void commandDelPortal(CommandSender sender, String portalName) {
+        Player player = (Player) sender;
         if (!(sender instanceof Player)) {
-            for (String line : LoadMessages.nopermissioncommand) {
-                sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
+            sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+            return;
+        }
+        if (!player.hasPermission("sRandomRTP.Command.Portal")) {
+            List<String> formattedMessage = LoadMessages.nopermissioncommand;
+            for (String line : formattedMessage) {
+                String formattedLine = TranslateRGBColors.translateRGBColors(org.bukkit.ChatColor.translateAlternateColorCodes('&', line));
+                sender.sendMessage(formattedLine);
             }
             return;
         }

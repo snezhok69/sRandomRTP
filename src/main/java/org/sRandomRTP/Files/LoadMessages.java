@@ -95,6 +95,11 @@ public class LoadMessages {
     public static List<String> worldborder_error;
     public static List<String> rederictworldnear_error;
     public static List<String> portalform;
+    public static List<String> error_portal_shape_radius;
+    public static List<String> error_break_portal_block;
+    public static String titleMessage_loading;
+    public static String subtitleMessage_loading;
+    public static List<String> longteleportwait;
 
     public static void loadMessages(YamlConfiguration langFile) {
         nopermissionreload = langFile.getStringList("messages.no-permission-reload");
@@ -188,5 +193,10 @@ public class LoadMessages {
         portalform = langFile.getStringList("messages.portalform");
         worldborder_error = langFile.getStringList("messages.worldborder-error");
         rederictworldnear_error = langFile.getStringList("messages.rederictworldnear-error");
+        error_portal_shape_radius = langFile.getStringList("messages.error-portal-shape-radius");
+        error_break_portal_block = langFile.getStringList("messages.error-break-portal-block");
+        titleMessage_loading = langFile.getString("messages.titleMessage-loading");
+        subtitleMessage_loading = langFile.getString("messages.subtitleMessage-loading");
+        longteleportwait = langFile.getStringList("messages.long-teleport-wait");
     }
 }

@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &fあなたは座標 &aX: %x% Y: %y% Z: %z% にテレポートされました。'
   loading:
     - '&a[sRandomRTP] &6適切な場所を探しています...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6テレポートに少し時間がかかっています。お待ちください...'
   locationNotFound:
     - '&a[sRandomRTP] &c適切な場所が見つかりませんでした！'
   newVersionMessage:
-    - '&a[sRandomRTP] &6プラグインの新しいバージョンが利用可能です: &6%new-CommandVersion%. &a現在のバージョン: &6%old-CommandVersion%。'
-    - '&a[sRandomRTP] &6以下のリンクからダウンロードできます: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aプラグインの新しいバージョンが利用可能です: &6%new-CommandVersion%. &a現在のバージョン: &6%old-CommandVersion%。'
+    - '&a[sRandomRTP] &a以下のリンクからダウンロードできます: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&b%time% 秒でテレポート'
   CheckingVersion:
     - '&a[sRandomRTP] &6新しいプラグインバージョンをチェックしています...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6現在テレポートしていません。'
   titleMessage: "&aテレポートが成功しました！"
   subtitleMessage: "&eあなたは新しい場所に移動しました。座標 &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aテレポート中...!"
+  subtitleMessage-loading: "&eお待ちください..."
   noplayerservenear:
     - '&a[sRandomRTP] &6サーバーに/rtp nearコマンドを使用するプレイヤーはいません。'
   noplayerworldnear:
@@ -118,8 +122,8 @@ messages:
     - '&a/rtp setportal - &6ポータルを作成。'
     - '&a/rtp delportal - &6ポータルを削除。'
     - '&a/rtp listportal - &6ポータル一覧を表示。'
-    - '&a/rtp chunky N- &6N個のチャンク生成を開始。'
-    - '&a/rtp chunky stop- &6現在のプレイヤーのワールドでのチャンク生成を停止。'
+    - '&a/rtp chunky N - &6N個のチャンク生成を開始。'
+    - '&a/rtp chunky stop - &6現在のプレイヤーのワールドでのチャンク生成を停止。'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -142,6 +146,8 @@ messages:
     - '&a[sRandomRTP] &c名前 &6%portalName% &cのポータルは既に存在します。'
   error-insufficient-space:
     - '&a[sRandomRTP] &c半径 &6%radius%&c のポータルを作成するスペースが不足しています！'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &c形状 ''%shape%'' で半径 &6%radius%&c のポータルを作成するスペースが不足しています！'
   success-portal-created:
     - '&a[sRandomRTP] &aポータル &6%portalName% &aを半径 &6%radius% で作成しました'
   error-cooldown-wait:
@@ -186,9 +192,13 @@ messages:
     - '&a[sRandomRTP] &6ワールド &e%world%&c でのチャンク生成を停止しました！'
   chunkyradius-chunky:
     - '&a[sRandomRTP] &6このワールドにはアクティブなチャンク生成タスクがありません！'
-  chunkyradius2-chunky:
+  portalradius:
     - '&a[sRandomRTP] &6半径は数値でなければなりません！'
+  portalform:
+    - '&a[sRandomRTP] &6ポータルの形状は''circle''または''square''でなければなりません！'
   worldborder-error:
     - '&a[sRandomRTP] &6テレポートがキャンセルされました：ワールドの境界を超えて移動することはできません。'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6リダイレクト先のワールドにプレイヤーがいません！'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6このブロックを壊すことはできません。'

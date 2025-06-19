@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &fВас було телепортовано до координат &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6Шукаємо для вас підходяще місце...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6Телепортація триває трохи довше, будь ласка, зачекайте...'
   locationNotFound:
     - '&a[sRandomRTP] &cНе вдалося знайти підходячу локацію!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6Доступна нова версія плагіна: &6%new-CommandVersion%. &aВаша поточна версія: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6Ви можете завантажити її за посиланням: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aДоступна нова версія плагіна: &6%new-CommandVersion%. &aВаша поточна версія: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &aВи можете завантажити її за посиланням: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&bТелепортація через &6%time% &bсекунд'
   CheckingVersion:
     - '&a[sRandomRTP] &6Перевірка нової версії плагіна...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6В даний момент ви не телепортуєтеся.'
   titleMessage: "&aТелепортація успішна!"
   subtitleMessage: "&eВас переміщено на нове місце з координатами &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aТелепортація...!"
+  subtitleMessage-loading: "&eБудь ласка, зачекайте..."
   noplayerservenear:
     - '&a[sRandomRTP] &6На сервері немає людей для використання команди /rtp near.'
   noplayerworldnear:
@@ -118,8 +122,8 @@ messages:
     - '&a/rtp setportal - &6створити портал.'
     - '&a/rtp delportal - &6видалити портал.'
     - '&a/rtp listportal - &6переглянути список порталів.'
-    - '&a/rtp chunky N- &6почати генерацію N чанків.'
-    - '&a/rtp chunky stop- &6зупинити генерацію чанків у поточному світі гравця.'
+    - '&a/rtp chunky N - &6почати генерацію N чанків.'
+    - '&a/rtp chunky stop - &6зупинити генерацію чанків у поточному світі гравця.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -142,6 +146,8 @@ messages:
     - '&a[sRandomRTP] &cПортал з назвою &6%portalName% &cвже існує.'
   error-insufficient-space:
     - '&a[sRandomRTP] &cНедостатньо місця для створення порталу з радіусом &6%radius%&c!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &cНедостатньо місця для створення порталу форми ''%shape%'' з радіусом &6%radius%&c!'
   success-portal-created:
     - '&a[sRandomRTP] &aПортал &6%portalName% &aстворено з радіусом: &6%radius%'
   error-cooldown-wait:
@@ -186,9 +192,13 @@ messages:
     - '&a[sRandomRTP] &6Генерацію чанків зупинено у світі &e%world%&c!'
   chunkyradius-chunky:
     - '&a[sRandomRTP] &6Немає активних завдань генерації чанків у цьому світі!'
-  chunkyradius2-chunky:
+  portalradius:
     - '&a[sRandomRTP] &6Радіус має бути числом!'
+  portalform:
+    - '&a[sRandomRTP] &6Форма порталу має бути ''circle'' або ''square''!'
   worldborder-error:
     - '&a[sRandomRTP] &6Телепортацію скасовано: Ви не можете переміститися за межі світу.'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6У світі перенаправлення немає гравців!'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6Ви не можете ламати цей блок.'

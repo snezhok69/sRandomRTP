@@ -1,0 +1,52 @@
+# Commands to be executed when jumping into the portal
+portal-commands:
+  # Enable/disable command execution when entering the portal
+  enabled: true
+  # List of commands to execute
+  # %player% player's nickname
+  commands:
+    - say %player% entered the portal!
+    - effect give %player% speed 30 2
+# Setting up cooldown for the portal
+portal:
+  rtp:
+    enabled: false  # Установите true для активации RTP при входе в портал
+    world: "world"  # Укажите название мира для телепортации
+  # If false, the portal blocks can be broken and replaced with their own, but this may break the database and cause a bug.
+  # If true, the portal blocks cannot be broken.
+  protect_blocks: true
+  # Portal materials
+  # Link to all blocks minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+  materials:
+    # Blocks under the portal
+    floor: "GLASS"
+    # Portal boundaries
+    border: "OBSIDIAN"
+  # Настройка партиклов для портала
+  particles:
+    # Particles for the portal floor
+    # All particles https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+    floor: "PORTAL"
+    # Number of particles created at each point
+    floor_count: 2
+    # Point density (lower value = more points)
+    floor_density: 0.5
+    # Particle spread at each point
+    floor_spread: 0.1
+    # The particles that will be on the edges of the portal
+    # All particles https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+    border: "FLAME"
+    # Number of particles created at each point
+    border_count: 5
+    # Point density (lower value = more points)
+    border_density: 0.5
+    # Particle spread at each point
+    border_spread: 0.1
+    # If false, the particles will only be there when the portal is created. If true, the particles will always be on the portal boundaries.
+    permanent_border: false
+  # Cooldown of the portal after the player has jumped
+  cooldown:
+    # Enable or disable cooldown for portal after jump
+    enabled: true
+    # Time in seconds
+    time: 5
