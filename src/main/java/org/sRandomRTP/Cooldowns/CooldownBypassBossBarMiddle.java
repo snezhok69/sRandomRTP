@@ -6,6 +6,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Data.DataSave;
@@ -14,18 +15,18 @@ import org.sRandomRTP.DifferentMethods.BossBars.RemoveBossBar;
 import org.sRandomRTP.DifferentMethods.BossBars.SetBossBarProgress;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
-import org.sRandomRTP.Rtp.RtpRtpNear;
+import org.sRandomRTP.Rtp.RtpRtpMiddle;
 
 import static org.sRandomRTP.DifferentMethods.Variables.teleportTasks;
 
-public class CooldownBypassBossBarNear {
+public class CooldownBypassBossBarMiddle {
 
-    public static boolean cooldownBypassBossBarnear(Player player, CommandSender sender) {
+    public static boolean cooldownBypassBossBarMiddle(Player player, CommandSender sender, World world) {
         try {
             if (player.hasPermission("sRandomRTP.Cooldown.bypass")) {
-                RtpRtpNear.rtpRtpNear(sender);
+                RtpRtpMiddle.rtpRtpmiddle(sender, world);
             } else {
-                startBossBarCountdown(player, sender);
+                startBossBarCountdown(player, sender, world);
                 return true;
             }
         } catch (Throwable e) {
@@ -36,7 +37,7 @@ public class CooldownBypassBossBarNear {
         return false;
     }
 
-    public static void startBossBarCountdown(Player player, CommandSender sender) {
+    public static void startBossBarCountdown(Player player, CommandSender sender, World world) {
         int countdownTime = Variables.bossbarfile.getInt("teleport.bossbar-time");
         final double[] timeLeft = {countdownTime};
         final long[] lastSoundTime = {System.currentTimeMillis()};
@@ -82,7 +83,7 @@ public class CooldownBypassBossBarNear {
                 }
                 RemoveBossBar.removeBossBar(player);
                 Variables.playerSearchStatus.put(player.getName(), false);
-                RtpRtpNear.rtpRtpNear(sender);
+                RtpRtpMiddle.rtpRtpmiddle(sender, world);
                 int totalUses = Variables.rtpCount.getOrDefault(1, 0);
                 Variables.rtpCount.put(1, totalUses + 1);
                 DataSave.dataSave();

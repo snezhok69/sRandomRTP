@@ -28,10 +28,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.sRandomRTP.DifferentMethods.Variables.pluginName;
 
-public class RtpRtpWorld {
+public class RtpRtpMiddle {
 
-    public static void rtpRtpworld(CommandSender sender, Player player, World targetWorld) {
+    public static void rtpRtpmiddle(CommandSender sender, World targetWorld) {
         try {
+            Player player = (Player) sender;
             if (Variables.playerSearchStatus.getOrDefault(player.getName(), false)) {
                 boolean loggingEnabled = Variables.getInstance().getConfig().getBoolean("logs", false);
                 if (loggingEnabled) {
@@ -100,8 +101,8 @@ public class RtpRtpWorld {
             boolean loggingEnabled = config.getBoolean("logs", false);
             int centerX = (int) world.getWorldBorder().getCenter().getX();
             int centerZ = (int) world.getWorldBorder().getCenter().getZ();
-            int radius = Variables.teleportfile.getInt("teleport.radius");
-            int minRadius = Variables.teleportfile.getInt("teleport.minradius");
+            int radius = Variables.teleportfile.getInt("teleport-middle.radius-middle");
+            int minRadius = Variables.teleportfile.getInt("teleport-middle.minradius-middle");
 
             if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage("Debug: radius = " + radius + ", minRadius = " + minRadius);
@@ -351,14 +352,14 @@ public class RtpRtpWorld {
                                         }
 
                                         if (player == null || teleportLocation == null || teleportLocation.getWorld() == null) {
-                                            if (loggingEnabled) {
+                                                if (loggingEnabled) {
                                                 Bukkit.getLogger().severe("Cannot teleport: " + (player == null ? "Player is null" : teleportLocation == null ? "Location is null" : "World is null"));
                                             }
-                                            return;
-                                        }
+                                                        return;
+                                                    }
 
                                         if (!player.isOnline()) {
-                                            if (loggingEnabled) {
+                                                if (loggingEnabled) {
                                                 Bukkit.getLogger().warning("Player " + player.getName() + " is offline, teleportation cancelled");
                                             }
                                             return;
@@ -375,24 +376,26 @@ public class RtpRtpWorld {
                                         }
 
                                         EffectGivePlayer.effectGivePlayer(player);
-                                    }).exceptionally(ex -> {
-                                        if (loggingEnabled) {
+                                }).exceptionally(ex -> {
+                                    if (loggingEnabled) {
                                             Bukkit.getLogger().severe("Error during chunk loading: " + ex.getMessage());
                                             ex.printStackTrace();
                                             Bukkit.getLogger().info("Continuing coordinate search for player " + player.getName() + " due to chunk loading error");
                                         }
 
                                         if (player.isOnline()) {
+
                                             tries[0]++;
 
                                             Variables.playerSearchStatus.put(player.getName(), true);
 
-                                            if (loggingEnabled) {
+                                    if (loggingEnabled) {
                                                 Bukkit.getLogger().info("Setting playerSearchStatus to true to continue coordinate search");
                                                 Bukkit.getLogger().info("Current attempt count: " + tries[0]);
                                             }
-                                        }
-                                        return null;
+
+                                    }
+                                    return null;
                                     });
                                 });
                                 return;

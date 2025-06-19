@@ -134,19 +134,17 @@ public class LoadPortalsPlayerFromDatabaseSQL {
                     int radius = resultSet.getInt("radius");
                     String taskIds = resultSet.getString("taskIds");
                     String worldName = resultSet.getString("world");
-                    String shape = "circle"; // По умолчанию круглый
+                    String shape = "circle";
                     try {
                         shape = resultSet.getString("shape");
                         if (shape == null || shape.isEmpty()) {
                             shape = "circle";
                         }
                     } catch (SQLException e) {
-                        // Для обратной совместимости со старыми записями без столбца shape
                     }
 
-                    // Проверка на null для taskIds
                     if (taskIds == null) {
-                        taskIds = "empty_id <|||> empty_id"; // Предоставляем значение по умолчанию
+                        taskIds = "empty_id <|||> empty_id";
                     }
 
                     try {
@@ -157,7 +155,6 @@ public class LoadPortalsPlayerFromDatabaseSQL {
                         World world = Bukkit.getWorld(worldName);
                         if (world == null) continue;
 
-                        // Создаем неизменяемые копии переменных для использования в лямбда-выражениях
                         final Location center = new Location(world, centerX, centerY, centerZ);
                         final int finalRadius = radius;
                         final String finalShape = shape;
@@ -179,7 +176,6 @@ public class LoadPortalsPlayerFromDatabaseSQL {
                             );
                         }
 
-                        // Создаем новый строковый объект для taskIds, чтобы быть уверенными в его инициализации
                         String combinedTaskIds = particlesTaskId + " <|||> " + triggerTaskId;
                         Variables.playerPortalsTasks.put(portalName, new PortalDataTasks(playerName, portalName, taskType, delay, period, center, finalRadius, combinedTaskIds, particlesTask, triggerTask, finalShape));
                     } catch (Exception e) {

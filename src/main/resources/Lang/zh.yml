@@ -20,11 +20,13 @@ messages:
     - '&a[sRandomRTP] &f您已被传送到坐标 &aX: %x% Y: %y% Z: %z%.'
   loading:
     - '&a[sRandomRTP] &6正在搜寻合适的位置...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6传送需要更长时间，请稍等...'
   locationNotFound:
     - '&a[sRandomRTP] &c无法找到合适的传送位置!'
   newVersionMessage:
-    - '&a[sRandomRTP] &6插件的新版本可用: &6%new-CommandVersion%. &a您当前的版本: &6%old-CommandVersion%.'
-    - '&a[sRandomRTP] &6您可以在以下链接下载: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &a插件的新版本可用: &6%new-CommandVersion%. &a您当前的版本: &6%old-CommandVersion%.'
+    - '&a[sRandomRTP] &a您可以在以下链接下载: &6https://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&b将在 &6%time% &b秒内传送'
   CheckingVersion:
     - '&a[sRandomRTP] &6正在检查版本更新...'
@@ -38,6 +40,8 @@ messages:
     - '&a[sRandomRTP] &6你尚未发起随机传送请求。'
   titleMessage: "&a传送完毕！"
   subtitleMessage: "&e您已被移动到新的位置，坐标为 &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&a传送中...!"
+  subtitleMessage-loading: "&e请稍候..."
   noplayerservenear:
     - '&a[sRandomRTP] &6服务器上没有合适的玩家可以使用 /rtp near 命令。'
   noplayerworldnear:
@@ -118,8 +122,8 @@ messages:
     - '&a/rtp setportal - &6创建传送门。'
     - '&a/rtp delportal - &6删除传送门。'
     - '&a/rtp listportal - &6查看传送门列表。'
-    - '&a/rtp chunky N- &6开始生成N个区块。'
-    - '&a/rtp chunky stop- &6停止在当前玩家世界中生成区块。'
+    - '&a/rtp chunky N - &6开始生成N个区块。'
+    - '&a/rtp chunky stop - &6停止在当前玩家世界中生成区块。'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -142,6 +146,8 @@ messages:
     - '&a[sRandomRTP] &c名为 &6%portalName% &c的传送门已存在。'
   error-insufficient-space:
     - '&a[sRandomRTP] &c没有足够的空间创建半径为 &6%radius%&c 的传送门！'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &c没有足够的空间创建形状为 ''%shape%'' 且半径为 &6%radius%&c 的传送门！'
   success-portal-created:
     - '&a[sRandomRTP] &a已创建半径为 &6%radius% &a的传送门 &6%portalName%'
   error-cooldown-wait:
@@ -186,9 +192,13 @@ messages:
     - '&a[sRandomRTP] &6已在世界 &e%world%&c 中停止区块生成！'
   chunkyradius-chunky:
     - '&a[sRandomRTP] &6此世界中没有活动的区块生成任务！'
-  chunkyradius2-chunky:
+  portalradius:
     - '&a[sRandomRTP] &6半径必须是一个数字！'
+  portalform:
+    - '&a[sRandomRTP] &6传送门形状必须是''circle''或''square''！'
   worldborder-error:
     - '&a[sRandomRTP] &6传送已取消：您不能移动到世界边界之外。'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6重定向世界中没有玩家！'
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6你不能破坏这个方块。'
