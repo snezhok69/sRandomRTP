@@ -1,0 +1,14 @@
+teleport-far:
+  # Setting the radius for the normal teleportation command
+  # Here you can specify the radius of random teleportation from the center of the world.
+  radius-far: 20000
+  # The minimum teleportation radius, that is, if the radius is 10 and the minimum radius is 1, you will be teleported within that radius.
+  # IT IS NOT RECOMMENDED TO SET THE RADIUS AND MINIMUM RADIUS TO THE SAME, THE SERVER MAY CRASH!!!
+  minradius-far: 10000
+  # Coordinate generation method: CIRCLE, SQUARE
+  # CIRCLE - generates coordinates in a circular area (default)
+  # SQUARE - generates coordinates in a square area
+  coordinate-generation-far: CIRCLE
+  # If true, minradius will be treated as absolute coordinates
+  # For example, if minradius is 500000, coordinates will be at least 500000 blocks from center
+  use-absolute-coordinates-far: true

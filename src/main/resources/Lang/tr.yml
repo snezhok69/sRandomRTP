@@ -20,10 +20,12 @@ messages:
     - '&a[sRandomRTP] &fKoordinatlar &aX: %x% Y: %y% Z: %z% için teleportlandınız.'
   loading:
     - '&a[sRandomRTP] &6Sizin için uygun bir yer aranıyor...'
+  long-teleport-wait:
+    - '&a[sRandomRTP] &6Işınlanma biraz daha uzun sürüyor, lütfen bekleyin...'
   locationNotFound:
     - '&a[sRandomRTP] &cUygun bir konum bulunamadı!'
   newVersionMessage:
-    - '&a[sRandomRTP] &4Yeni bir sürüm mevcut &6%new-CommandVersion%! &8Eski sürüm &6%old-CommandVersion%. &1Yeni sürümü indir &6%new-CommandVersion%: &fhttps://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
+    - '&a[sRandomRTP] &aYeni bir sürüm mevcut &6%new-CommandVersion%! &aEski sürüm &6%old-CommandVersion%. &aYeni sürümü indir &6%new-CommandVersion%: &fhttps://www.spigotmc.org/resources/srandomrtp-random-rtp-cool-teleport.117613/updates'
   boss-bar: '&bIşınlanma &6%time% &bsaniye içinde'
   CheckingVersion:
     - '&a[sRandomRTP] &6Yeni eklenti sürümü kontrol ediliyor...'
@@ -37,6 +39,8 @@ messages:
     - '&a[sRandomRTP] &6Şu anda ışınlanma gerçekleştirmiyorsunuz.'
   titleMessage: "&aIşınlanma başarılı!"
   subtitleMessage: "&eYeni bir konuma taşındınız. Koordinatlar &aX: %x% Y: %y% Z: %z%."
+  titleMessage-loading: "&aIşınlanıyor...!"
+  subtitleMessage-loading: "&eLütfen bekleyin..."
   noplayerservenear:
     - '&a[sRandomRTP] &6Sunucuda /rtp near komutunu kullanabileceğiniz oyuncu yok.'
   noplayerworldnear:
@@ -117,8 +121,8 @@ messages:
     - '&a/rtp setportal - &6portal oluşturma.'
     - '&a/rtp delportal - &6portal silme.'
     - '&a/rtp listportal - &6portal listesini görüntüleme.'
-    - '&a/rtp chunky N- &6N chunk oluşturmaya başlama.'
-    - '&a/rtp chunky stop- &6mevcut oyuncu dünyasında chunk oluşturmayı durdurma.'
+    - '&a/rtp chunky N - &6N chunk oluşturmaya başlama.'
+    - '&a/rtp chunky stop - &6mevcut oyuncu dünyasında chunk oluşturmayı durdurma.'
     - ' '
   Plugin-Enabled-Message:
     - ''
@@ -140,7 +144,9 @@ messages:
   error-portal-name-already-exists:
     - '&a[sRandomRTP] &c&6%portalName% &cadında bir portal zaten var.'
   error-insufficient-space:
-    - '&a[sRandomRTP] &c&6%radius%&c yarıçaplı portal oluşturmak için yeterli alan yok!'
+    - '&a[sRandomRTP] &c&6%radius%&c yarıçaplı bir portal oluşturmak için yeterli alan yok!'
+  error-portal-shape-radius:
+    - '&a[sRandomRTP] &c''%shape%'' şeklinde &6%radius%&c yarıçaplı bir portal oluşturmak için yeterli alan yok!'
   success-portal-created:
     - '&a[sRandomRTP] &a&6%portalName% &aportali &6%radius% &ayarıçapı ile oluşturuldu'
   error-cooldown-wait:
@@ -185,10 +191,13 @@ messages:
     - '&a[sRandomRTP] &6&e%world%&c dünyasında chunk oluşturma durduruldu!'
   chunkyradius-chunky:
     - '&a[sRandomRTP] &6Bu dünyada aktif chunk oluşturma görevi yok!'
-  chunkyradius2-chunky:
+  portalradius:
     - '&a[sRandomRTP] &6Yarıçap bir sayı olmalıdır!'
+  portalform:
+    - '&a[sRandomRTP] &6Portal şekli ''circle'' veya ''square'' olmalıdır!'
   worldborder-error:
     - '&a[sRandomRTP] &6Işınlanma iptal edildi: Dünya sınırlarının ötesine gidemezsiniz.'
   rederictworldnear-error:
     - '&a[sRandomRTP] &6Yönlendirme dünyasında oyuncu yok!'
-
+  error-break-portal-block:
+    - '&a[sRandomRTP] &6Bu bloğu kıramazsınız.'

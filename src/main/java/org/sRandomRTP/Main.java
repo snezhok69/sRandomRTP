@@ -2,10 +2,13 @@ package org.sRandomRTP;
 
 import com.tcoded.folialib.FoliaLib;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Biome;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.popcraft.chunky.api.ChunkyAPI;
+import org.sRandomRTP.BlockBiomes.IsBiomeBanned;
+import org.sRandomRTP.BlockBiomes.IsBlockBanned;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 import org.sRandomRTP.Checkings.*;
 import org.sRandomRTP.Commands.CommandArgs;
@@ -14,16 +17,24 @@ import org.sRandomRTP.Data.DataLoad;
 import org.sRandomRTP.DataPortals.LoadPortalsPlayerFromDatabaseSQL;
 import org.sRandomRTP.DataPortals.SQLManagerPortals;
 import org.sRandomRTP.DifferentMethods.*;
+import org.sRandomRTP.DifferentMethods.BossBars.RemoveAllBossBars;
+import org.sRandomRTP.DifferentMethods.IsIn.IsOutdatedByMultipleVersionsTask;
+import org.sRandomRTP.DifferentMethods.Text.LoadLanguageFile;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Events.*;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Metrics.Metrics;
+import org.sRandomRTP.api.RandomRTPAPI;
+
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
-public class Main extends JavaPlugin {
+public class Main extends JavaPlugin implements RandomRTPAPI {
 
     @Override
     public void onEnable() {
@@ -69,6 +80,7 @@ public class Main extends JavaPlugin {
                     return ("No");
                 }));
             }
+            
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking installed PlaceHolderAPI...");
             if (CheckingInstalledPlaceHolderAPI.checkingInstalledPlaceHolderAPI()) {
@@ -88,6 +100,7 @@ public class Main extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new PlayerMove(), this);
             getServer().getPluginManager().registerEvents(new PlayerBreak(), this);
             getServer().getPluginManager().registerEvents(new PlayerMouseMove(), this);
+            getServer().getPluginManager().registerEvents(new PlayerBreakBlockPortal(), this);
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eCreating files...");
             FilesCreate filesCreate = new FilesCreate();
@@ -115,6 +128,15 @@ public class Main extends JavaPlugin {
             FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
             LoadKeys.loadKeys(config);
             Variables.setupEconomy();
+            
+            // Инициализация фильтра консоли для блокировки сообщений "moved too quickly"
+            boolean disableMovedTooQuicklyMessages = config.getBoolean("Disable-Moved-Too-Quickly-Messages", true);
+            if (disableMovedTooQuicklyMessages) {
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eInitializing a console filter to block fast move messages...");
+                ConsoleFilter.registerFilter(true);
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §aThe console filter has been successfully initialized");
+            }
+            
             //
             //CheckingFile checkingFile = new CheckingFile();
             //checkingFile.compareLanguageFiles("ar.yml", "ru.yml");
@@ -141,7 +163,14 @@ public class Main extends JavaPlugin {
             LoadPortalsPlayerFromDatabaseSQL.loadPortalsPlayerFromDatabaseSQL();
             LoadPortalsPlayerFromDatabaseSQL.loadPortalBlocksPlayerToDatabaseSQL();
             //
-            LoadBlockList.loadBlockList();
+            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eUploading lists of banned blocks and biomes...");
+            LoadBlockList.loadBlockListAsync(this).thenRun(() -> {
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eThe lists of banned blocks and biomes have been successfully uploaded");
+            }).exceptionally(ex -> {
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cError when loading lists: " + ex.getMessage());
+                return null;
+            });
+            //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eLoading commands...");
             Map<String, Map<String, Object>> commands = getDescription().getCommands();
             if (commands != null) {
@@ -154,6 +183,8 @@ public class Main extends JavaPlugin {
             StartPluginCheckingNewVersion.startPluginCheckingNewVersion();
             IsOutdatedByMultipleVersionsTask.isOutdatedByMultipleVersionsTask();
             AutoCheckingVersion.autoCheckingVersion();
+            //
+            Variables.initializePlugin(this);
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eSending anonymous statistics...");
             try {
@@ -203,6 +234,9 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         if (!Variables.pluginToggle) {
             try {
+                // Удаляем фильтр консоли при выключении плагина
+                ConsoleFilter.removeFilter();
+                
                 for (String line : LoadMessages.PluginDisabledMessage) {
                     long endTime = System.currentTimeMillis();
                     long startTime = System.currentTimeMillis();
@@ -220,6 +254,44 @@ public class Main extends JavaPlugin {
             } catch (Throwable e) {
             }
         }
+    }
+    
+    // Реализация методов API
+    
+    @Override
+    public boolean isAPIWorking() {
+        return true;
+    }
+    
+    @Override
+    public List<String> getBannedBiomes() {
+        if (Variables.teleportfile == null) {
+            return new ArrayList<>();
+        }
+        return Variables.teleportfile.getStringList("teleport.bannedBiomes");
+    }
+    
+    @Override
+    public boolean isBiomeBanned(Biome biome) {
+        return IsBiomeBanned.isBiomeBanned(biome);
+    }
+    
+    @Override
+    public List<Material> getBannedBlocks() {
+        if (Variables.blockList == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(Variables.blockList);
+    }
+    
+    @Override
+    public boolean isBlockBanned(Material material) {
+        return IsBlockBanned.isBlockBanned(material);
+    }
+    
+    @Override
+    public String getPluginVersion() {
+        return getDescription().getVersion();
     }
 }
 

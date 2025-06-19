@@ -11,6 +11,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Data.DataSave;
 import org.sRandomRTP.DifferentMethods.*;
+import org.sRandomRTP.DifferentMethods.BossBars.RemoveBossBar;
+import org.sRandomRTP.DifferentMethods.BossBars.SetBossBarProgress;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Rtp.RtpRtpPlayer;
 import java.util.List;
@@ -113,24 +116,54 @@ public class CooldownBypassBossBarPlayer {
 
     public static void startBossBarCountdown(CommandSender sender, Player targetPlayer, World world) {
         int countdownTime = Variables.bossbarfile.getInt("teleport.bossbar-time");
-        WrappedTask[] tasks = new WrappedTask[2];
         final double[] timeLeft = {countdownTime};
+        final long[] lastSoundTime = {System.currentTimeMillis()};
+
+        if (Variables.soundfile.getBoolean("teleport.boss-bar-teleport-sound.enabled")) {
+            String soundName = Variables.soundfile.getString("teleport.boss-bar-teleport-sound.sound");
+            float volume = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.volume");
+            float pitch = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.pitch");
+
+            try {
+                Sound sound = Sound.valueOf(soundName.toUpperCase());
+                targetPlayer.getPlayer().playSound(targetPlayer.getPlayer().getLocation(), sound, volume, pitch);
+            } catch (IllegalArgumentException e) {
+                Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
+            }
+        }
+
         WrappedTask progressTask = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
             timeLeft[0] -= 0.06;
+
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastSoundTime[0] >= 1000) {
+                if (Variables.soundfile.getBoolean("teleport.boss-bar-teleport-sound.enabled")) {
+                    String soundName = Variables.soundfile.getString("teleport.boss-bar-teleport-sound.sound");
+                    float volume = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.volume");
+                    float pitch = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.pitch");
+
+                    try {
+                        Sound sound = Sound.valueOf(soundName.toUpperCase());
+                        targetPlayer.getPlayer().playSound(targetPlayer.getPlayer().getLocation(), sound, volume, pitch);
+                    } catch (IllegalArgumentException e) {
+                        Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
+                    }
+                }
+                lastSoundTime[0] = currentTime;
+            }
+
             if (timeLeft[0] <= 0) {
-                WrappedTask checkProximityTaskTask = teleportTasks.get(targetPlayer);
-                if (checkProximityTaskTask != null) {
-                    checkProximityTaskTask.cancel();
+                WrappedTask task = teleportTasks.get(targetPlayer);
+                if (task != null) {
+                    task.cancel();
                     teleportTasks.remove(targetPlayer);
                 }
                 RemoveBossBar.removeBossBar(targetPlayer);
                 Variables.playerSearchStatus.put(targetPlayer.getName(), false);
                 RtpRtpPlayer.rtprtpplayer(sender, targetPlayer, world);
-                Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
                 int totalUses = Variables.rtpCount.getOrDefault(1, 0);
                 Variables.rtpCount.put(1, totalUses + 1);
                 DataSave.dataSave();
-                tasks[1].cancel();
             } else {
                 double progress = timeLeft[0] / countdownTime;
                 String bossbarmessage = LoadMessages.bossbar;
@@ -146,25 +179,8 @@ public class CooldownBypassBossBarPlayer {
                 }
             }
         }, 0, 1);
-        WrappedTask soundTask = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
-                if (Variables.soundfile.getBoolean("teleport.boss-bar-teleport-sound.enabled")) {
-                    String soundName = Variables.soundfile.getString("teleport.boss-bar-teleport-sound.sound");
-                    float volume = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.volume");
-                    float pitch = (float) Variables.soundfile.getDouble("teleport.boss-bar-teleport-sound.pitch");
 
-                    try {
-                        Sound sound = Sound.valueOf(soundName.toUpperCase());
-                        targetPlayer.getPlayer().playSound(targetPlayer.getPlayer().getLocation(), sound, volume, pitch);
-                    } catch (IllegalArgumentException e) {
-                        Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
-                    }
-                }
-        }, 0, 20);
-
-        tasks[0] = progressTask;
-        tasks[1] = soundTask;
-
-        Variables.teleportTasks.put(targetPlayer.getPlayer(), tasks[0]);
+        Variables.teleportTasks.put(targetPlayer.getPlayer(), progressTask);
         Variables.playerSearchStatus.put(targetPlayer.getName(), true);
     }
 }
