@@ -1,6 +1,0 @@
-jdk:
-  - openjdk17
-
-before_install:
-  - echo "Running before_install"
-  - chmod +x ./mvnw 
