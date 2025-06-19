@@ -569,7 +569,7 @@
       <workItem from="1750155166792" duration="999000" />
       <workItem from="1750174191964" duration="1016000" />
       <workItem from="1750225407184" duration="7031000" />
-      <workItem from="1750296048860" duration="5043000" />
+      <workItem from="1750296048860" duration="6159000" />
     </task>
     <task id="LOCAL-00001" summary="Add project">
       <option name="closed" value="true" />
@@ -787,7 +787,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741106987661</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="pre-update folia">
+      <option name="closed" value="true" />
+      <created>1750302460555</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1750302460555</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
