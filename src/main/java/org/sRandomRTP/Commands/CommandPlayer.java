@@ -10,8 +10,6 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.Cooldowns.CooldownBypassBossBarPlayer;
 import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
-import org.sRandomRTP.DifferentMethods.EconomyPaymentManager;
-import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
 import java.util.List;
@@ -55,9 +53,7 @@ public class CommandPlayer {
                 }
             }
 
-            boolean moneyEnabled = Variables.economyfile.getBoolean("teleport.Money.enabled") && player != null;
-            int teleportCost = 0;
-            if (moneyEnabled) {
+            if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
                 try {
                     Class.forName("net.milkbowl.vault.economy.Economy");
                 } catch (ClassNotFoundException e) {
@@ -68,11 +64,19 @@ public class CommandPlayer {
                     return;
                 }
 
-                teleportCost = Variables.economyfile.getInt("teleport.Money.money");
-                if (!Variables.econ.has(player, teleportCost)) {
+                int teleportCost = Variables.economyfile.getInt("teleport.Money.money");
+                if (player != null && !Variables.econ.has(player, teleportCost)) {
                     List<String> formattedMessage = LoadMessages.insufficient_funds;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%money%", String.valueOf(teleportCost))));
+                        player.sendMessage(formattedLine);
+                    }
+                    return;
+                }
+                if (player != null && !Variables.econ.withdrawPlayer(player, teleportCost).transactionSuccess()) {
+                    List<String> formattedMessage = LoadMessages.error_withdrawing;
+                    for (String line : formattedMessage) {
+                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                         player.sendMessage(formattedLine);
                     }
                     return;
@@ -116,7 +120,6 @@ public class CommandPlayer {
             }
 
             if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
-                Variables.itemMap.clear();
                 List<String> requiredItems = Variables.economyfile.getStringList("teleport.Items.requiredItems");
                 for (String itemString : requiredItems) {
                     String[] parts = itemString.split(": ");
@@ -151,30 +154,8 @@ public class CommandPlayer {
                 return;
             }
 
-            if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
-                List<String> formattedMessage = LoadMessages.rtpplayeralreadyrequested;
-                for (String line : formattedMessage) {
-                    String formattedLine = TranslateRGBColors.translateRGBColors(
-                            ChatColor.translateAlternateColorCodes('&', line)
-                    );
-                    sender.sendMessage(formattedLine);
-                }
-                return;
-            }
-
             if (CooldownCommandRtp.cooldownCommandRtp(targetPlayer, sender)) {
                 return;
-            }
-
-            if (moneyEnabled) {
-                if (!EconomyPaymentManager.chargePlayer(player, targetPlayer, teleportCost)) {
-                    List<String> formattedMessage = LoadMessages.error_withdrawing;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                        player.sendMessage(formattedLine);
-                    }
-                    return;
-                }
             }
 
             if (CooldownBypassBossBarPlayer.cooldownBypassBossBarplayer(sender, targetPlayer, world)) {

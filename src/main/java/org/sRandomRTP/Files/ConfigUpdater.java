@@ -18,17 +18,9 @@ import java.util.*;
 
 public class ConfigUpdater {
     private static final char SEPARATOR = '.';
-
-    // FIXED: Now includes "teleport.per-world" as an ignored section by default
     public static boolean update(String resourceName, File toUpdate, String... ignoredSections) throws IOException {
-        List<String> allIgnoredSections = new ArrayList<>(Arrays.asList(ignoredSections));
-        // Add per-world section to ignored sections if not already present
-        if (!allIgnoredSections.contains("teleport.per-world")) {
-            allIgnoredSections.add("teleport.per-world");
-        }
-        return update(Variables.getInstance(), resourceName, toUpdate, allIgnoredSections);
+        return update(Variables.getInstance(), resourceName, toUpdate, Arrays.asList(ignoredSections));
     }
-
     public static boolean update(Plugin plugin, String resourceName, File toUpdate, List<String> ignoredSections) throws IOException {
         Preconditions.checkArgument(toUpdate.exists(), "The toUpdate file doesn't exist!");
         InputStream resourceStream = plugin.getResource(resourceName);
@@ -55,7 +47,6 @@ public class ConfigUpdater {
         }
         return false;
     }
-
     private static void write(FileConfiguration defaultConfig, FileConfiguration currentConfig, BufferedWriter writer, Map<String, String> comments, Map<String, String> ignoredSectionsValues) throws IOException {
         FileConfiguration parserConfig = new YamlConfiguration();
         keyLoop: for (String fullKey : defaultConfig.getKeys(true)) {
@@ -98,7 +89,6 @@ public class ConfigUpdater {
             writer.write(danglingComments);
         writer.close();
     }
-
     private static Map<String, String> parseComments(Plugin plugin, String resourceName, FileConfiguration defaultConfig) throws IOException {
         List<String> keys = new ArrayList<>(defaultConfig.getKeys(true));
         BufferedReader reader = new BufferedReader(new InputStreamReader((plugin.getResource(resourceName)), StandardCharsets.UTF_8));
@@ -157,7 +147,6 @@ public class ConfigUpdater {
             comments.put(null, commentBuilder.toString());
         return comments;
     }
-
     private static Map<String, String> parseIgnoredSections(File toUpdate, Map<String, String> comments, List<String> ignoredSections) throws IOException {
         Map<String, String> ignoredSectionValues = new LinkedHashMap<>(ignoredSections.size());
         DumperOptions options = new DumperOptions();
@@ -170,14 +159,6 @@ public class ConfigUpdater {
             String[] split = section.split("[" + SEPARATOR + "]");
             String key = split[split.length - 1];
             Map<Object, Object> map = getSection(section, root);
-
-            // FIXED: Handle case where section might not exist in current config
-            if (map == null || !map.containsKey(getKeyAsObject(key, map))) {
-                // Section doesn't exist in current config - use empty map
-                ignoredSectionValues.put(section, buildEmptySection(section, comments));
-                return;
-            }
-
             StringBuilder keyBuilder = new StringBuilder();
             for (int i = 0; i < split.length; i++) {
                 if (i != split.length - 1) {
@@ -190,22 +171,6 @@ public class ConfigUpdater {
         });
         return ignoredSectionValues;
     }
-
-    // NEW: Helper method to build empty section with comments
-    private static String buildEmptySection(String fullKey, Map<String, String> comments) {
-        String indents = KeyBuilder.getIndents(fullKey, SEPARATOR);
-        String[] split = fullKey.split("[" + SEPARATOR + "]");
-        String key = split[split.length - 1];
-
-        StringBuilder builder = new StringBuilder();
-        String comment = comments.get(fullKey);
-        if (comment != null) {
-            builder.append(addIndentation(comment, indents)).append("\n");
-        }
-        builder.append(indents).append(key).append(": {}\n");
-        return builder.toString();
-    }
-
     private static Map<Object, Object> getSection(String fullKey, Map<Object, Object> root) {
         String[] keys = fullKey.split("[" + SEPARATOR + "]", 2);
         String key = keys[0];
@@ -213,15 +178,12 @@ public class ConfigUpdater {
         if (keys.length == 1) {
             if (value instanceof Map)
                 return root;
-            // FIXED: Return null instead of throwing exception
-            return null;
+            throw new IllegalArgumentException("Ignored sections must be a ConfigurationSection not a value!");
         }
         if (!(value instanceof Map))
-            // FIXED: Return null instead of throwing exception
-            return null;
+            throw new IllegalArgumentException("Invalid ignored ConfigurationSection specified!");
         return getSection(keys[1], (Map<Object, Object>) value);
     }
-
     private static String buildIgnored(String fullKey, Map<Object, Object> ymlMap, Map<String, String> comments, StringBuilder keyBuilder, StringBuilder ignoredBuilder, Yaml yaml) {
         String[] keys = fullKey.split("[" + SEPARATOR + "]", 2);
         String key = keys[0];
@@ -230,8 +192,9 @@ public class ConfigUpdater {
             keyBuilder.append(".");
         keyBuilder.append(key);
         if (!ymlMap.containsKey(originalKey)) {
-            // FIXED: Return empty string instead of throwing exception
-            return "";
+            if (keys.length == 1)
+                throw new IllegalArgumentException("Invalid ignored section: " + keyBuilder);
+            throw new IllegalArgumentException("Invalid ignored section: " + keyBuilder + "." + keys[1]);
         }
         String comment = comments.get(keyBuilder.toString());
         String indents = KeyBuilder.getIndents(keyBuilder.toString(), SEPARATOR);
@@ -252,7 +215,6 @@ public class ConfigUpdater {
         }
         return ignoredBuilder.toString();
     }
-
     private static void writeIgnoredValue(Yaml yaml, Object toWrite, StringBuilder ignoredBuilder, String indents) {
         String yml = yaml.dump(toWrite);
         if (toWrite instanceof Collection) {
@@ -261,7 +223,6 @@ public class ConfigUpdater {
             ignoredBuilder.append(" ").append(yml);
         }
     }
-
     private static String addIndentation(String s, String indents) {
         StringBuilder builder = new StringBuilder();
         String[] split = s.split("\n");
@@ -272,13 +233,11 @@ public class ConfigUpdater {
         }
         return builder.toString();
     }
-
     private static void writeCommentIfExists(Map<String, String> comments, BufferedWriter writer, String fullKey, String indents) throws IOException {
         String comment = comments.get(fullKey);
         if (comment != null)
             writer.write(indents + comment.substring(0, comment.length() - 1).replace("\n", "\n" + indents) + "\n");
     }
-
     private static Object getKeyAsObject(String key, Map<Object, Object> sectionContext) {
         if (sectionContext.containsKey(key))
             return key;

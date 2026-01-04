@@ -104,9 +104,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &cNessuna richiesta di teletrasporto trovata o è scaduta.'
   commandhelp:
-    - ''
+    - ' '
     - '&cAiuto dei comandi del plugin:'
-    - ''
+    - ' '
     - '&a/rtp - &6teletrasporto casuale.'
     - '&a/rtp world <tuo mondo> - &6teletrasporto nel mondo specificato.'
     - '&a/rtp near - &6si teletrasporta ai giocatori.'
@@ -124,7 +124,7 @@ messages:
     - '&a/rtp listportal - &6visualizza la lista dei portali.'
     - '&a/rtp chunky N - &6inizia a generare N chunk.'
     - '&a/rtp chunky stop - &6interrompe la generazione di chunk nel mondo attuale del giocatore.'
-    - ''
+    - ' '
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aPlugin abilitato! &b%mc% &ams'

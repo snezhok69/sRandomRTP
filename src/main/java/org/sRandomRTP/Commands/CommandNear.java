@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.Cooldowns.CooldownBypassBossBarNear;
 import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
-import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
 import java.util.List;
@@ -61,24 +60,31 @@ public class CommandNear {
                     return;
                 }
             }
-            boolean moneyEnabled = Variables.economyfile.getBoolean("teleport.Money.enabled") && player != null;
-            int teleportCost = 0;
-            if (moneyEnabled) {
+            if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
                 try {
                     Class.forName("net.milkbowl.vault.economy.Economy");
                 } catch (ClassNotFoundException e) {
                     if (loggingEnabled) {
                         Bukkit.getConsoleSender().sendMessage("Install the Vault plugin to make the economy function work. Or disable the economy function (Money: enabled: false)");
                     }
-                    sender.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
+                    player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
                     return;
                 }
-
-                teleportCost = Variables.economyfile.getInt("teleport.Money.money");
+            }
+            if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
+                int teleportCost = Variables.economyfile.getInt("teleport.Money.money");
                 if (!Variables.econ.has(player, teleportCost)) {
                     List<String> formattedMessage = LoadMessages.insufficient_funds;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%money%", String.valueOf(teleportCost))));
+                        player.sendMessage(formattedLine);
+                    }
+                    return;
+                }
+                if (!Variables.econ.withdrawPlayer(player, teleportCost).transactionSuccess()) {
+                    List<String> formattedMessage = LoadMessages.error_withdrawing;
+                    for (String line : formattedMessage) {
+                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                         player.sendMessage(formattedLine);
                     }
                     return;
@@ -119,7 +125,6 @@ public class CommandNear {
             }
             //
             if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
-                Variables.itemMap.clear();
                 List<String> requiredItems = Variables.economyfile.getStringList("teleport.Items.requiredItems");
                 for (String itemString : requiredItems) {
                     String[] parts = itemString.split(": ");
@@ -156,17 +161,6 @@ public class CommandNear {
 
             if (CooldownCommandRtp.cooldownCommandRtp(player, sender)) {
                 return;
-            }
-
-            if (moneyEnabled) {
-                if (!EconomyPaymentManager.chargePlayer(player, player, teleportCost)) {
-                    List<String> formattedMessage = LoadMessages.error_withdrawing;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                        player.sendMessage(formattedLine);
-                    }
-                    return;
-                }
             }
 
             if (CooldownBypassBossBarNear.cooldownBypassBossBarnear(player, sender)) {

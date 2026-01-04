@@ -9,11 +9,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.scheduler.BukkitTask;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
-import org.sRandomRTP.DifferentMethods.BossBars.RemoveBossBar;
-import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
-import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestManager;
-import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
+import org.sRandomRTP.DifferentMethods.RemoveBossBar;
+import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 
@@ -35,41 +34,28 @@ public class PlayerBreak implements Listener {
 
     private void handleBlockEvent(Player player) {
         try {
-            if (!Variables.teleportfile.getBoolean("teleport.break-block-cancel-rtp")) {
-                return;
-            }
-
-            boolean loggingEnabled = Variables.getInstance().getConfig().getBoolean("logs", false);
-            TeleportRequestContext context = TeleportRequestManager.getContext(player.getUniqueId());
-            boolean hasTask = teleportTasks.containsKey(player);
-
-            if (context == null && !hasTask) {
-                return;
-            }
-
-            if (context != null) {
-                TeleportRequestManager.cancelRequest(player.getUniqueId(), loggingEnabled, "break-block cancel");
-            }
-            if (hasTask) {
-                WrappedTask checkProximityTaskTask = teleportTasks.remove(player);
-                if (checkProximityTaskTask != null && !checkProximityTaskTask.isCancelled()) {
-                    checkProximityTaskTask.cancel();
+            if (Variables.teleportfile.getBoolean("teleport.break-block-cancel-rtp")) {
+                if (Variables.playerSearchStatus.get(player.getName()) != null && Variables.playerSearchStatus.get(player.getName())) {
+                    if (teleportTasks.containsKey(player)) {
+                        WrappedTask checkProximityTaskTask = teleportTasks.get(player);
+                        if (checkProximityTaskTask != null) {
+                            checkProximityTaskTask.cancel();
+                            teleportTasks.remove(player);
+                        }
+                        List<String> formattedMessage = LoadMessages.teleportmovecancel;
+                        for (String line : formattedMessage) {
+                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                            player.sendMessage(formattedLine);
+                        }
+                        if (!Variables.teleportfile.getBoolean("teleport.Cooldowns.break-block-cooldown")) {
+                            Variables.cooldowns.remove(player.getName());
+                        }
+                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
+                        RemoveBossBar.removeBossBar(player);
+                        Variables.playerSearchStatus.put(player.getName(), false);
+                    }
                 }
             }
-
-            List<String> formattedMessage = LoadMessages.teleportmovecancel;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                player.sendMessage(formattedLine);
-            }
-
-            if (!Variables.teleportfile.getBoolean("teleport.Cooldowns.break-block-cooldown")) {
-                Variables.cooldowns.remove(player.getName());
-            }
-
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
-            RemoveBossBar.removeBossBar(player);
-            Variables.playerSearchStatus.put(player.getName(), false);
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();

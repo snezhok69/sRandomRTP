@@ -8,23 +8,8 @@ teleport:
   # false - no
   subtitleEnabled: true
   # The time of the title appearance in seconds.
-  titleFadeIn: 1.0
+  titleFadeIn: 1
   # Time in seconds during which the title stays on the screen.
-  titleStay: 1.0
+  titleStay: 1
   # the time the title disappears in seconds.
-  titleFadeOut: 1.0
-  title-loading:
-    # Is it necessary to include the title when teleporting successfully?
-    # true - yes
-    # false - no
-    titleEnabled-loading: true
-    # Is it necessary to turn on the subtitle when teleporting successfully?
-    # true - yes
-    # false - no
-    subtitleEnabled-loading: true
-    # The time of the title appearance in seconds.
-    titleFadeIn-loading: 0.5
-    # Time in seconds during which the title stays on the screen.
-    titleStay-loading: 0.5
-    # the time the title disappears in seconds.
-    titleFadeOut-loading: 0.5
+  titleFadeOut: 1

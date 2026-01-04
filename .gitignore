@@ -1,7 +1,2 @@
 # Project exclude paths
 /target/
-.idea
-.cursor
-.cursorrules
-.vscode
-hoco

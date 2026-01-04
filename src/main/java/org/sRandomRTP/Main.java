@@ -1,17 +1,18 @@
 package org.sRandomRTP;
 
+import com.tcoded.folialib.FoliaLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.sRandomRTP.BlockBiomes.IsBiomeBanned;
+import org.sRandomRTP.BlockBiomes.IsBlockBanned;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 import org.sRandomRTP.Checkings.*;
 import org.sRandomRTP.Commands.CommandArgs;
 import org.sRandomRTP.Commands.onTabCompletes;
-import org.sRandomRTP.Chunk.ChunkWarmManager;
 import org.sRandomRTP.Data.DataLoad;
 import org.sRandomRTP.DataPortals.LoadPortalsPlayerFromDatabaseSQL;
 import org.sRandomRTP.DataPortals.SQLManagerPortals;
@@ -23,20 +24,24 @@ import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Events.*;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Metrics.Metrics;
+import org.sRandomRTP.api.RandomRTPAPI;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
-public class Main extends JavaPlugin {
+public class Main extends JavaPlugin implements RandomRTPAPI {
 
     @Override
     public void onEnable() {
         try {
             //
-            Variables.initializePlugin(this);
+            Variables.instance = this;
+            Variables.foliaLib = new FoliaLib(this);
             //
             try {
                 Class.forName("org.sqlite.JDBC");
@@ -75,6 +80,7 @@ public class Main extends JavaPlugin {
                     return ("No");
                 }));
             }
+            
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking installed PlaceHolderAPI...");
             if (CheckingInstalledPlaceHolderAPI.checkingInstalledPlaceHolderAPI()) {
@@ -122,36 +128,37 @@ public class Main extends JavaPlugin {
             FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
             LoadKeys.loadKeys(config);
             Variables.setupEconomy();
-            //
+            
+            // Инициализация фильтра консоли для блокировки сообщений "moved too quickly"
             boolean disableMovedTooQuicklyMessages = config.getBoolean("Disable-Moved-Too-Quickly-Messages", true);
             if (disableMovedTooQuicklyMessages) {
                 Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eInitializing a console filter to block fast move messages...");
                 ConsoleFilter.registerFilter(true);
                 Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §aThe console filter has been successfully initialized");
             }
+            
             //
-            CheckingFile checkingFile = new CheckingFile();
-            checkingFile.compareLanguageFiles("ar.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("custom_messages.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("de.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("en.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("es.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("fr.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("it.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("ja.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("ko.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("pl.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("pt.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("ua.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("vi.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("zh.yml", "ru.yml");
-            checkingFile.compareLanguageFiles("tr.yml", "ru.yml");
+            //CheckingFile checkingFile = new CheckingFile();
+            //checkingFile.compareLanguageFiles("ar.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("custom_messages.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("de.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("en.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("es.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("fr.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("it.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("ja.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("ko.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("pl.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("pt.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("ua.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("vi.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("zh.yml", "ru.yml");
+            //checkingFile.compareLanguageFiles("tr.yml", "ru.yml");
             //
             LoadLanguageFile loadLanguageFile = new LoadLanguageFile();
             loadLanguageFile.loadLanguageFile();
             YamlConfiguration langFile = loadLanguageFile.getLangFile();
             LoadMessages.loadMessages(langFile);
-            FilesAutoReload.startFilesAutoReload();
             LoadPortalsPlayerFromDatabaseSQL.loadPortalTasksFromDatabaseSQL();
             LoadPortalsPlayerFromDatabaseSQL.loadPortalsPlayerFromDatabaseSQL();
             LoadPortalsPlayerFromDatabaseSQL.loadPortalBlocksPlayerToDatabaseSQL();
@@ -168,19 +175,16 @@ public class Main extends JavaPlugin {
             Map<String, Map<String, Object>> commands = getDescription().getCommands();
             if (commands != null) {
                 for (String commandName : commands.keySet()) {
-                    PluginCommand pluginCommand = getCommand(commandName);
-                    if (pluginCommand == null) {
-                        getLogger().warning("Command '" + commandName + "' is not defined in plugin.yml");
-                        continue;
-                    }
-                    pluginCommand.setExecutor(new CommandArgs());
-                    pluginCommand.setTabCompleter(new onTabCompletes());
+                    getCommand(commandName).setExecutor(new CommandArgs());
+                    getCommand(commandName).setTabCompleter(new onTabCompletes());
                 }
             }
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eRunning tasks...");
             StartPluginCheckingNewVersion.startPluginCheckingNewVersion();
             IsOutdatedByMultipleVersionsTask.isOutdatedByMultipleVersionsTask();
             AutoCheckingVersion.autoCheckingVersion();
+            //
+            Variables.initializePlugin(this);
             //
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eSending anonymous statistics...");
             try {
@@ -228,32 +232,69 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        ChunkWarmManager.shutdown();
         if (!Variables.pluginToggle) {
-            long startTime = System.currentTimeMillis();
             try {
                 // Удаляем фильтр консоли при выключении плагина
                 ConsoleFilter.removeFilter();
-
+                
                 for (String line : LoadMessages.PluginDisabledMessage) {
-                    long disabledPluginTime = System.currentTimeMillis() - startTime;
+                    long endTime = System.currentTimeMillis();
+                    long startTime = System.currentTimeMillis();
+                    long disabledPluginTime = endTime - startTime;
                     line = line.replace("%mc%", disabledPluginTime + "");
                     String formattedLines = TranslateRGBColors.translateRGBColors(line);
                     Bukkit.getConsoleSender().sendMessage(formattedLines);
                 }
                 RemoveAllBossBars.removeAllBossBars();
-                FilesAutoReload.stopFilesAutoReload();
                 SQLManagerPortals.closeConnectionMYSQL().thenRun(() -> {
                 }).exceptionally(ex -> {
                     ex.printStackTrace();
                     return null;
                 });
             } catch (Throwable e) {
-                Variables.getInstance().getLogger().severe("An error occurred while disabling the plugin: " + e.getMessage());
             }
         }
     }
+    
+    // Реализация методов API
+    
+    @Override
+    public boolean isAPIWorking() {
+        return true;
+    }
+    
+    @Override
+    public List<String> getBannedBiomes() {
+        if (Variables.teleportfile == null) {
+            return new ArrayList<>();
+        }
+        return Variables.teleportfile.getStringList("teleport.bannedBiomes");
+    }
+    
+    @Override
+    public boolean isBiomeBanned(Biome biome) {
+        return IsBiomeBanned.isBiomeBanned(biome);
+    }
+    
+    @Override
+    public List<Material> getBannedBlocks() {
+        if (Variables.blockList == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(Variables.blockList);
+    }
+    
+    @Override
+    public boolean isBlockBanned(Material material) {
+        return IsBlockBanned.isBlockBanned(material);
+    }
+    
+    @Override
+    public String getPluginVersion() {
+        return getDescription().getVersion();
+    }
 }
+
 
 
 

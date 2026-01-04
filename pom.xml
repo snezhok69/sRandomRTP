@@ -9,9 +9,11 @@
     <packaging>jar</packaging>
 
     <name>sRandomRTP</name>
+    <description>Plugin for random teleportation in Minecraft</description>
+    <url>https://github.com/snezhok69/sRandomRTP</url>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>2.0.0</kotlin.version>
     </properties>
@@ -23,11 +25,44 @@
                 <includes>
                     <include>**/*.yml</include>
                     <include>lang/**/*.yml</include>
-                    <include>Settings_ru/**/*.md</include>
                 </includes>
             </resource>
         </resources>
         <plugins>
+            <!-- Maven Source Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Maven Javadoc Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <doclint>none</doclint>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -43,13 +78,13 @@
                             <minimizeJar>false</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>com.tcoded:FoliaLib</include>
+                                    <include>com.github.technicallycoded:FoliaLib</include>
                                     <include>io.papermc:paperlib</include>
                                 </includes>
                             </artifactSet>
                             <filters>
                                 <filter>
-                                    <artifact>com.tcoded:FoliaLib</artifact>
+                                    <artifact>com.github.technicallycoded:FoliaLib</artifact>
                                     <includes>
                                         <include>**</include>
                                     </includes>
@@ -202,10 +237,6 @@
 
     <repositories>
         <repository>
-            <id>tcoded-releases</id>
-            <url>https://repo.tcoded.com/releases</url>
-        </repository>
-        <repository>
             <id>enginehub-maven</id>
             <url>https://maven.enginehub.org/repo/</url>
         </repository>
@@ -241,9 +272,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.tcoded</groupId>
+            <groupId>com.github.technicallycoded</groupId>
             <artifactId>FoliaLib</artifactId>
-            <version>0.5.1</version>
+            <version>0.4.4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
