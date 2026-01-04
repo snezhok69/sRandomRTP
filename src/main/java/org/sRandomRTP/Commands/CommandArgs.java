@@ -12,7 +12,6 @@ import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -45,19 +44,6 @@ public class CommandArgs implements CommandExecutor {
                         CommandFar.commandFar(sender);
                     } else {
                         sender.sendMessage(Variables.pluginName + " §cInvalid command!");
-                    }
-                    break;
-                // ARGUMENT BIOME \\
-                case "biome":
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
-                        return false;
-                    }
-                    if (args.length >= 2) {
-                        String[] biomeArgs = Arrays.copyOfRange(args, 1, args.length);
-                        CommandRtpBiome.commandRtpBiome(sender, biomeArgs);
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp biome <biome> or /rtp biome <biome1, biome2>");
                     }
                     break;
                 // ARGUMENT MIDDLE \\
@@ -415,6 +401,9 @@ public class CommandArgs implements CommandExecutor {
                         Variables.targetWorlds.put(targetPlayer.getName(), effectiveWorld);
                         Variables.senderSendMessage.put(targetPlayer.getName(), sender);
                         CommandPlayer.commandplayer(sender, targetPlayer, effectiveWorld);
+                        if (!targetPlayer.hasPermission("sRandomRTP.Cooldown.bypass")) {
+                            Variables.playerConfirmStatus.put(targetPlayer.getName(), true);
+                        }
                         return true;
                     } else {
                         sender.sendMessage(ChatColor.RED + "§a[sRandomRTP] §cInvalid command usage! Use: /rtp player <nickname> [world]");

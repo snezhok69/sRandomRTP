@@ -42,20 +42,6 @@ public class FilesCreate {
                 "lang/ua.yml",
                 "lang/tr.yml",
                 "lang/custom_messages.yml",
-                "Settings_ru/bossbar.yml",
-                "Settings_ru/chunk-loading.yml",
-                "Settings_ru/config.yml",
-                "Settings_ru/economy.yml",
-                "Settings_ru/effects.yml",
-                "Settings_ru/far.yml",
-                "Settings_ru/middle.yml",
-                "Settings_ru/near.yml",
-                "Settings_ru/particles.yml",
-                "Settings_ru/portal.yml",
-                "Settings_ru/README.md",
-                "Settings_ru/sound.yml",
-                "Settings_ru/teleport.yml",
-                "Settings_ru/title.yml"
         };
         for (String fileName : fileNames) {
             File file = new File(dataFolder, fileName);

@@ -14,12 +14,12 @@ public class CheckingInstalledChunky {
                 int minorVersion = Integer.parseInt(versionParts[1].split("-")[0]);
 
                 if (majorVersion == 1 && minorVersion < 13) {
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChunky API is not supported on version " + version);
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eSome functions will not be available!");
+                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChunky API не поддерживается на версии " + version);
+                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eНекоторые функции будут недоступны!");
                     return false;
                 }
             } catch (NumberFormatException e) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cError in determining the server version!");
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cОшибка при определении версии сервера!");
                 return false;
             }
         }
@@ -27,18 +27,18 @@ public class CheckingInstalledChunky {
         try {
             Variables.chunkyAPI = Bukkit.getServicesManager().load(ChunkyAPI.class);
             if (Variables.chunkyAPI == null) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cFailed to load Chunky API!");
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cSome functions will not be available!");
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cНе удалось загрузить Chunky API!");
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cНекоторые функции будут недоступны!");
                 return false;
             }
             if (Bukkit.getPluginManager().getPlugin("Chunky") == null) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cSome functions will not be available!");
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cНекоторые функции будут недоступны!");
                 return false;
             }
             return true;
         } catch (NoClassDefFoundError | Exception e) {
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cError loading Chunky API!");
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cSome functions will not be available!");
+            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cОшибка при загрузке Chunky API!");
+            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cНекоторые функции будут недоступны!");
             return false;
         }
     }

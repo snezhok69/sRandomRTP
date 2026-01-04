@@ -104,9 +104,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &c未找到传送请求或请求已过期。'
   commandhelp:
-    - ''
+    - ' '
     - '&c插件命令帮助：'
-    - ''
+    - ' '
     - '&a/rtp - &6随机传送。'
     - '&a/rtp world <你的世界> - &6传送到指定世界。'
     - '&a/rtp near - &6传送到玩家附近。'
@@ -124,7 +124,7 @@ messages:
     - '&a/rtp listportal - &6查看传送门列表。'
     - '&a/rtp chunky N - &6开始生成N个区块。'
     - '&a/rtp chunky stop - &6停止在当前玩家世界中生成区块。'
-    - ''
+    - ' '
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &a插件已启用! &b%mc% &ams'

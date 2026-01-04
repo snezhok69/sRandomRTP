@@ -10,91 +10,72 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Data.DataSave;
-import org.sRandomRTP.DifferentMethods.LoggerUtility;
-import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.DifferentMethods.BossBars.RemoveBossBar;
 import org.sRandomRTP.DifferentMethods.BossBars.SetBossBarProgress;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Rtp.RtpRtpPlayer;
-
 import java.util.List;
-
 import static org.sRandomRTP.DifferentMethods.Variables.teleportTasks;
 
 public class CooldownBypassBossBarPlayer {
 
-    /**
-     * @return true  – если телепорт/запрос реально был запущен
-     *         false – если ничего не сделали (уже есть запрос / ошибка и т.п.)
-     */
     public static boolean cooldownBypassBossBarplayer(CommandSender sender, Player targetPlayer, World world) {
         try {
-            // 1. Игрок с правом bypass – сразу тп, без запросов и кд по этой схеме
             if (targetPlayer.hasPermission("sRandomRTP.Cooldown.bypass")) {
                 RtpRtpPlayer.rtprtpplayer(sender, targetPlayer, world);
-                return true;
-            }
+            } else {
+                if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
+                    List<String> formattedMessage = LoadMessages.rtpplayeralreadyrequested;
+                    for (String line : formattedMessage) {
+                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                        sender.sendMessage(formattedLine);
+                    }
+                    return false;
+                }
 
-            // 2. Уже есть активный запрос на этого игрока – второй не создаём
-            if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
-                List<String> formattedMessage = LoadMessages.rtpplayeralreadyrequested;
-                for (String line : formattedMessage) {
-                    String formattedLine = TranslateRGBColors.translateRGBColors(
-                            ChatColor.translateAlternateColorCodes('&', line)
-                    );
+                Variables.playerConfirmStatus.put(targetPlayer.getName(), true);
+
+                List<String> formattedMessage1 = LoadMessages.rtpplayerteleportrequestsent;
+                for (String line : formattedMessage1) {
+                    line = line.replace("%player%", targetPlayer.getName());
+                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                     sender.sendMessage(formattedLine);
                 }
-                return false;
+
+                if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
+                    Variables.commandSenderMap.put(targetPlayer.getName(), sender);
+                    sendInitialMessage(sender, targetPlayer);
+                    return true;
+                } else {
+                    if (targetPlayer.hasPermission("sRandomRTP.Cooldown.bypass")) {
+                        RtpRtpPlayer.rtprtpplayer(sender, targetPlayer, world);
+                    } else {
+                        CooldownBypassBossBarPlayer.startBossBarCountdown(sender, targetPlayer, world);
+                    }
+                }
             }
-
-            // 3. Помечаем, что на игрока сейчас висит ожидающий запрос
-            Variables.playerConfirmStatus.put(targetPlayer.getName(), true);
-
-            // 4. Сообщаем отправителю, что запрос ушёл
-            List<String> formattedMessage1 = LoadMessages.rtpplayerteleportrequestsent;
-            for (String line : formattedMessage1) {
-                line = line.replace("%player%", targetPlayer.getName());
-                String formattedLine = TranslateRGBColors.translateRGBColors(
-                        ChatColor.translateAlternateColorCodes('&', line)
-                );
-                sender.sendMessage(formattedLine);
-            }
-
-            // 5. Режим с подтверждением от игрока (rtp-player-messages = true)
-            if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
-                Variables.commandSenderMap.put(targetPlayer.getName(), sender);
-                sendInitialMessage(sender, targetPlayer);
-            } else {
-                // 6. Режим без ручного подтверждения – сразу запускаем боссбар-обратный отсчёт
-                startBossBarCountdown(sender, targetPlayer, world);
-            }
-
-            return true;
         } catch (Throwable e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);
-            return false;
         }
+        return false;
     }
 
     private static void sendInitialMessage(CommandSender sender, Player targetPlayer) {
         List<String> formattedMessage = LoadMessages.rtpplayerrequestinitiator;
         for (String line : formattedMessage) {
             line = line.replace("%initiator%", sender.getName());
-            String formattedLine = TranslateRGBColors.translateRGBColors(
-                    ChatColor.translateAlternateColorCodes('&', line)
-            );
+            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
             targetPlayer.sendMessage(formattedLine);
 
             Variables.getFoliaLib().getImpl().runLaterAsync(() -> {
                 if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
                     List<String> formattedMessage1 = LoadMessages.rtpplayertimeout;
                     for (String line1 : formattedMessage1) {
-                        String formattedLine1 = TranslateRGBColors.translateRGBColors(
-                                ChatColor.translateAlternateColorCodes('&', line1)
-                        );
+                        String formattedLine1 = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line1));
                         targetPlayer.sendMessage(formattedLine1);
                     }
                     Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
@@ -111,9 +92,7 @@ public class CooldownBypassBossBarPlayer {
             Variables.playerConfirmStatus.put(playerName, false);
             List<String> formattedMessage = LoadMessages.rtpplayercanceled;
             for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(
-                        ChatColor.translateAlternateColorCodes('&', line)
-                );
+                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                 targetPlayer.sendMessage(formattedLine);
             }
             CommandSender originalSender = Variables.commandSenderMap.get(playerName);
@@ -121,9 +100,7 @@ public class CooldownBypassBossBarPlayer {
                 List<String> formattedMessage1 = LoadMessages.rtpplayersendernotified;
                 for (String line : formattedMessage1) {
                     line = line.replace("%target-player%", targetPlayer.getName());
-                    String formattedLine = TranslateRGBColors.translateRGBColors(
-                            ChatColor.translateAlternateColorCodes('&', line)
-                    );
+                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                     originalSender.sendMessage(formattedLine);
                 }
                 Variables.commandSenderMap.remove(playerName);
@@ -131,9 +108,7 @@ public class CooldownBypassBossBarPlayer {
         } else {
             List<String> formattedMessage1 = LoadMessages.rtpplayernoactiveteleport;
             for (String line : formattedMessage1) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(
-                        ChatColor.translateAlternateColorCodes('&', line)
-                );
+                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                 targetPlayer.sendMessage(formattedLine);
             }
         }
@@ -193,17 +168,13 @@ public class CooldownBypassBossBarPlayer {
                 double progress = timeLeft[0] / countdownTime;
                 String bossbarmessage = LoadMessages.bossbar;
                 bossbarmessage = bossbarmessage.replace("%time%", String.valueOf((int) Math.ceil(timeLeft[0])));
-                bossbarmessage = TranslateRGBColors.translateRGBColors(
-                        ChatColor.translateAlternateColorCodes('&', bossbarmessage)
-                );
+                bossbarmessage = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', bossbarmessage));
                 if (Variables.bossbarfile.getBoolean("teleport.bossbarEnabled")) {
                     SetBossBarProgress.setBossBarProgress(sender, targetPlayer, progress, bossbarmessage);
                 }
                 if (Variables.bossbarfile.getBoolean("teleport.actionBarEnabled")) {
                     String formattedLine = String.format(LoadMessages.actionBarMessage, (int) Math.ceil(timeLeft[0]));
-                    formattedLine = TranslateRGBColors.translateRGBColors(
-                            net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', formattedLine)
-                    );
+                    formattedLine = TranslateRGBColors.translateRGBColors(net.md_5.bungee.api.ChatColor.translateAlternateColorCodes('&', formattedLine));
                     targetPlayer.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(formattedLine));
                 }
             }
