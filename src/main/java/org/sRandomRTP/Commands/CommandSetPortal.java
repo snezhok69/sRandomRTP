@@ -398,7 +398,7 @@ public class CommandSetPortal {
     private static void spawnBorderParticles(Location center, int radius, String shape) {
         Particle borderParticle = getPortalBorderParticle();
         int borderParticleCount = getPortalBorderParticleCount();
-        double borderParticleYOffset = 0.0;
+        double borderParticleYOffset = isPermanentBorderParticlesEnabled() ? 0.3 : -0.7;
         double borderDensity = getPortalBorderParticleDensity();
         double borderSpread = getPortalBorderParticleSpread();
 
