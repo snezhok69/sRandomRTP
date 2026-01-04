@@ -4,14 +4,15 @@ import org.bukkit.Material;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
 
-import java.util.List;
-
 public class IsBlockBanned {
     public static boolean isBlockBanned(Material material) {
-        if (material == null || Variables.teleportfile == null) {
-            return false;
+        try {
+            return Variables.blockList.contains(material);
+        } catch (Throwable e) {
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            String callingClassName = stackTrace[2].getClassName();
+            LoggerUtility.loggerUtility(callingClassName, e);
         }
-        List<String> bannedBlocksList = Variables.teleportfile.getStringList("teleport.bannedBlocks");
-        return bannedBlocksList.contains(material.name());
+        return false;
     }
 }

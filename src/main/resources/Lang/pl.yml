@@ -104,9 +104,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &cNie znaleziono żadnego żądania teleportacji lub jego czas wygasł.'
   commandhelp:
-    - ''
+    - ' '
     - '&cPomoc w używaniu komend pluginu:'
-    - ''
+    - ' '
     - '&a/rtp - &6losowa teleportacja.'
     - '&a/rtp world <twój świat> - &6teleportacja w wybranym świecie.'
     - '&a/rtp near - &6teleportuj się do graczy.'
@@ -124,7 +124,7 @@ messages:
     - '&a/rtp listportal - &6wyświetl listę portali.'
     - '&a/rtp chunky N - &6rozpocznij generowanie N chunków.'
     - '&a/rtp chunky stop - &6zatrzymaj generowanie chunków w aktualnym świecie gracza.'
-    - ''
+    - ' '
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aPlugin włączony! &b%mc% &ams'

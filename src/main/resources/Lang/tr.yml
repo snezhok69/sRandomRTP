@@ -103,9 +103,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &cTeleport isteği bulunamadı veya süresi doldu.'
   commandhelp:
-    - ''
+    - ' '
     - '&cEklenti komutları yardımı:'
-    - ''
+    - ' '
     - '&a/rtp - &6rastgele ışınlanma.'
     - '&a/rtp world <dünyanız> - &6belirtilen dünyaya ışınlanma.'
     - '&a/rtp near - &6oyuncuların yanına ışınlanma.'
@@ -123,7 +123,7 @@ messages:
     - '&a/rtp listportal - &6portal listesini görüntüleme.'
     - '&a/rtp chunky N - &6N chunk oluşturmaya başlama.'
     - '&a/rtp chunky stop - &6mevcut oyuncu dünyasında chunk oluşturmayı durdurma.'
-    - ''
+    - ' '
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aEklenti etkin! &b%mc% &ams'

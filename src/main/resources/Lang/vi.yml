@@ -104,9 +104,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &cKhông tìm thấy yêu cầu dịch chuyển hoặc yêu cầu đã hết hạn.'
   commandhelp:
-    - ''
+    - ' '
     - '&cHướng dẫn lệnh plugin:'
-    - ''
+    - ' '
     - '&a/rtp - &6dịch chuyển ngẫu nhiên.'
     - '&a/rtp world <thế giới của bạn> - &6dịch chuyển đến thế giới đã chỉ định.'
     - '&a/rtp near - &6dịch chuyển đến người chơi.'
@@ -124,7 +124,7 @@ messages:
     - '&a/rtp listportal - &6xem danh sách cổng.'
     - '&a/rtp chunky N - &6bắt đầu tạo N chunk.'
     - '&a/rtp chunky stop - &6dừng tạo chunk trong thế giới hiện tại của người chơi.'
-    - ''
+    - ' '
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aPlugin đã được bật! &b%mc% &ams'

@@ -66,7 +66,7 @@ messages:
   teleport-move-cancel:
     - '&a[sRandomRTP] &cYou moved! Teleportation was canceled.'
   no-advancement-nether:
-    - '&a[sRandomRTP] &cYou do not have the advancement &6''Into the Nether'' &cto perform this command.'
+    - '&a[sRandomRTP] &cYou do not have the achievement &6''Firey Nether'' &cto perform this command.'
   no-advancement-end:
     - '&a[sRandomRTP] &cYou do not have the achievement &6''The End?'' &cto perform this command.'
   teleportBackSuccess:
@@ -104,9 +104,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &cNo teleportation request found or it has expired.'
   commandhelp:
-    - ''
+    - ' '
     - '&cPlugin command help:'
-    - ''
+    - ' '
     - '&a/rtp - &6random teleportation.'
     - '&a/rtp world <your world> - &6teleportation in the specified world.'
     - '&a/rtp near - &6teleports to players.'
@@ -124,7 +124,7 @@ messages:
     - '&a/rtp listportal - &6view list of portals.'
     - '&a/rtp chunky N - &6start generating N chunks.'
     - '&a/rtp chunky stop - &6stop chunk generation in current player world.'
-    - ''
+    - ' '
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aPlugin enabled! &b%mc% &ams'
