@@ -1,10 +1,9 @@
 package org.sRandomRTP.Checkings;
 
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.sRandomRTP.DifferentMethods.Variables;
 
-import java.lang.reflect.Method;
+import java.util.logging.Level;
 
 public class CheckingServerVersion {
 
@@ -25,20 +24,13 @@ public class CheckingServerVersion {
                     Bukkit.getConsoleSender().sendMessage("");
                     Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c>==========================================<");
                     Bukkit.getConsoleSender().sendMessage("");
-                    Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
-                    Method getServerMethod = bukkitClass.getMethod("getServer");
-                    Object serverObject = getServerMethod.invoke(null);
-                    Class<?> serverClass = serverObject.getClass();
-                    Method getPluginManagerMethod = serverClass.getMethod("getPluginManager");
-                    Object pluginManagerObject = getPluginManagerMethod.invoke(serverObject);
-                    Class<?> pluginManagerClass = pluginManagerObject.getClass();
-                    Method disablePluginMethod = pluginManagerClass.getMethod("disablePlugin", Plugin.class);
-                    disablePluginMethod.invoke(pluginManagerObject, Variables.getInstance());
+                    Bukkit.getPluginManager().disablePlugin(Variables.getInstance());
                     return true;
                 }
             }
             return false;
         } catch (Throwable e) {
+            Variables.getInstance().getLogger().log(Level.SEVERE, "Failed to verify server version", e);
         }
         return false;
     }

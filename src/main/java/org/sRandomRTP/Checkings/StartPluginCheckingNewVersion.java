@@ -3,7 +3,7 @@ package org.sRandomRTP.Checkings;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
-import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 

@@ -2,6 +2,7 @@ package org.sRandomRTP.Commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -64,6 +65,9 @@ public class onTabCompletes implements TabCompleter {
                 if (sender.hasPermission("sRandomRTP.Command.Middle")) {
                     arguments.add("middle");
                 }
+                if (sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
+                    arguments.add("biome");
+                }
             } else if (args.length == 2) {
                 if (args[0].equalsIgnoreCase("portal") && sender.hasPermission("sRandomRTP.Command.Portal")) {
                     arguments.add("set");
@@ -89,6 +93,8 @@ public class onTabCompletes implements TabCompleter {
                         playerNames.add(player.getName());
                     }
                     return playerNames;
+                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
+                    return getBiomeArgumentSuggestions(args[1]);
                 }
             } else if (args.length == 3) {
                 if (args[0].equalsIgnoreCase("portal")) {
@@ -102,6 +108,8 @@ public class onTabCompletes implements TabCompleter {
                                     .forEach(arguments::add);
                         }
                     }
+                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
+                    return getSimpleBiomeSuggestions(args[2]);
                 }
             }
             return arguments;
@@ -138,6 +146,8 @@ public class onTabCompletes implements TabCompleter {
                     if ("list".startsWith(input)) completions.add("list");
                 } else if (args[0].equalsIgnoreCase("chunky")) {
                     if ("stop".startsWith(input)) completions.add("stop");
+                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
+                    completions.addAll(getBiomeArgumentSuggestions(args[1]));
                 } else if (args[0].equalsIgnoreCase("world")) {
                     boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
                     List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
@@ -192,6 +202,8 @@ public class onTabCompletes implements TabCompleter {
                     }
                 } else if (args[0].equalsIgnoreCase("chunky") && !args[1].equalsIgnoreCase("stop")) {
                     if ("stop".startsWith(input)) completions.add("stop");
+                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
+                    completions.addAll(getSimpleBiomeSuggestions(args[2]));
                 }
             } else if (args.length == 5) {
                 String input = args[4].toLowerCase();
@@ -207,5 +219,40 @@ public class onTabCompletes implements TabCompleter {
             LoggerUtility.loggerUtility(callingClassName, e);
         }
         return java.util.Collections.emptyList();
+    }
+
+    private List<String> getBiomeArgumentSuggestions(String rawInput) {
+        String value = rawInput == null ? "" : rawInput;
+        int commaIndex = value.lastIndexOf(',');
+        int tokenStart = commaIndex >= 0 ? commaIndex + 1 : 0;
+        while (tokenStart < value.length() && Character.isWhitespace(value.charAt(tokenStart))) {
+            tokenStart++;
+        }
+        String prefix = value.substring(0, Math.min(tokenStart, value.length()));
+        if (commaIndex >= 0 && tokenStart == commaIndex + 1) {
+            prefix = prefix + " ";
+        }
+        String query = tokenStart <= value.length() ? value.substring(tokenStart) : "";
+        return collectBiomeSuggestions(prefix, query);
+    }
+
+    private List<String> getSimpleBiomeSuggestions(String input) {
+        return collectBiomeSuggestions("", input == null ? "" : input);
+    }
+
+    private List<String> collectBiomeSuggestions(String prefix, String query) {
+        List<String> suggestions = new ArrayList<>();
+        String normalized = query == null ? "" : query.trim().toLowerCase();
+        boolean enforceLimit = normalized.isEmpty();
+        for (Biome biome : Biome.values()) {
+            String name = biome.name();
+            if (normalized.isEmpty() || name.toLowerCase().startsWith(normalized)) {
+                suggestions.add(prefix + name);
+                if (enforceLimit && suggestions.size() >= 10) {
+                    break;
+                }
+            }
+        }
+        return suggestions;
     }
 }

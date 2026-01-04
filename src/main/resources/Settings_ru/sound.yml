@@ -1,0 +1,23 @@
+teleport:
+  # Звуки при ожидании босс-бара
+  boss-bar-teleport-sound:
+    # Если true, будут воспроизводиться звуки при истечении таймера босс-бара.
+    # Если false, звуки таймера босс-бара не будут воспроизводиться.
+    enabled: true
+    # Звук, который будет воспроизводиться. Ссылка на все звуки: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
+    sound: 'BLOCK_NOTE_BLOCK_BIT'
+    # Изменение тона звука.
+    pitch: 1.0
+    # Изменение громкости звука.
+    volume: 1.0
+  # Звук после успешной телепортации.
+  completed-teleport-sound:
+    # Если true, будут воспроизводиться звуки при истечении таймера босс-бара.
+    # Если false, звуки таймера босс-бара не будут воспроизводиться.
+    enabled: true
+    # Звук, который будет воспроизводиться. Ссылка на все звуки: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
+    sound: 'BLOCK_NOTE_BLOCK_XYLOPHONE'
+    # Изменение тона звука.
+    pitch: 1.0
+    # Изменение громкости звука.
+    volume: 1.0

@@ -7,7 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
-import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 import java.util.List;
