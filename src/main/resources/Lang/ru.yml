@@ -60,7 +60,7 @@ messages:
   insufficient_health:
     - "&a[sRandomRTP] &6У вас недостаточно здоровья для телепортации! Требуется минимум %health% здоровья."
   insufficient_items:
-    - '&a[ssRandomRTP] &6У вас недостаточно %items% для телепортации!'
+    - '&a[sRandomRTP] &6У вас недостаточно %items% для телепортации!'
   player_nearby:
     - "&a[sRandomRTP] &6Слишком близко к другому игроку."
   teleport-move-cancel:
@@ -84,7 +84,7 @@ messages:
   rtp-player-teleport-success-target:
     - '&a[sRandomRTP] &6Игрок %sender% телепортировал вас!'
   rtp-player-request-initiator:
-    - '&a[sRandomRTP] &6Вас хочет телепортировать игрок, %initiator% чтобы подтвердить телепортацию, напишите /rtp accept, а что отменить телепортацию напишите /rtp deny.'
+    - '&a[sRandomRTP] &6Игрок %initiator% хочет телепортировать вас. Для подтверждения введите /rtp accept, а чтобы отменить — /rtp deny.'
   rtp-player-timeout:
     - '&a[sRandomRTP] &6Вы не успели подтвердить телепортацию.'
   rtp-player-canceled:
@@ -171,9 +171,9 @@ messages:
   rederictworldnear-error:
     - '&a[sRandomRTP] &6В мире-редиректе нет игроков!'
   commandhelp:
-    - ' '
+    - ''
     - '&cПомощь по командам плагина:'
-    - ' '
+    - ''
     - '&a/rtp - &6рандомная телепортация.'
     - '&a/rtp world <ваш мир> - &6телепортация в указанном мире.'
     - '&a/rtp near - &6телепортирует к игрокам.'
@@ -191,7 +191,7 @@ messages:
     - '&a/rtp listportal - &6посмотреть список порталов.'
     - '&a/rtp chunky N - &6начать прогрузку N чанков.'
     - '&a/rtp chunky stop - &6остановить прогрузку чанков в текущем мире игрока.'
-    - ' '
+    - ''
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aПлагин включен! &b%mc% &aмс'

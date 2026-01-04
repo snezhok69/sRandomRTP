@@ -163,7 +163,9 @@ public class LoadPortalsPlayerFromDatabaseSQL {
                         WrappedTask triggerTask = null;
                         if (taskType.contains("particles")) {
                             particlesTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                                    () -> CommandSetPortal.spawnParticles(center, finalRadius, finalShape),
+                                    () -> {
+                                        CommandSetPortal.spawnParticles(center, finalRadius, finalShape);
+                                    },
                                     delay,
                                     period
                             );

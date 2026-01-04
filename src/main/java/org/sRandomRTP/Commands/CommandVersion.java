@@ -11,7 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
-import org.sRandomRTP.DifferentMethods.TranslateRGBColors;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 
