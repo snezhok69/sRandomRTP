@@ -104,9 +104,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &cテレポートリクエストが見つからないか、有効期限が切れています。'
   commandhelp:
-    - ' '
+    - ''
     - '&cプラグインコマンドのヘルプ：'
-    - ' '
+    - ''
     - '&a/rtp - &6ランダムテレポート。'
     - '&a/rtp world <あなたの世界> - &6指定された世界にテレポート。'
     - '&a/rtp near - &6プレイヤーの近くにテレポート。'
@@ -124,7 +124,7 @@ messages:
     - '&a/rtp listportal - &6ポータル一覧を表示。'
     - '&a/rtp chunky N - &6N個のチャンク生成を開始。'
     - '&a/rtp chunky stop - &6現在のプレイヤーのワールドでのチャンク生成を停止。'
-    - ' '
+    - ''
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aプラグインが有効になりました! &b%mc% &ams'

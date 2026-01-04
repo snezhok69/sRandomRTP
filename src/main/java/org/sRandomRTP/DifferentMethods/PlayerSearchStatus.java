@@ -3,6 +3,7 @@ package org.sRandomRTP.DifferentMethods;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import java.util.List;
 

@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.Cooldowns.CooldownBypassBossBarBase;
 import org.sRandomRTP.Cooldowns.CooldownCommandRtp;
 import org.sRandomRTP.DifferentMethods.*;
+import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.GetPlayerItemCount;
 import java.util.ArrayList;
@@ -114,7 +115,9 @@ public class CommandBase {
                 }
             }
 
-            if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
+            boolean moneyEnabled = Variables.economyfile.getBoolean("teleport.Money.enabled");
+            int teleportCost = 0;
+            if (moneyEnabled) {
                 try {
                     Class.forName("net.milkbowl.vault.economy.Economy");
                 } catch (ClassNotFoundException e) {
@@ -124,21 +127,11 @@ public class CommandBase {
                     player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
                     return;
                 }
-            }
-            if (Variables.economyfile.getBoolean("teleport.Money.enabled")) {
-                int teleportCost = Variables.economyfile.getInt("teleport.Money.money");
+                teleportCost = Variables.economyfile.getInt("teleport.Money.money");
                 if (!Variables.econ.has(player, teleportCost)) {
                     List<String> formattedMessage = LoadMessages.insufficient_funds;
                     for (String line : formattedMessage) {
                         String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%money%", String.valueOf(teleportCost))));
-                        player.sendMessage(formattedLine);
-                    }
-                    return;
-                }
-                if (!Variables.econ.withdrawPlayer(player, teleportCost).transactionSuccess()) {
-                    List<String> formattedMessage = LoadMessages.error_withdrawing;
-                    for (String line : formattedMessage) {
-                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
                         player.sendMessage(formattedLine);
                     }
                     return;
@@ -170,6 +163,7 @@ public class CommandBase {
             }
             //
             if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
+                Variables.itemMap.clear();
                 List<String> requiredItems = Variables.economyfile.getStringList("teleport.Items.requiredItems");
                 for (String itemString : requiredItems) {
                     String[] parts = itemString.split(": ");
@@ -206,6 +200,17 @@ public class CommandBase {
 
             if (CooldownCommandRtp.cooldownCommandRtp(player, sender)) {
                 return;
+            }
+
+            if (moneyEnabled) {
+                if (!EconomyPaymentManager.chargePlayer(player, player, teleportCost)) {
+                    List<String> formattedMessage = LoadMessages.error_withdrawing;
+                    for (String line : formattedMessage) {
+                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
+                        player.sendMessage(formattedLine);
+                    }
+                    return;
+                }
             }
 
             if (CooldownBypassBossBarBase.cooldownBypassBossBarbase(player, sender, world)) {

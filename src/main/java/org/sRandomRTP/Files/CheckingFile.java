@@ -11,17 +11,24 @@ import java.util.Set;
 
 public class CheckingFile {
     public void compareLanguageFiles(String baseFileName, String compareToFileName) {
-        try {
-            InputStream baseInputStream = Variables.getInstance().getResource("Lang/" + baseFileName);
-            InputStream compareToInputStream = Variables.getInstance().getResource("Lang/" + compareToFileName);
+        try (InputStream baseInputStream = Variables.getInstance().getResource("lang/" + baseFileName);
+             InputStream compareToInputStream = Variables.getInstance().getResource("lang/" + compareToFileName)) {
+            if (baseInputStream == null || compareToInputStream == null) {
+                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cUnable to compare language files: §e" + baseFileName + " §cor §e" + compareToFileName + " §cnot found.");
+                return;
+            }
             Yaml yaml = new Yaml();
             Map<String, Object> baseData = yaml.load(baseInputStream);
             Map<String, Object> compareToData = yaml.load(compareToInputStream);
             Set<String> baseKeys = extractKeys(baseData);
             Set<String> compareToKeys = extractKeys(compareToData);
-            compareToKeys.removeAll(baseKeys);
-            Bukkit.getConsoleSender().sendMessage("В файле " + compareToFileName + " есть следующие ключи, которых нет в файле " + baseFileName + ":");
-            for (String missingKey : compareToKeys) {
+            Set<String> missingKeys = new HashSet<>(compareToKeys);
+            missingKeys.removeAll(baseKeys);
+            if (missingKeys.isEmpty()) {
+                return;
+            }
+            Bukkit.getConsoleSender().sendMessage("В файле " + baseFileName + " отсутствуют следующие ключи из файла " + compareToFileName + ":");
+            for (String missingKey : missingKeys) {
                 Variables.getInstance().getLogger().info("- " + missingKey);
             }
         } catch (Exception e) {

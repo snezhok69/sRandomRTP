@@ -12,3 +12,24 @@ teleport-middle:
   # If true, minradius will be treated as absolute coordinates
   # For example, if minradius is 500000, coordinates will be at least 500000 blocks from center
   use-absolute-coordinates-middle: true
+  # Per-world radius settings (optional) - overrides default radius/minradius for specific worlds.
+  # This allows you to set different teleportation ranges for each world.
+  # If a world is not listed here, it will use the default radius and minradius values above.
+  # The plugin automatically ensures that these values don't exceed the world border size.
+  # Format:
+  #   world_name:
+  #     radius: <max distance from center>
+  #     minradius: <min distance from center>
+  per-world-middle:
+    world:
+      radius: 7000
+      minradius: 500
+    world_nether:
+      radius: 1000
+      minradius: 100
+    world_the_end:
+      radius: 1500
+      minradius: 200
+    my_custom_world:
+      radius: 500
+      minradius: 50

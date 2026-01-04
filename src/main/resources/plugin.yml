@@ -1,12 +1,13 @@
 name: sRandomRTP
 version: 3.0
 main: org.sRandomRTP.Main
-api-version: 1.13
+api-version: 1.16
 folia-supported: true
+depend:
+  - LuckPerms
 softdepend:
   - WorldGuard
-  - LuckPerms
-  - WordEdit
+  - WorldEdit
   - Vault
   - PlaceholderAPI
   - Chunky

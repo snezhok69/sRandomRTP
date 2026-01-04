@@ -18,6 +18,6 @@ public class LoadFiles {
         Variables.farfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/far.yml"));
         Variables.middlefile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/middle.yml"));
         Variables.portalfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/portal.yml"));
-
+        Variables.chunkfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/chunk-loading.yml"));
     }
 }
