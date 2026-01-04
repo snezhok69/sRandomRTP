@@ -81,4 +81,12 @@ public class PortalDataTasks {
     public void setShape(String shape) {
         this.shape = shape;
     }
+    
+    public void setParticlesTask(WrappedTask particlesTask) {
+        this.particlesTask = particlesTask;
+    }
+    
+    public void setTriggerTask(WrappedTask triggerTask) {
+        this.triggerTask = triggerTask;
+    }
 }

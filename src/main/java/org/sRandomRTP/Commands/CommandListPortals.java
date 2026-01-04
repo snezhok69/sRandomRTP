@@ -94,8 +94,12 @@ public class CommandListPortals {
     }
 
     private static void showPortalsList(CommandSender sender, int currentPage) {
-        Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(Variables.pluginName + " §cThis command can only be used by players.");
+            return;
+        }
         Player player = (Player) sender;
+        Map<String, PortalData> playerPortals = Variables.playerPortals.get(player.getName());
         if (!player.hasPermission("sRandomRTP.Command.Portal")) {
             List<String> formattedMessage = LoadMessages.nopermissioncommand;
             for (String line : formattedMessage) {
@@ -161,7 +165,7 @@ public class CommandListPortals {
             prevPageButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rtp portal list -p:" + (currentPage - 1)));
             prevPageButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(TranslateRGBColors.translateRGBColors(LoadMessages.portal_prev_hover))));
         } else {
-            prevPageButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rtp portal list -p:" + (currentPage - 1)));
+            prevPageButton.setClickEvent(null);
             prevPageButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(TranslateRGBColors.translateRGBColors(LoadMessages.portal_prev_disabled))));
         }
 
@@ -171,7 +175,7 @@ public class CommandListPortals {
             nextPageButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rtp portal list -p:" + (currentPage + 1)));
             nextPageButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(TranslateRGBColors.translateRGBColors(LoadMessages.portal_next_hover))));
         } else {
-            nextPageButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rtp portal list -p:" + (currentPage + 1)));
+            nextPageButton.setClickEvent(null);
             nextPageButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(TranslateRGBColors.translateRGBColors(LoadMessages.portal_next_disabled))));
         }
 

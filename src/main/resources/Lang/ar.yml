@@ -104,9 +104,9 @@ messages:
   no-active-requests-accept:
     - '&a[sRandomRTP] &cلم يتم العثور على طلب نقل أو انتهت صلاحيته.'
   commandhelp:
-    - ' '
+    - ''
     - '&cمساعدة أوامر الإضافة:'
-    - ' '
+    - ''
     - '&a/rtp - &6انتقال عشوائي.'
     - '&a/rtp world <عالمك> - &6الانتقال إلى العالم المحدد.'
     - '&a/rtp near - &6ينتقل إلى اللاعبين.'
@@ -124,7 +124,7 @@ messages:
     - '&a/rtp listportal - &6عرض قائمة البوابات.'
     - '&a/rtp chunky N - &6بدء تحميل N تشانك.'
     - '&a/rtp chunky stop - &6إيقاف تحميل التشانكات في العالم الحالي للاعب.'
-    - ' '
+    - ''
   Plugin-Enabled-Message:
     - ''
     - '&a[sRandomRTP] &6- &aتم تفعيل الإضافة! &b%mc% &aمللي ثانية'

@@ -52,6 +52,6 @@ Period-Checking-New-Version: 1800
 # ua - Українська (Ukrainian) || vi - Tiếng Việt (Vietnamese) || zh - 中文 (Simplified Chinese) || ar - العربية (Arabic)
 Language: en
 
-# Отключает сообщения "moved too quickly" в консоли при телепортации игроков
-# Эти сообщения могут появляться при телепортации на большие расстояния
+# If true, “moved too quickly” messages will be disabled and will not be displayed in the console.
+# If false, “moved too quickly” messages will be enabled and will be displayed in the console.
 Disable-Moved-Too-Quickly-Messages: true
