@@ -37,6 +37,9 @@
 #
 #
 
+# Internal file version used for automatic config migrations.
+config-version: 3
+
 # debug to the console, which are displayed when using the /rtp command
 logs: false
 # Determines whether to enable automatic notifications about new plugin versions for players.
@@ -45,6 +48,13 @@ Auto-Checking-New-Version-Players-Enabled: true
 Auto-Checking-New-Version-Console-Enabled: true
 # Frequency of checking for new plugin versions (in seconds) (1800 seconds = 30 minutes)
 Period-Checking-New-Version: 1800
+
+metrics:
+  rtp:
+    # Writes a diagnostic entry when one RTP request is slower than this threshold.
+    # This does not affect teleportation speed; it is only for troubleshooting slow searches.
+    slow-request-threshold-ms: 3000
+
 # Default language for the plugin, English by default.
 # This file custom_messages is created to be translated into any language you want
 # de - Deutsch (German) || en - English (United States) || es - Español (Spanish) || fr - Français (French) || it - Italiano (Italian) ||

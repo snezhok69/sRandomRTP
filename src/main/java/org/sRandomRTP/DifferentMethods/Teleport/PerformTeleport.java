@@ -1,6 +1,5 @@
 package org.sRandomRTP.DifferentMethods.Teleport;
 
-import io.papermc.lib.PaperLib;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -17,18 +16,37 @@ import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PerformTeleport {
     private static final java.util.Map<UUID, AtomicBoolean> teleportInProgress = new java.util.concurrent.ConcurrentHashMap<>();
 
+    public static void performTeleport(Player player, RtpCandidateResolution resolution, boolean loggingEnabled) {
+        if (resolution == null) {
+            performTeleport(player, null, loggingEnabled, 0, 0, 0);
+            return;
+        }
+        performTeleport(player, resolution, resolution.toLocation(), loggingEnabled, resolution.getX(), resolution.getZ(), resolution.getY());
+    }
+
     public static void performTeleport(Player player, Location teleportLocation, boolean loggingEnabled, int finalNewX, int finalNewZ, int newY) {
+        performTeleport(player, null, teleportLocation, loggingEnabled, finalNewX, finalNewZ, newY);
+    }
+
+    private static void performTeleport(Player player, RtpCandidateResolution resolution, Location teleportLocation,
+                                        boolean loggingEnabled, int finalNewX, int finalNewZ, int newY) {
+        if (player == null || teleportLocation == null) {
+            return;
+        }
         if (loggingEnabled) {
             Bukkit.getLogger().info("[PerformTeleport] Starting teleport for player " + player.getName() + " to " + teleportLocation);
         }
 
         UUID playerId = player.getUniqueId();
-        AtomicBoolean inProgress = teleportInProgress.computeIfAbsent(playerId, k -> new AtomicBoolean(false));
+        AtomicBoolean guard = new AtomicBoolean(false);
+        AtomicBoolean existing = teleportInProgress.putIfAbsent(playerId, guard);
+        AtomicBoolean inProgress = (existing != null) ? existing : guard;
         if (!inProgress.compareAndSet(false, true)) {
             if (loggingEnabled) {
                 Bukkit.getLogger().info("[PerformTeleport] Teleportation already in progress for player " + player.getName() + ", skipping duplicate teleport");
@@ -46,7 +64,7 @@ public class PerformTeleport {
         }
 
         final TeleportRequestContext ctx = TeleportRequestManager.getContext(playerId);
-        if (ctx != null && (ctx.isCancelled() || ctx.isExpired())) {
+        if (ctx != null && ctx.isInactive()) {
             if (loggingEnabled) {
                 Bukkit.getLogger().info("[PerformTeleport] Aborting teleport for player " + player.getName() + " due to cancel/expired");
             }
@@ -56,81 +74,136 @@ public class PerformTeleport {
         }
 
         try {
-            PaperLib.teleportAsync(player, teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
+            final long startedAt = System.nanoTime();
+            selectTeleportPath(player, resolution, teleportLocation, loggingEnabled)
                     .thenAccept(success -> {
-                        if (success) {
-                            if (loggingEnabled) {
-                                Bukkit.getLogger().info("[PerformTeleport] Player " + player.getName() + " successfully teleported");
-                            }
-                            showSuccessMessage(player, finalNewX, finalNewZ, newY, loggingEnabled);
-                            showTitlesAndApplyEffects(player, finalNewX, finalNewZ, newY, loggingEnabled);
-                            EconomyPaymentManager.confirmSuccess(player);
-                            CleanupTasks.cleanupTasks(player, loggingEnabled);
-                            CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
+                        FoliaSchedulerFacade.runAtEntity(player, () -> {
+                            // Record metric on the entity thread so timing includes scheduler latency
+                            // and the measurement is safe on Folia's region-threaded model.
                             if (ctx != null) {
-                                TeleportRequestManager.completeRequest(ctx, loggingEnabled);
+                                ctx.recordFinalTeleport(System.nanoTime() - startedAt);
                             }
-                            teleportInProgress.remove(playerId);
-                        } else {
-                            if (loggingEnabled) {
-                                Bukkit.getLogger().warning("[PerformTeleport] Async teleport failed, trying again");
+                            if (success) {
+                                handleSuccessfulTeleport(player, finalNewX, finalNewZ, newY, loggingEnabled, ctx, playerId);
+                            } else {
+                                if (loggingEnabled) {
+                                    Bukkit.getLogger().warning("[PerformTeleport] Async teleport failed, trying again");
+                                }
+                                retryTeleport(player, teleportLocation, loggingEnabled, finalNewX, finalNewZ, newY, ctx, playerId);
                             }
-                            PaperLib.teleportAsync(player, teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN)
-                                    .thenAccept(retrySuccess -> {
-                                        if (retrySuccess) {
-                                            if (loggingEnabled) {
-                                                Bukkit.getLogger().info("[PerformTeleport] Second teleport attempt successful");
-                                            }
-                                            showSuccessMessage(player, finalNewX, finalNewZ, newY, loggingEnabled);
-                                            showTitlesAndApplyEffects(player, finalNewX, finalNewZ, newY, loggingEnabled);
-                                            EconomyPaymentManager.confirmSuccess(player);
-                                            CleanupTasks.cleanupTasks(player, loggingEnabled);
-                                            CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                                            if (ctx != null) {
-                                                TeleportRequestManager.completeRequest(ctx, loggingEnabled);
-                                            }
-                                            teleportInProgress.remove(playerId);
-                                        } else {
-                                            if (loggingEnabled) {
-                                                Bukkit.getLogger().warning("[PerformTeleport] Second teleport attempt also failed");
-                                            }
-                                            CleanupTasks.cleanupTasks(player, loggingEnabled);
-                                            CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                                            TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "teleport failure");
-                                            teleportInProgress.remove(playerId);
-                                        }
-                                    })
-                                    .exceptionally(e -> {
-                                        if (loggingEnabled) {
-                                            Bukkit.getLogger().severe("[PerformTeleport] Error during second teleport attempt: " + e.getMessage());
-                                        }
-                                        CleanupTasks.cleanupTasks(player, loggingEnabled);
-                                        CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                                        TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "teleport failure");
-                                        teleportInProgress.remove(playerId);
-                                        return null;
-                                    });
-                        }
+                        });
                     })
                     .exceptionally(ex -> {
-                        if (loggingEnabled) {
-                            Bukkit.getLogger().severe("[PerformTeleport] Error during teleport: " + ex.getMessage());
-                        }
-                        CleanupTasks.cleanupTasks(player, loggingEnabled);
-                        CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                        TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "teleport failure");
-                        teleportInProgress.remove(playerId);
+                        FoliaSchedulerFacade.runAtEntity(player, () -> {
+                            if (ctx != null) {
+                                ctx.recordFinalTeleport(System.nanoTime() - startedAt);
+                            }
+                            if (loggingEnabled) {
+                                Bukkit.getLogger().severe("[PerformTeleport] Error during teleport: " + ex.getMessage());
+                            }
+                            cleanupAfterFailure(player, loggingEnabled, playerId);
+                        });
                         return null;
                     });
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             if (loggingEnabled) {
                 Bukkit.getLogger().severe("[PerformTeleport] Critical error during teleport setup: " + e.getMessage());
             }
-            CleanupTasks.cleanupTasks(player, loggingEnabled);
-            CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-            TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "teleport failure");
-            teleportInProgress.remove(playerId);
+            cleanupAfterFailure(player, loggingEnabled, playerId);
         }
+    }
+
+    private static void retryTeleport(Player player, Location teleportLocation, boolean loggingEnabled,
+                                      int finalNewX, int finalNewZ, int newY,
+                                      TeleportRequestContext ctx, UUID playerId) {
+        final long retryStartedAt = System.nanoTime();
+        CompatibleTeleport.teleport(player, teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN,
+                        loggingEnabled, "rtp teleport retry")
+                .thenAccept(retrySuccess -> {
+                    if (ctx != null) {
+                        ctx.recordFinalTeleport(System.nanoTime() - retryStartedAt);
+                    }
+                    FoliaSchedulerFacade.runAtEntity(player, () -> {
+                        if (retrySuccess) {
+                            if (loggingEnabled) {
+                                Bukkit.getLogger().info("[PerformTeleport] Second teleport attempt successful");
+                            }
+                            handleSuccessfulTeleport(player, finalNewX, finalNewZ, newY, loggingEnabled, ctx, playerId);
+                        } else {
+                            if (loggingEnabled) {
+                                Bukkit.getLogger().warning("[PerformTeleport] Second teleport attempt also failed");
+                            }
+                            cleanupAfterFailure(player, loggingEnabled, playerId);
+                        }
+                    });
+                })
+                .exceptionally(e -> {
+                    if (ctx != null) {
+                        ctx.recordFinalTeleport(System.nanoTime() - retryStartedAt);
+                    }
+                    FoliaSchedulerFacade.runAtEntity(player, () -> {
+                        if (loggingEnabled) {
+                            Bukkit.getLogger().severe("[PerformTeleport] Error during second teleport attempt: " + e.getMessage());
+                        }
+                        cleanupAfterFailure(player, loggingEnabled, playerId);
+                    });
+                    return null;
+                });
+    }
+
+    static CompletableFuture<Boolean> selectTeleportPath(Player player,
+                                                         RtpCandidateResolution resolution,
+                                                         Location teleportLocation,
+                                                         boolean loggingEnabled) {
+        if (shouldPreferSynchronousTeleport(resolution)) {
+            return CompatibleTeleport.teleportLoadedChunk(player, teleportLocation, loggingEnabled, "rtp loaded-chunk teleport");
+        }
+        return CompatibleTeleport.teleport(player, teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN,
+                loggingEnabled, "rtp teleport");
+    }
+
+    static boolean shouldPreferSynchronousTeleport(RtpCandidateResolution resolution) {
+        return resolution != null && resolution.isChunkReadyForSynchronousTeleport();
+    }
+
+    private static void handleSuccessfulTeleport(Player player, int finalNewX, int finalNewZ, int newY,
+                                                 boolean loggingEnabled, TeleportRequestContext ctx,
+                                                 UUID playerId) {
+        if (loggingEnabled) {
+            Bukkit.getLogger().info("[PerformTeleport] Player " + player.getName() + " successfully teleported");
+        }
+        showSuccessMessage(player, finalNewX, finalNewZ, newY, loggingEnabled);
+        showTitlesAndApplyEffects(player, finalNewX, finalNewZ, newY, loggingEnabled);
+        EconomyPaymentManager.confirmSuccess(player);
+        CleanupTasks.cleanupTasks(player, loggingEnabled);
+        CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
+        if (ctx != null) {
+            TeleportRequestManager.completeRequest(ctx, loggingEnabled);
+        }
+        teleportInProgress.remove(playerId);
+    }
+
+    private static void cleanupAfterFailure(Player player, boolean loggingEnabled, UUID playerId) {
+        CleanupTasks.cleanupTasks(player, loggingEnabled);
+        CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
+        // Телепорт не состоялся — позиция /back не нужна, очищаем чтобы не копилась в памяти
+        Variables.getRuntimeState().removeInitialPosition(player);
+        TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "teleport failure");
+        teleportInProgress.remove(playerId);
+    }
+
+    /**
+     * Removes the in-progress guard for the given player.
+     * Must be called from {@code PortalAndEffectsListener.onPlayerQuit()} so that
+     * a player who disconnects mid-teleport doesn't permanently block future teleports.
+     */
+    public static void clearInProgressForPlayer(UUID playerId) {
+        teleportInProgress.remove(playerId);
+    }
+
+    /** Clears all in-progress guards. Called from {@code Main.onDisable()}. */
+    public static void clearAll() {
+        teleportInProgress.clear();
     }
 
     public static void showSuccessMessage(Player player, int finalNewX, int finalNewZ, int newY, boolean loggingEnabled) {
@@ -154,34 +227,26 @@ public class PerformTeleport {
             Bukkit.getLogger().info("[PerformTeleport] Showing titles and applying effects to " + player.getName());
         }
 
-        boolean titleEnabled = Variables.titlefile.getBoolean("teleport.titleEnabled");
-        boolean subtitleEnabled = Variables.titlefile.getBoolean("teleport.subtitleEnabled");
-
-        if (titleEnabled && (!LoadMessages.titleMessage.isEmpty() || (subtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
+        if (Variables.cachedTitleEnabled
+                && (!LoadMessages.titleMessage.isEmpty()
+                    || (Variables.cachedSubtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
             String formattedTitle = LoadMessages.titleMessage
                     .replace("%x%", String.valueOf(finalNewX))
                     .replace("%y%", String.valueOf(newY))
                     .replace("%z%", String.valueOf(finalNewZ));
-
             formattedTitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedTitle));
 
-            if (subtitleEnabled) {
+            if (Variables.cachedSubtitleEnabled) {
                 String formattedSubtitle = LoadMessages.subtitleMessage
                         .replace("%x%", String.valueOf(finalNewX))
                         .replace("%y%", String.valueOf(newY))
                         .replace("%z%", String.valueOf(finalNewZ));
-
                 formattedSubtitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedSubtitle));
-
                 player.sendTitle(formattedTitle, formattedSubtitle,
-                        (int) (Variables.titlefile.getDouble("teleport.titleFadeIn") * 20),
-                        (int) (Variables.titlefile.getDouble("teleport.titleStay") * 20),
-                        (int) (Variables.titlefile.getDouble("teleport.titleFadeOut") * 20));
+                        Variables.cachedTitleFadeIn, Variables.cachedTitleStay, Variables.cachedTitleFadeOut);
             } else {
                 player.sendTitle(formattedTitle, null,
-                        (int) (Variables.titlefile.getDouble("teleport.titleFadeIn") * 20),
-                        (int) (Variables.titlefile.getDouble("teleport.titleStay") * 20),
-                        (int) (Variables.titlefile.getDouble("teleport.titleFadeOut") * 20));
+                        Variables.cachedTitleFadeIn, Variables.cachedTitleStay, Variables.cachedTitleFadeOut);
             }
         }
 
@@ -192,56 +257,43 @@ public class PerformTeleport {
                 (ignored) -> org.sRandomRTP.DifferentMethods.Player.CommandRun.commandrun(player)
         );
 
-        if (Variables.effectfile.getBoolean("teleport.Freeze.enabled")) {
-            String version = Bukkit.getServer().getVersion();
-            int majorVersion = Integer.parseInt(version.split("\\.")[1]);
-
-            if (majorVersion >= 17) {
-                int freezeTimeInSeconds = Variables.effectfile.getInt("teleport.Freeze.time");
-                int freezeTicks = freezeTimeInSeconds * 40;
-                player.setFreezeTicks(freezeTicks);
-            } else {
+        if (Variables.cachedFreezeEnabled) {
+            if (Variables.cachedServerMajorVersion >= 17) {
+                player.setFreezeTicks(Variables.cachedFreezeTime * 40);
+            } else if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage("The freeze teleportation feature does not work on versions below 1.17.");
             }
         }
 
-        if (Variables.soundfile.getBoolean("teleport.completed-teleport-sound.enabled")) {
-            String soundName = Variables.soundfile.getString("teleport.completed-teleport-sound.sound");
-            float volume = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.volume");
-            float pitch = (float) Variables.soundfile.getDouble("teleport.completed-teleport-sound.pitch");
-
+        if (Variables.cachedTeleportSoundEnabled && !Variables.cachedTeleportSoundName.isEmpty()) {
             try {
-                org.bukkit.Sound sound = org.bukkit.Sound.valueOf(soundName.toUpperCase());
-                player.playSound(player.getLocation(), sound, volume, pitch);
+                org.bukkit.Sound sound = org.bukkit.Sound.valueOf(Variables.cachedTeleportSoundName.toUpperCase());
+                player.playSound(player.getLocation(), sound, Variables.cachedTeleportSoundVolume, Variables.cachedTeleportSoundPitch);
             } catch (IllegalArgumentException ex) {
-                Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + soundName);
+                Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + Variables.cachedTeleportSoundName);
             }
         }
 
-        if (Variables.economyfile.getBoolean("teleport.Hunger.enabled")) {
-            int newFoodLevel = player.getFoodLevel() - Variables.economyfile.getInt("teleport.Hunger.hunger");
-            player.setFoodLevel(Math.max(newFoodLevel, 0));
+        if (Variables.cachedHungerEnabled) {
+            player.setFoodLevel(Math.max(player.getFoodLevel() - Variables.cachedHungerAmount, 0));
         }
 
-        if (Variables.economyfile.getBoolean("teleport.Health.enabled")) {
-            double healthToDeduct = Variables.economyfile.getDouble("teleport.Health.health");
-            double newHealth = player.getHealth() - healthToDeduct;
-            player.setHealth(Math.max(newHealth, 0.0));
+        if (Variables.cachedHealthEnabled) {
+            player.setHealth(Math.max(player.getHealth() - Variables.cachedHealthAmount, 0.0));
         }
 
-        if (Variables.economyfile.getBoolean("teleport.Levels.enabled")) {
-            int newLevel = player.getLevel() - Variables.economyfile.getInt("teleport.Levels.level");
-            player.setLevel(Math.max(newLevel, 0));
+        if (Variables.cachedLevelsEnabled) {
+            player.setLevel(Math.max(player.getLevel() - Variables.cachedLevelsAmount, 0));
         }
 
-        if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
+        if (Variables.cachedItemsEnabled) {
             for (java.util.Map.Entry<org.bukkit.Material, Integer> entry : Variables.itemMap.entrySet()) {
                 org.sRandomRTP.DifferentMethods.Player.RemovePlayerItems.removePlayerItems(player, entry.getKey(), entry.getValue());
             }
         }
 
-        if (Variables.particlesfile.getBoolean("teleport.particles.enabled")) {
-            Variables.getFoliaLib().getImpl().runAtEntity(player, (e) -> org.sRandomRTP.Events.PlayerParticles.playerParticles(player));
+        if (Variables.cachedParticlesEnabled) {
+            Variables.getFoliaLib().getImpl().runAtEntity(player, (e) -> org.sRandomRTP.Events.PortalAndEffectsListener.startParticleEffect(player));
         }
 
         org.sRandomRTP.DifferentMethods.Player.EffectGivePlayer.effectGivePlayer(player);

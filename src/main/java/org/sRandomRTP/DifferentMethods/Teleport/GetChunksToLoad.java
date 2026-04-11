@@ -18,13 +18,12 @@ public class GetChunksToLoad {
             return Collections.emptyList();
         }
 
-        int configuredRadius = Variables.chunkfile.getInt("chunk-loading.preload_chunk_radius",
-                Variables.chunkfile.getInt("chunk-loading.preload-radius", 0));
+        int configuredRadius = Variables.chunkfile.getInt("chunk-loading.preload-radius", 0);
         boolean chunkDebugLogs = Variables.chunkfile.getBoolean("chunk-loading.debug_logs",
                 Variables.chunkfile.getBoolean("chunk-loading.debug-logs", false));
 
         if (configuredRadius > 0 && chunkDebugLogs) {
-            Bukkit.getLogger().warning("[ChunkPreloader] Ignoring preload_chunk_radius=" + configuredRadius
+            Bukkit.getLogger().warning("[ChunkPreloader] Ignoring preload-radius=" + configuredRadius
                     + " and loading only the destination chunk");
         }
 
@@ -34,6 +33,36 @@ public class GetChunksToLoad {
         }
 
         return Collections.singletonList(destinationChunk);
+    }
+
+    public static List<CompletableFuture<Chunk>> getChunksToLoad(RtpCandidateResolution resolution) {
+        if (resolution == null) {
+            return Collections.emptyList();
+        }
+
+        Location targetLocation = resolution.toLocation();
+        if (targetLocation == null) {
+            return Collections.emptyList();
+        }
+
+        int configuredRadius = Variables.chunkfile.getInt("chunk-loading.preload-radius", 0);
+        int effectiveRadius = Math.min(1, Math.max(0, configuredRadius));
+        if (effectiveRadius <= 0) {
+            return Collections.emptyList();
+        }
+
+        if (SearchPhasePolicy.shouldReduceChunkPressure()) {
+            return Collections.emptyList();
+        }
+
+        boolean chunkDebugLogs = Variables.chunkfile.getBoolean("chunk-loading.debug_logs",
+                Variables.chunkfile.getBoolean("chunk-loading.debug-logs", false));
+        if (configuredRadius > effectiveRadius && chunkDebugLogs) {
+            Bukkit.getLogger().warning("[ChunkPreloader] Limiting preload-radius=" + configuredRadius
+                    + " to supported value " + effectiveRadius);
+        }
+
+        return ChunkAcquireService.preloadChunksAround(targetLocation, effectiveRadius);
     }
 
 

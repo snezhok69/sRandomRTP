@@ -14,11 +14,13 @@ public class LoadLanguageFile {
         String language = LoadKeys.language;
         if (language == null || language.trim().isEmpty()) {
             language = DEFAULT_LANGUAGE;
+            updateConfigLanguage(DEFAULT_LANGUAGE);
         }
         File langDirectory = new File(Variables.getInstance().getDataFolder(), "lang");
         File langFile = new File(langDirectory, language + ".yml");
         if (!langFile.exists()) {
             Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cLanguage file not found: §e" + language + ".yml. §cUsing default translation.");
+            updateConfigLanguage(DEFAULT_LANGUAGE);
             langFile = new File(langDirectory, DEFAULT_LANGUAGE + ".yml");
         }
         if (!langFile.exists()) {
@@ -27,6 +29,15 @@ public class LoadLanguageFile {
             return;
         }
         langConfig = YamlConfiguration.loadConfiguration(langFile);
+    }
+
+    private void updateConfigLanguage(String language) {
+        if (Variables.getInstance() == null) {
+            return;
+        }
+        Variables.getInstance().getConfig().set("Language", language);
+        Variables.getInstance().saveConfig();
+        LoadKeys.language = language;
     }
     public YamlConfiguration getLangFile() {
         return langConfig;

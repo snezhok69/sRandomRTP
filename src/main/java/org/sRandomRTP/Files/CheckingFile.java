@@ -1,9 +1,11 @@
 package org.sRandomRTP.Files;
 
 import org.bukkit.Bukkit;
+import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,12 +29,12 @@ public class CheckingFile {
             if (missingKeys.isEmpty()) {
                 return;
             }
-            Bukkit.getConsoleSender().sendMessage("В файле " + baseFileName + " отсутствуют следующие ключи из файла " + compareToFileName + ":");
+            Bukkit.getConsoleSender().sendMessage("File " + baseFileName + " is missing the following keys from " + compareToFileName + ":");
             for (String missingKey : missingKeys) {
                 Variables.getInstance().getLogger().info("- " + missingKey);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException | RuntimeException e) {
+            LoggerUtility.loggerUtility(CheckingFile.class, e);
         }
     }
     public Set<String> extractKeys(Map<String, Object> data) {
@@ -48,4 +50,3 @@ public class CheckingFile {
         return keys;
     }
 }
-

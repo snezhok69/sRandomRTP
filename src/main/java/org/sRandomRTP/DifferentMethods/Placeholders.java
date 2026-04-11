@@ -26,7 +26,7 @@ public class Placeholders extends PlaceholderExpansion {
 
     public String onPlaceholderRequest(Player player, String params) {
         if (params.equalsIgnoreCase("rtp_count")) {
-            int count = Variables.rtpCount.getOrDefault(1, 0);
+            int count = Variables.getRuntimeState().getRtpCount().get();
             return String.valueOf(count);
         }
         return null;

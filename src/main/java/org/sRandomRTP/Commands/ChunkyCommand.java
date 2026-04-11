@@ -1,13 +1,9 @@
 package org.sRandomRTP.Commands;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
-
-import java.util.List;
 
 import static org.sRandomRTP.DifferentMethods.Variables.chunkyAPI;
 
@@ -15,18 +11,14 @@ public class ChunkyCommand {
 
     public static void chunkyCommand(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+            Variables.sendPlayersOnly(sender);
             return;
         }
 
         Player player = (Player) sender;
 
-        if (!player.hasPermission("sRandomRTP.Command.Chunky")) {
-            List<String> formattedMessage = LoadMessages.nopermissioncommand;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                sender.sendMessage(formattedLine);
-            }
+        if (!player.hasPermission(Permissions.CHUNKY)) {
+            Variables.getMessageService().send(sender, LoadMessages.nopermissioncommand);
             return;
         }
 
@@ -39,11 +31,7 @@ public class ChunkyCommand {
         try {
             radius = Double.parseDouble(args[1]);
         } catch (NumberFormatException e) {
-            List<String> formattedMessage = LoadMessages.chunkyradius_chunky;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                sender.sendMessage(formattedLine);
-            }
+            Variables.getMessageService().send(sender, LoadMessages.chunkyradius_chunky);
             return;
         }
 
@@ -57,11 +45,7 @@ public class ChunkyCommand {
                 "default"
         );
 
-        List<String> successMessage = LoadMessages.successMessage_chunky;
-        for (String line : successMessage) {
-            line = line.replace("%radius%", String.valueOf(radius));
-            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-            sender.sendMessage(formattedLine);
-        }
+        Variables.getMessageService().send(sender, LoadMessages.successMessage_chunky,
+                "%radius%", String.valueOf(radius));
     }
 }

@@ -44,6 +44,13 @@ Auto-Checking-New-Version-Players-Enabled: true
 Auto-Checking-New-Version-Console-Enabled: true
 # Частота проверки новых версий плагина (в секундах) (1800 секунд = 30 минут)
 Period-Checking-New-Version: 1800
+
+metrics:
+  rtp:
+    # Записывает диагностическую запись, если один RTP-запрос выполняется дольше указанного порога.
+    # На скорость телепорта это не влияет; настройка нужна только для поиска медленных телепортов.
+    slow-request-threshold-ms: 3000
+
 # Язык по умолчанию для плагина, по умолчанию английский.
 # Этот файл custom_messages создан для перевода на любой язык, который вы хотите
 # de - Deutsch (German) || en - English (United States) || es - Español (Spanish) || fr - Français (French) || it - Italiano (Italian) ||

@@ -1,25 +1,43 @@
 package org.sRandomRTP.Commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.sRandomRTP.Cooldowns.CooldownBypassBossBarPlayer;
 import org.sRandomRTP.DifferentMethods.*;
+import org.sRandomRTP.DifferentMethods.Teleport.CompatibleTeleport;
+import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
+import org.sRandomRTP.Services.RuntimeStateRegistry;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class CommandArgs implements CommandExecutor {
+
+    private static void sendInvalidCommand(CommandSender sender) {
+        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+    }
+
+    private static boolean requirePlayerSender(CommandSender sender) {
+        if (sender instanceof Player) {
+            return true;
+        }
+        Variables.sendPlayersOnly(sender);
+        return false;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
+            RuntimeStateRegistry state = Variables.getRuntimeState();
             if (args.length == 0) {
                 Map<String, Map<String, Object>> commands = Variables.getInstance().getDescription().getCommands();
                 if (commands.containsKey(label.toLowerCase())) {
@@ -31,115 +49,47 @@ public class CommandArgs implements CommandExecutor {
             }
             String subCommand = args[0].toLowerCase();
             switch (subCommand) {
-                // ARGUMENT RELOAD \\
                 case "reload":
                     if (args.length < 2) {
                         CommandReload.commandReload(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
-                // ARGUMENT FAR \\
                 case "far":
                     if (args.length < 2) {
                         CommandFar.commandFar(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
-                // ARGUMENT BIOME \\
                 case "biome":
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+                    if (!requirePlayerSender(sender)) {
                         return false;
                     }
                     if (args.length >= 2) {
                         String[] biomeArgs = Arrays.copyOfRange(args, 1, args.length);
                         CommandRtpBiome.commandRtpBiome(sender, biomeArgs);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp biome <biome> or /rtp biome <biome1, biome2>");
+                        sender.sendMessage(Variables.pluginName + " " + CommandRtpBiome.BIOME_USAGE);
                     }
                     break;
-                // ARGUMENT MIDDLE \\
                 case "middle":
                     if (args.length < 2) {
                         CommandMiddle.commandMiddle(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
-                // ARGUMENT PORTAL \\
+                case "tpsbar":
+                case "rambar":
+                case "msptbar":
+                case "allbars":
+                    CommandAdminBar.handle(sender, args);
+                    break;
                 case "portal":
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
-                        return false;
-                    }
-
-                    if (args.length < 2) {
-                        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal <set|del|list> [parameters]");
-                        return true;
-                    }
-
-                    String portalAction = args[1].toLowerCase();
-
-                    switch (portalAction) {
-                        case "set":
-                            if (args.length == 4) {
-                                try {
-                                    int radius = Integer.parseInt(args[3]);
-                                    CommandSetPortal.commandSetPortal(sender, radius, args[2], "circle");
-                                } catch (NumberFormatException e) {
-                                    List<String> formattedMessage = LoadMessages.portalradius;
-                                    for (String line : formattedMessage) {
-                                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                        sender.sendMessage(formattedLine);
-                                    }
-                                }
-                            } else if (args.length == 5) {
-                                try {
-                                    int radius = Integer.parseInt(args[3]);
-                                    String shape = args[4].toLowerCase();
-                                    if (!shape.equals("circle") && !shape.equals("square")) {
-                                        List<String> formattedMessage = LoadMessages.portalform;
-                                        for (String line : formattedMessage) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                            sender.sendMessage(formattedLine);
-                                        }
-                                        return true;
-                                    }
-                                    CommandSetPortal.commandSetPortal(sender, radius, args[2], shape);
-                                } catch (NumberFormatException e) {
-                                    List<String> formattedMessage = LoadMessages.portalradius;
-                                    for (String line : formattedMessage) {
-                                        String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                        sender.sendMessage(formattedLine);
-                                    }
-                                }
-                            } else {
-                                sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal set <name> <radius> [shape]");
-                                sender.sendMessage(Variables.pluginName + " §7shape: circle (by default) or square");
-                            }
-                            break;
-                        case "del":
-                            if (args.length == 3) {
-                                CommandDelPortal.commandDelPortal(sender, args[2]);
-                            } else {
-                                sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal del <name>");
-                            }
-                            break;
-                        case "list":
-                            String[] newArgs = new String[args.length - 2];
-                            if (args.length > 2) {
-                                System.arraycopy(args, 2, newArgs, 0, args.length - 2);
-                            }
-                            CommandListPortals.commandListPortals(sender, newArgs);
-                            break;
-                        default:
-                            sender.sendMessage(Variables.pluginName + " §cInvalid portal command! Use: set, del or list");
-                            break;
-                    }
+                    PortalCommandSupport.handle(sender, args);
                     break;
-                // ARGUMENT CHUNKY \\
                 case "chunky":
                     if (args.length < 2) {
                         sender.sendMessage(Variables.pluginName + " §cUsage: /rtp chunky <radius> or /rtp chunky stop");
@@ -153,362 +103,236 @@ public class CommandArgs implements CommandExecutor {
                         sender.sendMessage(Variables.pluginName + " §cWrong team! Use: /rtp chunky <radius> or /rtp chunky stop");
                     }
                     break;
-                // ARGUMENT NEAR \\
                 case "near":
-                    if (args.length < 2) {
-                        if (sender instanceof Player) {
-                            Player player = (Player) sender;
-                            World world = player.getWorld();
-                            if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                                List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                                if (bannedWorlds.contains(world.getName())) {
-                                    if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
-                                        String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
-                                        World redirectWorld = Bukkit.getWorld(redirectWorldName);
-                                        if (redirectWorld != null && !bannedWorlds.contains(redirectWorldName)) {
-                                            String originalWorldName = world.getName();
-                                            List<String> redirectMessages = LoadMessages.redirect_world;
-                                            for (String line : redirectMessages) {
-                                                String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                        ChatColor.translateAlternateColorCodes('&',
-                                                                line.replace("%from_world%", originalWorldName)
-                                                                        .replace("%to_world%", redirectWorld.getName()))
-                                                );
-                                                player.sendMessage(formattedLine);
-                                            }
-                                            if (!redirectWorld.getPlayers().isEmpty()) {
-                                                Variables.targetWorlds.put(player.getName(), redirectWorld);
-                                                player.teleportAsync(redirectWorld.getSpawnLocation());
-                                                CommandNear.commandnear(player);
-                                            } else {
-                                                List<String> formattedMessage3 = LoadMessages.rederictworldnear_error;
-                                                for (String line : formattedMessage3) {
-                                                    String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                                                    player.sendMessage(formattedLine);
-                                                }
-                                                return true;
-                                            }
-                                        } else {
-                                            List<String> formattedMessage = LoadMessages.banned_world;
-                                            for (String line : formattedMessage) {
-                                                String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                        ChatColor.translateAlternateColorCodes('&',
-                                                                line.replace("%world%", world.getName()))
-                                                );
-                                                player.sendMessage(formattedLine);
-                                            }
-                                            return true;
-                                        }
-                                    } else {
-                                        List<String> formattedMessage = LoadMessages.banned_world;
-                                        for (String line : formattedMessage) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                    ChatColor.translateAlternateColorCodes('&',
-                                                            line.replace("%world%", world.getName()))
-                                            );
-                                            player.sendMessage(formattedLine);
-                                        }
-                                        return true;
-                                    }
-                                } else {
-                                    CommandNear.commandnear(sender);
-                                }
-                            } else {
-                                CommandNear.commandnear(sender);
-                            }
-                        } else {
-                            CommandNear.commandnear(sender);
-                        }
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
-                    }
-                    break;
-                // ARGUMENT BASE \\
+                    return handleNearCommand(sender, args, state);
                 case "base":
                     if (args.length < 2) {
-                        CommandBase.commandbase(sender);
+                        CommandBase.commandBase(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
-                // ARGUMENT HELP \\
                 case "help":
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
+                    if (!requirePlayerSender(sender)) {
                         return false;
                     }
                     if (args.length < 2) {
-                        CommandHelp.commandhelp(sender);
+                        CommandHelp.commandHelp(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
-                // ARGUMENT DENY \\
                 case "deny":
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
-                        return false;
-                    }
-                    if (args.length < 2) {
-                        Player targetPlayer = (Player) sender;
-                        if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
-                            CooldownBypassBossBarPlayer.denyTeleport(sender, targetPlayer);
-                            Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
-                        } else {
-                            sender.sendMessage(Variables.pluginName + " §cThe command does not work because §a'rtp-player-messages: false'!");
-                        }
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
-                    }
-                    break;
-                // ARGUMENT ACCEPT \\
+                    return handleConfirmResponse(sender, args, state, false);
                 case "accept":
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
-                        return false;
-                    }
-                    if (args.length < 2) {
-                        Player targetPlayer = (Player) sender;
-                        if (Variables.teleportfile.getBoolean("teleport.rtp-player-messages")) {
-                            if (!Variables.playerConfirmStatus.containsKey(targetPlayer.getName())) {
-                                List<String> formattedMessage = LoadMessages.no_active_requests_accept;
-                                for (String line : formattedMessage) {
-                                    String formattedLine = TranslateRGBColors.translateRGBColors(
-                                            ChatColor.translateAlternateColorCodes('&', line)
-                                    );
-                                    sender.sendMessage(formattedLine);
-                                }
-                                return true;
-                            }
-                            if (Variables.playerConfirmStatus.getOrDefault(targetPlayer.getName(), false)) {
-                                World world = Variables.targetWorlds.getOrDefault(targetPlayer.getName(), targetPlayer.getWorld());
-                                if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                                    if (bannedWorlds.contains(world.getName())) {
-                                        Variables.playerConfirmStatus.remove(targetPlayer.getName());
-                                        Variables.commandSenderMap.remove(targetPlayer.getName());
-                                        Variables.targetWorlds.remove(targetPlayer.getName());
-                                        List<String> formattedMessage = LoadMessages.no_active_requests_accept;
-                                        for (String line : formattedMessage) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                    ChatColor.translateAlternateColorCodes('&', line)
-                                            );
-                                            sender.sendMessage(formattedLine);
-                                        }
-                                        return true;
-                                    }
-                                }
-                                CooldownBypassBossBarPlayer.startBossBarCountdown(sender, targetPlayer, world);
-                                Variables.playerConfirmStatus.put(targetPlayer.getName(), false);
-                                Variables.targetWorlds.remove(targetPlayer.getName());
-                            } else {
-                                List<String> formattedMessage = LoadMessages.no_active_requests_accept;
-                                for (String line : formattedMessage) {
-                                    String formattedLine = TranslateRGBColors.translateRGBColors(
-                                            ChatColor.translateAlternateColorCodes('&', line)
-                                    );
-                                    sender.sendMessage(formattedLine);
-                                }
-                            }
-                        } else {
-                            sender.sendMessage(Variables.pluginName + " §cThe command does not work because §a'rtp-player-messages: false'!");
-                        }
-                    } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
-                    }
-                    break;
-                // ARGUMENT CANCEL \\
+                    return handleConfirmResponse(sender, args, state, true);
                 case "cancel":
                     if (args.length < 2) {
                         CommandCancel.commandRtpCancel(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
-                // ARGUMENT PLAYER \\
                 case "player":
-                    if (args.length >= 2 && args.length <= 3) {
-                        Player targetPlayer = Bukkit.getPlayer(args[1]);
-                        if (targetPlayer == null) {
-                            sender.sendMessage(ChatColor.RED + "Player not found!");
-                            return true;
-                        }
-                        World targetWorld = null;
-                        if (args.length == 3) {
-                            targetWorld = Bukkit.getWorld(args[2]);
-                            if (targetWorld == null) {
-                                sender.sendMessage(ChatColor.RED + "World not found!");
-                                return true;
-                            }
-                        }
-                        World effectiveWorld = (targetWorld != null)
-                                ? targetWorld
-                                : Variables.targetWorlds.getOrDefault(targetPlayer.getName(), targetPlayer.getWorld());
-                        if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                            List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                            if (bannedWorlds.contains(effectiveWorld.getName())) {
-                                if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
-                                    String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
-                                    World redirectWorld = Bukkit.getWorld(redirectWorldName);
-                                    if (redirectWorld != null && !bannedWorlds.contains(redirectWorld.getName())) {
-                                        String originalWorldName = effectiveWorld.getName();
-                                        effectiveWorld = redirectWorld;
-                                        Variables.targetWorlds.put(targetPlayer.getName(), redirectWorld);
-
-                                        List<String> redirectMessages = LoadMessages.redirect_world;
-                                        for (String line : redirectMessages) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                    ChatColor.translateAlternateColorCodes('&',
-                                                            line.replace("%from_world%", originalWorldName)
-                                                                    .replace("%to_world%", redirectWorld.getName()))
-                                            );
-                                            targetPlayer.sendMessage(formattedLine);
-                                        }
-                                    } else {
-                                        List<String> senderMessage = LoadMessages.banned_world_sender;
-                                        for (String line : senderMessage) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                    ChatColor.translateAlternateColorCodes('&',
-                                                            line.replace("%player%", targetPlayer.getName())
-                                                                    .replace("%world%", effectiveWorld.getName()))
-                                            );
-                                            sender.sendMessage(formattedLine);
-                                        }
-                                        List<String> formattedMessage = LoadMessages.banned_world;
-                                        for (String line : formattedMessage) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                    ChatColor.translateAlternateColorCodes('&',
-                                                            line.replace("%world%", effectiveWorld.getName()))
-                                            );
-                                            targetPlayer.sendMessage(formattedLine);
-                                        }
-                                        Variables.playerConfirmStatus.remove(targetPlayer.getName());
-                                        Variables.commandSenderMap.remove(targetPlayer.getName());
-                                        Variables.targetWorlds.remove(targetPlayer.getName());
-                                        return true;
-                                    }
-                                } else {
-                                    List<String> senderMessage = LoadMessages.banned_world_sender;
-                                    for (String line : senderMessage) {
-                                        String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                ChatColor.translateAlternateColorCodes('&',
-                                                        line.replace("%player%", targetPlayer.getName())
-                                                                .replace("%world%", effectiveWorld.getName()))
-                                        );
-                                        sender.sendMessage(formattedLine);
-                                    }
-                                    List<String> formattedMessage = LoadMessages.banned_world;
-                                    for (String line : formattedMessage) {
-                                        String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                ChatColor.translateAlternateColorCodes('&',
-                                                        line.replace("%world%", effectiveWorld.getName()))
-                                        );
-                                        targetPlayer.sendMessage(formattedLine);
-                                    }
-                                    Variables.playerConfirmStatus.remove(targetPlayer.getName());
-                                    Variables.commandSenderMap.remove(targetPlayer.getName());
-                                    Variables.targetWorlds.remove(targetPlayer.getName());
-                                    return true;
-                                }
-                            }
-                        }
-                        Variables.targetWorlds.put(targetPlayer.getName(), effectiveWorld);
-                        Variables.senderSendMessage.put(targetPlayer.getName(), sender);
-                        CommandPlayer.commandplayer(sender, targetPlayer, effectiveWorld);
-                        return true;
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "§a[sRandomRTP] §cInvalid command usage! Use: /rtp player <nickname> [world]");
-                    }
-                    break;
-                // ARGUMENT BACK \\
+                    return handlePlayerCommand(sender, args, state);
                 case "back":
                     if (args.length < 2) {
                         CommandBack.handleBackCommand(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
-                // ARGUMENT WORLD \\
                 case "world":
-                    if (args.length == 2) {
-                        String worldName = args[1];
-                        World targetWorld = Bukkit.getWorld(worldName);
-
-                        if (targetWorld == null) {
-                            sender.sendMessage("§a[sRandomRTP] §cМир не найден!");
-                            return true;
-                        }
-                        if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-                            List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                            if (bannedWorlds.contains(targetWorld.getName())) {
-                                if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
-                                    String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
-                                    World redirectWorld = Bukkit.getWorld(redirectWorldName);
-                                    if (redirectWorld != null && !bannedWorlds.contains(redirectWorld.getName())) {
-                                        String originalWorldName = targetWorld.getName();
-                                        targetWorld = redirectWorld;
-                                        Variables.targetWorlds.put(((Player)sender).getName(), redirectWorld);
-
-                                        List<String> redirectMessages = LoadMessages.redirect_world;
-                                        for (String line : redirectMessages) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                    ChatColor.translateAlternateColorCodes('&',
-                                                            line.replace("%from_world%", originalWorldName)
-                                                                    .replace("%to_world%", redirectWorld.getName()))
-                                            );
-                                            sender.sendMessage(formattedLine);
-                                        }
-                                        CommandWorld.commandWorld(sender, redirectWorld.getName());
-                                    } else {
-                                        List<String> formattedMessage = LoadMessages.banned_world;
-                                        for (String line : formattedMessage) {
-                                            String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                    ChatColor.translateAlternateColorCodes('&',
-                                                            line.replace("%world%", targetWorld.getName()))
-                                            );
-                                            sender.sendMessage(formattedLine);
-                                        }
-                                        return true;
-                                    }
-                                } else {
-                                    List<String> formattedMessage = LoadMessages.banned_world;
-                                    for (String line : formattedMessage) {
-                                        String formattedLine = TranslateRGBColors.translateRGBColors(
-                                                ChatColor.translateAlternateColorCodes('&',
-                                                        line.replace("%world%", targetWorld.getName()))
-                                        );
-                                        sender.sendMessage(formattedLine);
-                                    }
-                                    return true;
-                                }
-                            } else {
-                                CommandWorld.commandWorld(sender, worldName);
-                            }
-                        } else {
-                            CommandWorld.commandWorld(sender, worldName);
-                        }
-                    } else {
-                        sender.sendMessage("§a[sRandomRTP] §cInvalid command! Usage: /rtp world <world>");
-                    }
-                    break;
-                // ARGUMENT VERSION \\
+                    return handleWorldCommand(sender, args, state);
                 case "version":
                     if (args.length < 2) {
                         CommandVersion.commandVersion(sender);
                     } else {
-                        sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                        sendInvalidCommand(sender);
                     }
                     break;
                 default:
-                    sender.sendMessage(Variables.pluginName + " §cInvalid command!");
+                    sendInvalidCommand(sender);
                     break;
             }
             return true;
-        } catch (Throwable e) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            String callingClassName = stackTrace[2].getClassName();
-            LoggerUtility.loggerUtility(callingClassName, e);
+        } catch (RuntimeException e) {
+            LoggerUtility.loggerUtility(CommandArgs.class, e);
         }
         return false;
+    }
+
+    private boolean handleNearCommand(CommandSender sender, String[] args, RuntimeStateRegistry state) {
+        if (args.length >= 2) {
+            sendInvalidCommand(sender);
+            return true;
+        }
+        if (!(sender instanceof Player)) {
+            CommandNear.commandNear(sender);
+            return true;
+        }
+
+        Player player = (Player) sender;
+        World world = player.getWorld();
+        BannedWorldResolver.Result nearBwResult = BannedWorldResolver.resolveForNear(player, world);
+        if (!nearBwResult.ok) {
+            return true;
+        }
+        if (nearBwResult.world.getName().equals(world.getName())) {
+            CommandNear.commandNear(sender);
+            return true;
+        }
+
+        state.getTargetWorlds().put(player.getName(), nearBwResult.world);
+        CompatibleTeleport.teleport(
+                player,
+                nearBwResult.world.getSpawnLocation(),
+                PlayerTeleportEvent.TeleportCause.PLUGIN,
+                Variables.isLoggingEnabled(),
+                "near redirect"
+        ).whenComplete((success, throwable) -> RegionTaskExecutor.runAtEntity(player, () -> {
+            if (throwable != null || !Boolean.TRUE.equals(success)) {
+                Variables.getMessageService().send(player,
+                        Collections.singletonList("&cTeleport to redirect world failed. Check LogsErrors/latest-error.log"));
+                return;
+            }
+            CommandNear.commandNear(sender);
+        }));
+        return true;
+    }
+
+    private boolean handleConfirmResponse(CommandSender sender, String[] args, RuntimeStateRegistry state, boolean accept) {
+        if (!requirePlayerSender(sender)) {
+            return false;
+        }
+        if (args.length >= 2) {
+            sendInvalidCommand(sender);
+            return true;
+        }
+
+        Player targetPlayer = (Player) sender;
+        if (!Variables.cachedRtpPlayerMessages) {
+            sender.sendMessage(Variables.pluginName + " §cThe command does not work because §a'rtp-player-messages: false'!");
+            return true;
+        }
+
+        if (!accept) {
+            CooldownBypassBossBarPlayer.denyTeleport(sender, targetPlayer);
+            state.getPlayerConfirmStatus().put(targetPlayer.getName(), false);
+            return true;
+        }
+
+        if (!state.getPlayerConfirmStatus().containsKey(targetPlayer.getName())) {
+            Variables.getMessageService().send(sender, LoadMessages.no_active_requests_accept);
+            return true;
+        }
+        if (!state.getPlayerConfirmStatus().getOrDefault(targetPlayer.getName(), false)) {
+            Variables.getMessageService().send(sender, LoadMessages.no_active_requests_accept);
+            return true;
+        }
+
+        World world = state.getTargetWorlds().getOrDefault(targetPlayer.getName(), targetPlayer.getWorld());
+        if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
+            List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+            if (bannedWorlds.contains(world.getName())) {
+                state.clearPendingPlayerRouting(targetPlayer.getName());
+                Variables.getMessageService().send(sender, LoadMessages.no_active_requests_accept);
+                return true;
+            }
+        }
+        CooldownBypassBossBarPlayer.startBossBarCountdown(sender, targetPlayer, world);
+        state.getPlayerConfirmStatus().put(targetPlayer.getName(), false);
+        state.getTargetWorlds().remove(targetPlayer.getName());
+        return true;
+    }
+
+    private boolean handlePlayerCommand(CommandSender sender, String[] args, RuntimeStateRegistry state) {
+        if (args.length < 2 || args.length > 3) {
+            Variables.sendError(sender, "Invalid command usage! Use: /rtp player <nickname> [world]");
+            return true;
+        }
+
+        Player targetPlayer = Bukkit.getPlayer(args[1]);
+        if (targetPlayer == null) {
+            Variables.sendError(sender, "Player not found!");
+            return true;
+        }
+
+        World targetWorld = null;
+        if (args.length == 3) {
+            targetWorld = Bukkit.getWorld(args[2]);
+            if (targetWorld == null) {
+                Variables.sendError(sender, "World not found!");
+                return true;
+            }
+        }
+
+        World effectiveWorld = targetWorld != null
+                ? targetWorld
+                : state.getTargetWorlds().getOrDefault(targetPlayer.getName(), targetPlayer.getWorld());
+
+        if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
+            List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+            if (bannedWorlds.contains(effectiveWorld.getName())) {
+                if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
+                    String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
+                    World redirectWorld = Bukkit.getWorld(redirectWorldName);
+                    if (redirectWorld != null && !bannedWorlds.contains(redirectWorld.getName())) {
+                        String originalWorldName = effectiveWorld.getName();
+                        effectiveWorld = redirectWorld;
+                        state.getTargetWorlds().put(targetPlayer.getName(), redirectWorld);
+                        Variables.getMessageService().send(targetPlayer, LoadMessages.redirect_world,
+                                "%from_world%", originalWorldName, "%to_world%", redirectWorld.getName());
+                    } else {
+                        Variables.getMessageService().send(sender, LoadMessages.banned_world_sender,
+                                "%player%", targetPlayer.getName(), "%world%", effectiveWorld.getName());
+                        Variables.getMessageService().send(targetPlayer, LoadMessages.banned_world, "%world%", effectiveWorld.getName());
+                        state.clearPendingPlayerRouting(targetPlayer.getName());
+                        return true;
+                    }
+                } else {
+                    Variables.getMessageService().send(sender, LoadMessages.banned_world_sender,
+                            "%player%", targetPlayer.getName(), "%world%", effectiveWorld.getName());
+                    Variables.getMessageService().send(targetPlayer, LoadMessages.banned_world, "%world%", effectiveWorld.getName());
+                    state.clearPendingPlayerRouting(targetPlayer.getName());
+                    return true;
+                }
+            }
+        }
+
+        state.getTargetWorlds().put(targetPlayer.getName(), effectiveWorld);
+        state.getSenderSendMessage().put(targetPlayer.getName(), sender);
+        CommandPlayer.commandPlayer(sender, targetPlayer, effectiveWorld);
+        return true;
+    }
+
+    private boolean handleWorldCommand(CommandSender sender, String[] args, RuntimeStateRegistry state) {
+        if (args.length != 2) {
+            Variables.sendError(sender, "Invalid command! Usage: /rtp world <world>");
+            return true;
+        }
+
+        String worldName = args[1];
+        World targetWorld = Bukkit.getWorld(worldName);
+        if (targetWorld == null) {
+            Variables.sendError(sender, "World not found!");
+            return true;
+        }
+
+        if (!(sender instanceof Player)) {
+            CommandWorld.commandWorld(sender, worldName);
+            return true;
+        }
+
+        Player worldPlayer = (Player) sender;
+        BannedWorldResolver.Result worldBwResult = BannedWorldResolver.resolve(worldPlayer, targetWorld);
+        if (!worldBwResult.ok) {
+            return true;
+        }
+        if (!worldBwResult.world.getName().equals(targetWorld.getName())) {
+            state.getTargetWorlds().put(worldPlayer.getName(), worldBwResult.world);
+        }
+        CommandWorld.commandWorld(sender, worldBwResult.world.getName());
+        return true;
     }
 }

@@ -1,6 +1,10 @@
 # Chunk loading optimization settings
+config-version: 3
+
 chunk-loading:
-  # Preload radius around teleport destinations (in chunks)
+  # Preload radius around teleport destinations (in chunks).
+  # This runs right before teleporting to help avoid void/freeze by loading
+  # the destination chunk (and optionally its neighbours depending on radius).
   # 0 = only the target chunk (1 chunk total)
   # 1 = target chunk + 4 neighbours (5 chunks total)
   # 2 = target chunk + 8 neighbours (9 chunks total)
@@ -11,12 +15,15 @@ chunk-loading:
   # - 1 for medium load (5 chunks)
   # - 2 for low load (9 chunks)
   preload-radius: 0
-  preload_chunk_radius: 0
   # Enables verbose logging for each chunk loading step (true adds debug logs).
   debug_logs: false
   # Maximum time (in seconds) to wait for chunks before teleporting anyway.
   timeout-seconds: 5
-# Controls asynchronous chunk warming around spawn points and players.
+  # Controls asynchronous chunk warming around spawn points and players.
+  # This is a background preloading system that periodically loads nearby chunks
+  # to reduce lag spikes when players move/teleport into new areas.
+  # Important: this is not a universal RTP accelerator.
+  # On busy servers it can add extra background chunk pressure, so profile before enabling it.
 chunk-warming:
   # Enables the chunk warming system.
   enabled: false

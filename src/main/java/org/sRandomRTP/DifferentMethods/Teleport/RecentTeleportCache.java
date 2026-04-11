@@ -2,12 +2,19 @@ package org.sRandomRTP.DifferentMethods.Teleport;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class RecentTeleportCache {
-    private final Map<UUID, Deque<Long>> recentLocations = new ConcurrentHashMap<>();
+    private static final class Entry {
+        final Deque<Long> order = new ArrayDeque<>();
+        final Set<Long> lookup = new HashSet<>();
+    }
+
+    private final Map<UUID, Entry> recentLocations = new ConcurrentHashMap<>();
     private final int maxEntries;
 
     RecentTeleportCache(int maxEntries) {
@@ -15,28 +22,30 @@ final class RecentTeleportCache {
     }
 
     boolean isRecentlyUsed(UUID playerId, int chunkX, int chunkZ) {
-        Deque<Long> deque = recentLocations.get(playerId);
-        if (deque == null) {
+        Entry entry = recentLocations.get(playerId);
+        if (entry == null) {
             return false;
         }
         long key = toKey(chunkX, chunkZ);
-        return deque.contains(key);
+        return entry.lookup.contains(key);
     }
 
     void remember(UUID playerId, int chunkX, int chunkZ) {
-        recentLocations.compute(playerId, (uuid, deque) -> {
-            if (deque == null) {
-                deque = new ArrayDeque<>(maxEntries);
+        recentLocations.compute(playerId, (uuid, entry) -> {
+            if (entry == null) {
+                entry = new Entry();
             }
             long key = toKey(chunkX, chunkZ);
-            if (deque.contains(key)) {
-                return deque;
+            if (entry.lookup.contains(key)) {
+                return entry;
             }
-            if (deque.size() >= maxEntries) {
-                deque.removeFirst();
+            if (entry.order.size() >= maxEntries) {
+                Long evicted = entry.order.removeFirst();
+                entry.lookup.remove(evicted);
             }
-            deque.addLast(key);
-            return deque;
+            entry.order.addLast(key);
+            entry.lookup.add(key);
+            return entry;
         });
     }
 

@@ -19,12 +19,9 @@ public class HandleFailedAttempt {
             if (loggingEnabled) {
                 Bukkit.getLogger().info("Maximum teleport attempts reached for player " + player.getName());
             }
-            for (String line : LoadMessages.locationNotFound) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                player.sendMessage(formattedLine);
-            }
+            Variables.getMessageService().send(player, LoadMessages.locationNotFound);
             TeleportRequestManager.cancelRequest(player.getUniqueId(), loggingEnabled, "max attempts reached");
-            Variables.playerSearchStatus.put(player.getName(), false);
+            Variables.getRuntimeState().setPlayerSearching(player, false);
             return;
         }
 

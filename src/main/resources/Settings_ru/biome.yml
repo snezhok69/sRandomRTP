@@ -1,0 +1,55 @@
+teleport-biome:
+  # Отдельный профиль радиуса для команды /rtp biome.
+  # Поиск идёт от центра границы мира, а не от позиции игрока.
+  radius-biome: 30000
+  # Минимальная дистанция от центра поиска.
+  # Не ставьте это значение равным radius-biome, иначе область поиска станет слишком узкой.
+  minradius-biome: 10000
+  # Метод генерации координат для кандидатов.
+  # CIRCLE = кольцо от minradius до radius.
+  # SQUARE = квадратное кольцо; этот профиль избегает проблемы "только углы" при minradius.
+  coordinate-generation-biome: CIRCLE
+  # Если true, minradius-biome рассматривается как абсолютная дистанция от центра.
+  use-absolute-coordinates-biome: true
+  # Максимальное число попыток для /rtp biome.
+  maxtries-biome: 48
+  # Режим поиска биома.
+  # TWO_PHASE = сначала быстрые случайные попытки, затем расширенный biome-probe до дорогих проверок.
+  search-mode: TWO_PHASE
+  # Сколько ранних попыток использовать быстрый случайный поиск.
+  fast-random-attempts: 12
+  # Сколько probe-проверок биома делать на одну попытку во второй фазе.
+  probe-samples-per-attempt: 8
+  # Пока поддерживаются только vanilla Bukkit biomes в аргументах /rtp biome.
+  allow-vanilla-only: true
+  # Переопределения для конкретных миров (необязательно).
+  # Формат:
+  #   world_name:
+  #     radius: 30000
+  #     minradius: 10000
+  #     maxtries: 48
+  per-world-biome:
+    world:
+      radius: 30000
+      minradius: 10000
+      maxtries: 48
+    world_nether:
+      radius: 6000
+      minradius: 1500
+      maxtries: 36
+    world_the_end:
+      radius: 10000
+      minradius: 2500
+      maxtries: 40
+
+  # Примеры использования:
+  # /rtp biome desert
+  # /rtp biome desert savanna badlands
+  # /rtp biome cherry_grove, meadow, grove
+  #
+  # Правила аргументов:
+  # - Можно указать один или несколько биомов.
+  # - Разделители: запятая и пробел.
+  # - Регистр не важен.
+  # - Пробелы и дефисы нормализуются в underscore.
+  # - На этом этапе поддерживаются только vanilla Bukkit биомы.

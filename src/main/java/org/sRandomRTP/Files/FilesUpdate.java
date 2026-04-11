@@ -1,6 +1,5 @@
 package org.sRandomRTP.Files;
 
-import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
 
 import java.io.File;
@@ -10,7 +9,6 @@ import java.util.List;
 
 public class FilesUpdate {
     public List<String> filesUpdate() {
-        try {
         List<String> updatedFiles = new ArrayList<>();
         String[] filePaths = {
                 "config.yml",
@@ -24,8 +22,10 @@ public class FilesUpdate {
                 "Settings/economy.yml",
                 "Settings/far.yml",
                 "Settings/middle.yml",
+                "Settings/biome.yml",
                 "Settings/portal.yml",
                 "Settings/chunk-loading.yml",
+                "Settings/admin-bars.yml",
                 "lang/en.yml",
                 "lang/ru.yml",
                 "lang/es.yml",
@@ -52,15 +52,9 @@ public class FilesUpdate {
                     updatedFiles.add(filePath);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Variables.getInstance().getLogger().warning("Failed to update file " + filePath + ": " + e.getMessage());
             }
         }
         return updatedFiles;
-        } catch (Throwable e) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            String callingClassName = stackTrace[2].getClassName();
-            LoggerUtility.loggerUtility(callingClassName, e);
-        }
-        return java.util.Collections.emptyList();
     }
 }

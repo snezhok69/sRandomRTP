@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.EconomyPaymentManager;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.RuntimeStateRegistry;
 
 import java.util.Locale;
 import java.util.Map;
@@ -13,7 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class TeleportRequestManager {
     private static final Map<UUID, TeleportRequestContext> ACTIVE_REQUESTS = new ConcurrentHashMap<>();
-    private static final RecentTeleportCache RECENT_CACHE = new RecentTeleportCache(20);
+    private static final RecentTeleportCache RECENT_CACHE = new RecentTeleportCache(org.sRandomRTP.Utils.PluginConstants.RECENT_TELEPORT_CACHE_CAPACITY);
+    /** Cached once at class load — server type never changes at runtime. */
+    private static final boolean IS_FOLIA = detectFoliaOnce();
 
     private TeleportRequestManager() {
     }
@@ -29,19 +32,21 @@ public final class TeleportRequestManager {
 
         if (useConfigTimeouts) {
             perAttemptTimeoutMillis = Variables.teleportfile.getLong("teleport.teleport-timeout.attempt-timeout-ms");
-            totalTimeoutMillis = Variables.teleportfile.getLong("teleport.teleport-timeout.total-timeout-ms");  // ИСПРАВЛЕНО: было attempt-timeout-ms
+            totalTimeoutMillis = Variables.teleportfile.getLong("teleport.teleport-timeout.total-timeout-ms");
         } else {
-            // При false - полное отключение таймаутов
             perAttemptTimeoutMillis = Long.MAX_VALUE;
             totalTimeoutMillis = Long.MAX_VALUE;
         }
 
-        boolean foliaEnvironment = isFoliaServer();
-        if (foliaEnvironment && useConfigTimeouts) {  // ДОБАВЛЕНО: применяем минимумы только при включенных таймаутах
-            perAttemptTimeoutMillis = Math.max(perAttemptTimeoutMillis, 15000L);
-            totalTimeoutMillis = Math.max(totalTimeoutMillis, 60000L);
+        boolean foliaEnvironment = IS_FOLIA;
+        if (foliaEnvironment && useConfigTimeouts) {
+            // Folia's async scheduler can have higher latency — enforce a minimum floor
+            perAttemptTimeoutMillis = Math.max(perAttemptTimeoutMillis,
+                    org.sRandomRTP.Utils.PluginConstants.FOLIA_MIN_PER_ATTEMPT_TIMEOUT_MS);
+            totalTimeoutMillis = Math.max(totalTimeoutMillis,
+                    org.sRandomRTP.Utils.PluginConstants.FOLIA_MIN_TOTAL_TIMEOUT_MS);
         }
-        if (useConfigTimeouts && totalTimeoutMillis < perAttemptTimeoutMillis * 3) {  // ДОБАВЛЕНО: проверяем только при включенных таймаутах
+        if (useConfigTimeouts && totalTimeoutMillis < perAttemptTimeoutMillis * 3) {
             totalTimeoutMillis = perAttemptTimeoutMillis * 3;
         }
 
@@ -57,9 +62,17 @@ public final class TeleportRequestManager {
     public static void cancelRequest(UUID playerId, boolean loggingEnabled, String reason) {
         TeleportRequestContext context = ACTIVE_REQUESTS.remove(playerId);
         if (context != null) {
-            context.cancel(reason);
-            cancelRegisteredTask(playerId, loggingEnabled);
-            EconomyPaymentManager.refund(playerId);
+            try {
+                context.cancel(reason);
+                cancelRegisteredTask(playerId, loggingEnabled);
+            } finally {
+                // Refund runs even if cancel() or cancelRegisteredTask() throw
+                EconomyPaymentManager.refund(playerId);
+            }
+            if (Variables.getTeleportMetrics() != null) {
+                Variables.getTeleportMetrics().recordCancellation();
+                Variables.getTeleportMetrics().logSlowRequestIfNeeded(resolvePlayerName(playerId), context, "cancelled:" + reason);
+            }
             if (loggingEnabled) {
                 Bukkit.getLogger().info("Cancelled teleport request for player " + playerId + " due to " + reason);
             }
@@ -73,6 +86,10 @@ public final class TeleportRequestManager {
         ACTIVE_REQUESTS.remove(context.getPlayerId(), context);
         context.markCompleted();
         cancelRegisteredTask(context.getPlayerId(), loggingEnabled);
+        if (Variables.getTeleportMetrics() != null) {
+            Variables.getTeleportMetrics().recordCompletedRequest();
+            Variables.getTeleportMetrics().logSlowRequestIfNeeded(resolvePlayerName(context.getPlayerId()), context, "completed");
+        }
     }
 
     public static boolean isLocationRecentlyUsed(UUID playerId, int chunkX, int chunkZ) {
@@ -87,7 +104,7 @@ public final class TeleportRequestManager {
         if (player == null || task == null) {
             return;
         }
-        Variables.teleportTasks.put(player.getUniqueId(), task);
+        Variables.getRuntimeState().putTeleportTask(player.getUniqueId(), task);
         TeleportRequestContext context = ACTIVE_REQUESTS.get(player.getUniqueId());
         if (context != null) {
             context.trackTask(task);
@@ -95,7 +112,8 @@ public final class TeleportRequestManager {
     }
 
     private static void cancelRegisteredTask(UUID playerId, boolean loggingEnabled) {
-        WrappedTask task = Variables.teleportTasks.remove(playerId);
+        RuntimeStateRegistry state = Variables.getRuntimeState();
+        WrappedTask task = state.removeTeleportTask(playerId);
         if (task != null && !task.isCancelled()) {
             task.cancel();
             if (loggingEnabled) {
@@ -104,13 +122,17 @@ public final class TeleportRequestManager {
         }
     }
 
-    private static boolean isFoliaServer() {
+    private static boolean detectFoliaOnce() {
         String serverName = Bukkit.getServer().getName();
         if (serverName != null && serverName.equalsIgnoreCase("Folia")) {
             return true;
         }
-
         String version = Bukkit.getServer().getVersion();
         return version != null && version.toLowerCase(Locale.ROOT).contains("folia");
+    }
+
+    private static String resolvePlayerName(UUID playerId) {
+        Player player = Bukkit.getPlayer(playerId);
+        return player != null ? player.getName() : String.valueOf(playerId);
     }
 }

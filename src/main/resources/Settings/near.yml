@@ -1,3 +1,5 @@
+config-version: 3
+
 teleport:
   # Minimum radius for selecting a random teleportation point when using the /rtp near command.
   # If the distance to the nearest player is less than this radius, a random point within this radius around the player will be selected.

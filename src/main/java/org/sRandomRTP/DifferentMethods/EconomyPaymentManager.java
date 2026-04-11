@@ -9,10 +9,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Tracks Vault withdrawals tied to teleport requests so that we can refund
- * players whenever a search is cancelled or fails before completion.
- */
 public final class EconomyPaymentManager {
 
     private static final Map<UUID, Payment> pendingPayments = new ConcurrentHashMap<>();
@@ -33,7 +29,6 @@ public final class EconomyPaymentManager {
             return false;
         }
 
-        // очистим старый платеж для этого игрока, если был
         refund(teleportedPlayer.getUniqueId());
 
         pendingPayments.put(
@@ -69,9 +64,11 @@ public final class EconomyPaymentManager {
 
         OfflinePlayer payer = Bukkit.getOfflinePlayer(payment.payerId());
         Variables.econ.depositPlayer(payer, payment.amount());
+        if (Variables.getTeleportMetrics() != null) {
+            Variables.getTeleportMetrics().recordRefund();
+        }
     }
 
-    // Заменили record на обычный вложенный класс, чтобы компилилось на старых Java
     private static final class Payment {
         private final UUID payerId;
         private final double amount;

@@ -9,15 +9,27 @@ import org.bukkit.WorldBorder;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.sRandomRTP.BlockBiomes.BiomeBlockValidator;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
+import org.sRandomRTP.DifferentMethods.Teleport.SearchPhasePolicy;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 public class GetSafeYCoordinate {
+    private static final int[][] PRIMARY_COLUMN_OFFSETS = {
+            {0, 0}, {2, 0}, {0, 2}, {-2, 0}, {0, -2},
+            {2, 2}, {-2, 2}, {2, -2}, {-2, -2}
+    };
+    private static final int[][] EXTENDED_COLUMN_OFFSETS = {
+            {4, 0}, {0, 4}, {-4, 0}, {0, -4},
+            {4, 2}, {-4, 2}, {4, -2}, {-4, -2}
+    };
+
     public static class CoordinateWithBiome {
         public final int x;
         public final int y;
@@ -68,7 +80,7 @@ public class GetSafeYCoordinate {
             Location location = new Location(world, x, world.getMinHeight(), z);
             RegionTaskExecutor.runAtLocation(location, () -> {
                 try {
-                    if (context != null && (context.isCancelled() || context.isExpired())) {
+                    if (context != null && context.isInactive()) {
                         future.complete(failure(x, z));
                         return;
                     }
@@ -76,16 +88,15 @@ public class GetSafeYCoordinate {
                     Chunk chunk;
                     try {
                         chunk = world.getChunkAt(x >> 4, z >> 4);
-                    } catch (Throwable t) {
+                    } catch (RuntimeException t) {
                         LoggerUtility.loggerUtility(GetSafeYCoordinate.class.getName(), t);
                         future.complete(failure(x, z));
                         return;
                     }
 
-                    boolean loggingEnabled = Variables.instance != null && Variables.instance.getConfig().getBoolean("logs", false);
-                    CoordinateWithBiome result = findSafeYFast(world, chunk, x, z, context, loggingEnabled);
+                    CoordinateWithBiome result = findSafeYOnLoadedChunk(world, chunk, x, z, context);
                     future.complete(result == null ? failure(x, z) : result);
-                } catch (Throwable e) {
+                } catch (RuntimeException e) {
                     LoggerUtility.loggerUtility(GetSafeYCoordinate.class.getName(), e);
                     future.complete(failure(x, z));
                 }
@@ -108,15 +119,14 @@ public class GetSafeYCoordinate {
             Location location = new Location(world, x, world.getMinHeight(), z);
             RegionTaskExecutor.runAtLocation(location, () -> {
                 try {
-                    if (context != null && (context.isCancelled() || context.isExpired())) {
+                    if (context != null && context.isInactive()) {
                         future.complete(failure(x, z));
                         return;
                     }
 
-                    boolean loggingEnabled = Variables.instance != null && Variables.instance.getConfig().getBoolean("logs", false);
-                    CoordinateWithBiome result = findSafeYFast(world, chunk, x, z, context, loggingEnabled);
+                    CoordinateWithBiome result = findSafeYOnLoadedChunk(world, chunk, x, z, context);
                     future.complete(result == null ? failure(x, z) : result);
-                } catch (Throwable e) {
+                } catch (RuntimeException e) {
                     LoggerUtility.loggerUtility(GetSafeYCoordinate.class.getName(), e);
                     future.complete(failure(x, z));
                 }
@@ -126,22 +136,61 @@ public class GetSafeYCoordinate {
         return future;
     }
 
+    public static CoordinateWithBiome findSafeYOnLoadedChunk(World world, Chunk chunk, int x, int z,
+                                                             TeleportRequestContext context) {
+        long startedAt = System.nanoTime();
+        try {
+            boolean loggingEnabled = Variables.isLoggingEnabled();
+            CoordinateWithBiome result = findSafeYFast(world, chunk, x, z, context, loggingEnabled);
+            return result == null ? failure(x, z) : result;
+        } finally {
+            if (Variables.getTeleportMetrics() != null) {
+                Variables.getTeleportMetrics().recordSafeYSearch(System.nanoTime() - startedAt);
+            }
+        }
+    }
+
     private static CoordinateWithBiome findSafeYFast(World world, Chunk chunk, int x, int z,
                                                      TeleportRequestContext context, boolean loggingEnabled) {
-        int[][] candidateColumns = buildCandidateColumns(x, z);
-        CoordinateWithBiome fallback = failure(x, z);
-
         if (world.getEnvironment() == World.Environment.NORMAL && isChunkLikelyDeepWater(world, chunk)) {
-            return fallback;
+            return failure(x, z);
         }
 
+        CoordinateWithBiome primaryPassResult = searchCandidateColumns(world, chunk, x, z, context,
+                loggingEnabled, buildCandidateColumns(x, z, false), false);
+        if (primaryPassResult != null && primaryPassResult.y != -1) {
+            return primaryPassResult;
+        }
+
+        if (!shouldUseExpandedColumnPass(context)) {
+            return primaryPassResult == null ? failure(x, z) : primaryPassResult;
+        }
+
+        if (context != null && context.isInactive()) {
+            return primaryPassResult != null ? primaryPassResult : failure(x, z);
+        }
+
+        CoordinateWithBiome extendedPassResult = searchCandidateColumns(world, chunk, x, z, context,
+                loggingEnabled, buildCandidateColumns(x, z, true), true);
+        if (extendedPassResult != null && extendedPassResult.y != -1) {
+            return extendedPassResult;
+        }
+
+        return extendedPassResult != null ? extendedPassResult
+                : (primaryPassResult != null ? primaryPassResult : failure(x, z));
+    }
+
+    private static CoordinateWithBiome searchCandidateColumns(World world, Chunk chunk, int x, int z,
+                                                              TeleportRequestContext context, boolean loggingEnabled,
+                                                              int[][] candidateColumns, boolean allowFailureLogOnLastOnly) {
+        CoordinateWithBiome fallback = failure(x, z);
         for (int i = 0; i < candidateColumns.length; i++) {
             int[] column = candidateColumns[i];
             if (column == null || column.length < 2) {
                 continue;
             }
 
-            boolean allowFailureLog = loggingEnabled && (i == candidateColumns.length - 1);
+            boolean allowFailureLog = allowFailureLogOnLastOnly && loggingEnabled && (i == candidateColumns.length - 1);
             CoordinateWithBiome result = findSafeYForColumn(world, chunk, column[0], column[1], context, loggingEnabled, allowFailureLog);
             if (result != null && result.y != -1) {
                 return result;
@@ -154,41 +203,60 @@ public class GetSafeYCoordinate {
         return fallback;
     }
 
-    private static int[][] buildCandidateColumns(int x, int z) {
+    static boolean shouldUseExpandedColumnPass(TeleportRequestContext context) {
+        if (context == null) {
+            return true;
+        }
+        if (SearchPhasePolicy.shouldReduceChunkPressure()) {
+            return false;
+        }
+        return context.getElapsedMillis() < 2500L && context.getAttemptCount() <= 4;
+    }
+
+    static int[][] buildCandidateColumns(int x, int z, boolean includeExtendedOffsets) {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
         int relX = x & 0xF;
         int relZ = z & 0xF;
 
-        int[][] offsets = {
-                {0, 0}, {2, 0}, {0, 2}, {-2, 0}, {0, -2},
-                {2, 2}, {-2, 2}, {2, -2}, {-2, -2},
-                {4, 0}, {0, 4}, {-4, 0}, {0, -4},
-                {4, 2}, {-4, 2}, {4, -2}, {-4, -2}
-        };
-
-        int[][] candidates = new int[offsets.length][2];
+        // Pre-allocate the maximum possible size to avoid ArrayList + toArray overhead.
+        // Each iteration writes directly into the array — no intermediate List, no per-element allocation.
+        int maxSize = PRIMARY_COLUMN_OFFSETS.length
+                + (includeExtendedOffsets ? EXTENDED_COLUMN_OFFSETS.length : 0);
+        int[][] result = new int[maxSize][2];
         int count = 0;
-        for (int[] offset : offsets) {
+
+        for (int[] offset : PRIMARY_COLUMN_OFFSETS) {
             int relCandidateX = relX + offset[0];
             int relCandidateZ = relZ + offset[1];
-
-            if (relCandidateX < 0 || relCandidateX > 15 || relCandidateZ < 0 || relCandidateZ > 15) {
-                continue;
+            if (relCandidateX >= 0 && relCandidateX <= 15 && relCandidateZ >= 0 && relCandidateZ <= 15) {
+                result[count][0] = (chunkX << 4) + relCandidateX;
+                result[count][1] = (chunkZ << 4) + relCandidateZ;
+                count++;
             }
+        }
 
-            candidates[count][0] = (chunkX << 4) + relCandidateX;
-            candidates[count][1] = (chunkZ << 4) + relCandidateZ;
-            count++;
+        if (includeExtendedOffsets) {
+            for (int[] offset : EXTENDED_COLUMN_OFFSETS) {
+                int relCandidateX = relX + offset[0];
+                int relCandidateZ = relZ + offset[1];
+                if (relCandidateX >= 0 && relCandidateX <= 15 && relCandidateZ >= 0 && relCandidateZ <= 15) {
+                    result[count][0] = (chunkX << 4) + relCandidateX;
+                    result[count][1] = (chunkZ << 4) + relCandidateZ;
+                    count++;
+                }
+            }
         }
 
         if (count == 0) {
             return new int[][]{{x, z}};
         }
+        // Only copy if some slots were filtered out; otherwise return the full array as-is.
+        return count == maxSize ? result : Arrays.copyOf(result, count);
+    }
 
-        int[][] trimmed = new int[count][2];
-        System.arraycopy(candidates, 0, trimmed, 0, count);
-        return trimmed;
+    private static int[][] buildCandidateColumns(int x, int z) {
+        return buildCandidateColumns(x, z, true);
     }
 
     private static CoordinateWithBiome findSafeYForColumn(World world, Chunk chunk, int x, int z,
@@ -212,8 +280,7 @@ public class GetSafeYCoordinate {
 
         int maxY = world.getMaxHeight() - 1;
         int minWorldY = world.getMinHeight();
-        int minConfigY = Math.max(minWorldY, Variables.teleportfile.getInt("teleport.minY"));
-        int minY = Math.max(minWorldY, minConfigY);
+        int minY = Math.max(minWorldY, Variables.cachedMinY);
         int relativeX = x & 0xF; // x % 16
         int relativeZ = z & 0xF; // z % 16
 
@@ -224,6 +291,15 @@ public class GetSafeYCoordinate {
             surfaceY = minY + 1;
         }
 
+        Material topSurfaceMaterial = chunk.getBlock(relativeX, clampY(surfaceY, minWorldY, maxY), relativeZ).getType();
+        if (isFluidMaterial(topSurfaceMaterial) || BiomeBlockValidator.isBlockBanned(topSurfaceMaterial)) {
+            if (allowFailureLog && loggingEnabled) {
+                Variables.instance.getLogger().fine("Skipping location at X:" + x + ", Z:" + z
+                        + " because the top surface block is unsafe: " + topSurfaceMaterial);
+            }
+            return failure(x, z);
+        }
+
         if (isLikelyOcean(chunk, relativeX, relativeZ, surfaceY, oceanFloorY)) {
             if (allowFailureLog && loggingEnabled) {
                 Variables.instance.getLogger().fine("Skipping location at X:" + x + ", Z:" + z + " due to deep water surface.");
@@ -231,10 +307,10 @@ public class GetSafeYCoordinate {
             return failure(x, z);
         }
 
-        int searchDepth = 12;
-        int startY = Math.min(surfaceY, maxY - 1);
+        int startY = Math.min(surfaceY + 1, maxY - 1);
+        int endY = Math.max(minY, Math.max(surfaceY - 2, oceanFloorY));
 
-        for (int y = startY; y >= Math.max(surfaceY - searchDepth, minY); y--) {
+        for (int y = startY; y >= endY; y--) {
             if (shouldAbort(context)) {
                 return failure(x, z);
             }
@@ -246,39 +322,6 @@ public class GetSafeYCoordinate {
                     Variables.instance.getLogger().info("Safe Y found near surface: " + y);
                 }
                 return new CoordinateWithBiome(x, y, z, biome);
-            }
-        }
-
-        int[] keyHeights = {62, 70, 80, 54, 45, 30};
-
-        for (int y : keyHeights) {
-            if (y >= minY && y < maxY && isSafePositionFast(world, chunk, x, y, z, relativeX, relativeZ)
-                    && hasGentleSlope(chunk, relativeX, relativeZ, y, minY, maxY)) {
-                Biome biome = world.getBiome(x, y, z);
-                if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found at key height: " + y);
-                }
-                return new CoordinateWithBiome(x, y, z, biome);
-            }
-        }
-
-        for (int y = maxY - 20; y > minY; y -= 10) {
-            if (shouldAbort(context)) {
-                return failure(x, z);
-            }
-
-            Block block = chunk.getBlock(relativeX, y, relativeZ);
-            if (block.getType().isSolid()) {
-                for (int detailY = Math.min(y + 5, maxY); detailY >= Math.max(y - 5, minY); detailY--) {
-                    if (isSafePositionFast(world, chunk, x, detailY, z, relativeX, relativeZ)
-                            && hasGentleSlope(chunk, relativeX, relativeZ, detailY, minY, maxY)) {
-                        Biome biome = world.getBiome(x, detailY, z);
-                        if (loggingEnabled) {
-                            Variables.instance.getLogger().info("Safe Y found with optimized search: " + detailY);
-                        }
-                        return new CoordinateWithBiome(x, detailY, z, biome);
-                    }
-                }
             }
         }
 
@@ -394,8 +437,7 @@ public class GetSafeYCoordinate {
     }
 
     private static boolean isSafePositionFast(World world, Chunk chunk, int x, int y, int z, int relativeX, int relativeZ) {
-        int configMinY = Variables.teleportfile.getInt("teleport.minY");
-        if (y < configMinY) {
+        if (y < Variables.cachedMinY) {
             return false;
         }
 
@@ -404,32 +446,49 @@ public class GetSafeYCoordinate {
         }
 
         Block block = chunk.getBlock(relativeX, y, relativeZ);
-        if (!block.getType().isAir()) {
+        if (!isSafeTeleportOccupantMaterial(block.getType())) {
             return false;
         }
 
         Block blockAbove = chunk.getBlock(relativeX, y + 1, relativeZ);
-        if (!blockAbove.getType().isAir()) {
+        if (!isSafeTeleportOccupantMaterial(blockAbove.getType())) {
             return false;
         }
 
         Block blockBelow = chunk.getBlock(relativeX, y - 1, relativeZ);
-        if (!blockBelow.getType().isSolid()) {
+        if (!isSafeTeleportSupportMaterial(blockBelow.getType())) {
             return false;
         }
 
-        if (world.getEnvironment() == World.Environment.NORMAL) {
-            Material belowType = blockBelow.getType();
-            return !isFluidMaterial(belowType);
-        } else if (world.getEnvironment() == World.Environment.NETHER) {
-            Material belowType = blockBelow.getType();
-            return !belowType.name().contains("LAVA");
+        if (world.getEnvironment() == World.Environment.NETHER
+                && blockBelow.getType().name().contains("BEDROCK")) {
+            return false;
         }
         return true;
     }
 
+    public static boolean isSafeTeleportOccupantMaterial(Material type) {
+        if (type == null) {
+            return false;
+        }
+        if (type.isAir()) {
+            return true;
+        }
+        if (isFluidMaterial(type) || BiomeBlockValidator.isBlockBanned(type) || isUnsafeOccupantMaterial(type)) {
+            return false;
+        }
+        return !type.isSolid();
+    }
+
+    public static boolean isSafeTeleportSupportMaterial(Material type) {
+        if (type == null || type.isAir() || !type.isSolid()) {
+            return false;
+        }
+        return !isFluidMaterial(type) && !BiomeBlockValidator.isBlockBanned(type) && !isUnsafeSupportMaterial(type);
+    }
+
     private static boolean shouldAbort(TeleportRequestContext context) {
-        return context != null && (context.isCancelled() || context.isExpired());
+        return context != null && context.isInactive();
     }
 
     private static boolean isLikelyOcean(Chunk chunk, int relativeX, int relativeZ, int surfaceY, int oceanFloorY) {
@@ -485,25 +544,16 @@ public class GetSafeYCoordinate {
     }
 
     private static boolean hasGentleSlope(Chunk chunk, int relativeX, int relativeZ, int candidateY, int minY, int maxY) {
-        int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] offset : offsets) {
-            int neighbourX = relativeX + offset[0];
-            int neighbourZ = relativeZ + offset[1];
+        return checkNeighbour(chunk, relativeX + 1, relativeZ,     candidateY, minY, maxY)
+            && checkNeighbour(chunk, relativeX - 1, relativeZ,     candidateY, minY, maxY)
+            && checkNeighbour(chunk, relativeX,     relativeZ + 1, candidateY, minY, maxY)
+            && checkNeighbour(chunk, relativeX,     relativeZ - 1, candidateY, minY, maxY);
+    }
 
-            if (neighbourX < 0 || neighbourX > 15 || neighbourZ < 0 || neighbourZ > 15) {
-                continue;
-            }
-
-            int neighbourSurface = findSupportingSurfaceY(chunk, neighbourX, neighbourZ, candidateY, minY, maxY);
-            if (neighbourSurface == Integer.MIN_VALUE) {
-                continue;
-            }
-
-            if (Math.abs(neighbourSurface - candidateY) > 3) {
-                return false;
-            }
-        }
-        return true;
+    private static boolean checkNeighbour(Chunk chunk, int nx, int nz, int candidateY, int minY, int maxY) {
+        if (nx < 0 || nx > 15 || nz < 0 || nz > 15) return true;
+        int surface = findSupportingSurfaceY(chunk, nx, nz, candidateY, minY, maxY);
+        return surface == Integer.MIN_VALUE || Math.abs(surface - candidateY) <= 3;
     }
 
     private static int findSupportingSurfaceY(Chunk chunk, int relativeX, int relativeZ, int referenceY, int minY, int maxY) {
@@ -524,6 +574,46 @@ public class GetSafeYCoordinate {
             }
         }
         return Integer.MIN_VALUE;
+    }
+
+    private static int clampY(int y, int minY, int maxY) {
+        return Math.min(Math.max(y, minY), maxY);
+    }
+
+    private static boolean isUnsafeOccupantMaterial(Material type) {
+        if (type == null) {
+            return false;
+        }
+        switch (type) {
+            case COBWEB:
+            case POWDER_SNOW:
+            case FIRE:
+            case SOUL_FIRE:
+            case CACTUS:
+            case CAMPFIRE:
+            case SOUL_CAMPFIRE:
+            case MAGMA_BLOCK:
+                return true;
+            default:
+                return type.name().contains("LEAVES");
+        }
+    }
+
+    private static boolean isUnsafeSupportMaterial(Material type) {
+        if (type == null) {
+            return false;
+        }
+        switch (type) {
+            case CACTUS:
+            case CAMPFIRE:
+            case SOUL_CAMPFIRE:
+            case MAGMA_BLOCK:
+            case FIRE:
+            case SOUL_FIRE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private static boolean isFluidMaterial(Material type) {

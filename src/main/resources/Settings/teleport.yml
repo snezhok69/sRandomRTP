@@ -1,3 +1,6 @@
+# Internal file version used for automatic config migrations.
+config-version: 3
+
 teleport:
   # Link to all biomes - https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html.
   # Here you can specify the biomes to which the plugin will not teleport.
@@ -52,12 +55,34 @@ teleport:
   # If true, minradius will be treated as absolute coordinates
   # For example, if minradius is 500000, coordinates will be at least 500000 blocks from center
   use-absolute-coordinates: true
-  # Settings for attempting multiple candidate locations in parallel
+  # Settings for checking multiple RTP candidates in parallel.
+  # Conservative default: enabled=false, batch=2.
+  # Enable it on servers where you want faster RTP and have enough performance headroom.
+  # Going higher can increase chunk pressure without giving a noticeable speed gain.
   parallel-search:
-    # Enables the parallel candidate search mode.
+    # If true, the plugin checks more than one candidate per RTP attempt.
+    # This usually speeds up RTP without changing safety checks.
     enabled: false
-    # Number of candidates evaluated per attempt when parallel search is enabled (recommended 2-3).
+    # How many candidates are checked per attempt.
+    # Recommended value: 2.
     candidates-per-batch: 2
+    # Global limit for active candidate jobs across all RTP requests on the server.
+    # This protects TPS when several players use RTP at the same time.
+    # Recommended value: 24.
+    max-global-inflight: 24
+  # Optional strategy: first try already-generated chunks for a short time before allowing new chunk generation.
+  # Disabled by default because normal RTP should search the whole allowed area equally, not prefer explored land.
+  # Enable this only if you specifically want faster RTP in already explored regions.
+  prefer-generated-chunks:
+    # If true, RTP first checks only chunks that already exist, and only after that allows new chunk generation.
+    # Default: false.
+    enabled: false
+    # How long the "generated chunks only" phase lasts before normal search resumes.
+    # Used only when enabled=true.
+    window-ms: 1000
+    # Maximum number of attempts that stay inside the "generated chunks only" phase.
+    # Used only when enabled=true.
+    max-attempts: 8
   # Radius to the nearest teleportation point to the region by command /rtp base. The recommended minimum number is 10, if you set the number lower the /rtp base command may stop working.
   regionradius: 10
   # If true – when someone tries to teleport you using the /rtp player command, you will see a message notifying you of the teleportation attempt.

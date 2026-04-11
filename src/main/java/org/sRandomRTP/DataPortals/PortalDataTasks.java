@@ -89,4 +89,18 @@ public class PortalDataTasks {
     public void setTriggerTask(WrappedTask triggerTask) {
         this.triggerTask = triggerTask;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PortalDataTasks)) return false;
+        PortalDataTasks that = (PortalDataTasks) o;
+        return java.util.Objects.equals(playerName, that.playerName)
+                && java.util.Objects.equals(portalName, that.portalName);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(playerName, portalName);
+    }
 }

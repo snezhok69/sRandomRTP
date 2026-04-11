@@ -1,3 +1,5 @@
+config-version: 3
+
 teleport-far:
   # Setting the radius for the normal teleportation command
   # Here you can specify the radius of random teleportation from the center of the world.

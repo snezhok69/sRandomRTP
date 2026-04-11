@@ -7,116 +7,37 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import org.sRandomRTP.Services.AdminBarService;
+import org.sRandomRTP.Services.AdminBarType;
 
-public class onTabCompletes implements TabCompleter {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class OnTabCompletes implements TabCompleter {
 
     public List<String> getAllArguments(CommandSender sender, String[] args) {
         try {
-            List<String> arguments = new ArrayList<>();
             if (args.length == 1) {
-                if (sender.hasPermission("sRandomRTP.command.Reload")) {
-                    arguments.add("reload");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Cancel")) {
-                    arguments.add("cancel");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Version")) {
-                    arguments.add("version");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Near")) {
-                    arguments.add("near");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Help")) {
-                    arguments.add("help");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Player")) {
-                    arguments.add("player");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Base")) {
-                    arguments.add("base");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Back")) {
-                    arguments.add("back");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.World")) {
-                    arguments.add("world");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Accept")) {
-                    arguments.add("accept");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Deny")) {
-                    arguments.add("deny");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Portal")) {
-                    arguments.add("portal");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Chunky")) {
-                    arguments.add("chunky");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Far")) {
-                    arguments.add("far");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.Middle")) {
-                    arguments.add("middle");
-                }
-                if (sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
-                    arguments.add("biome");
-                }
-            } else if (args.length == 2) {
-                if (args[0].equalsIgnoreCase("portal") && sender.hasPermission("sRandomRTP.Command.Portal")) {
-                    arguments.add("set");
-                    arguments.add("del");
-                    arguments.add("list");
-                } else if (args[0].equalsIgnoreCase("world") && sender.hasPermission("sRandomRTP.Command.World")) {
-                    int count = 0;
-                    boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
-                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                    for (World world : Bukkit.getWorlds()) {
-                        if (count >= 10) {
-                            break;
-                        }
-                        if (isEnabled && bannedWorlds.contains(world.getName())) {
-                            continue;
-                        }
-                        arguments.add(world.getName());
-                        count++;
-                    }
-                } else if (args[0].equalsIgnoreCase("player")) {
-                    List<String> playerNames = new ArrayList<>();
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        playerNames.add(player.getName());
-                    }
-                    return playerNames;
-                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
-                    return getBiomeArgumentSuggestions(args[1]);
-                }
-            } else if (args.length == 3) {
-                if (args[0].equalsIgnoreCase("portal")) {
-                    if (args[1].equalsIgnoreCase("del") || args[1].equalsIgnoreCase("list")) {
-                        String partialPortalName = args[2].toLowerCase();
-                        Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
-                        if (playerPortals != null) {
-                            playerPortals.keySet().stream()
-                                    .filter(portalName -> portalName.toLowerCase().startsWith(partialPortalName))
-                                    .limit(8)
-                                    .forEach(arguments::add);
-                        }
-                    }
-                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
-                    return getSimpleBiomeSuggestions(args[2]);
-                }
+                return getRootArguments(sender);
             }
-            return arguments;
-        } catch (Throwable e) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            String callingClassName = stackTrace[2].getClassName();
-            LoggerUtility.loggerUtility(callingClassName, e);
+            if (args.length == 2) {
+                return getSecondArgumentSuggestions(sender, args);
+            }
+            if ("biome".equalsIgnoreCase(args[0]) && args.length >= 3) {
+                return getBiomeArgumentSuggestions(args[args.length - 1]);
+            }
+            if (args.length == 3) {
+                return getThirdArgumentSuggestions(sender, args);
+            }
+            if (args.length == 5 && isPortalSetShapeRequest(args)) {
+                return PortalCommandSupport.shapeSuggestions();
+            }
+            return java.util.Collections.emptyList();
+        } catch (RuntimeException e) {
+            LoggerUtility.loggerUtility(OnTabCompletes.class, e);
         }
         return java.util.Collections.emptyList();
     }
@@ -125,100 +46,162 @@ public class onTabCompletes implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         try {
             List<String> completions = new ArrayList<>();
-            if (args.length == 1) {
-                String input = args[0].toLowerCase();
-                for (String argument : getAllArguments(sender, args)) {
-                    if (argument.toLowerCase().startsWith(input)) {
-                        completions.add(argument);
-                    }
-                }
-            } else if (args.length == 2) {
-                String input = args[1].toLowerCase();
-                if (args[0].equalsIgnoreCase("player")) {
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        if (player.getName().toLowerCase().startsWith(input)) {
-                            completions.add(player.getName());
-                        }
-                    }
-                } else if (args[0].equalsIgnoreCase("portal") && sender.hasPermission("sRandomRTP.Command.Portal")) {
-                    if ("set".startsWith(input)) completions.add("set");
-                    if ("del".startsWith(input)) completions.add("del");
-                    if ("list".startsWith(input)) completions.add("list");
-                } else if (args[0].equalsIgnoreCase("chunky")) {
-                    if ("stop".startsWith(input)) completions.add("stop");
-                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
-                    completions.addAll(getBiomeArgumentSuggestions(args[1]));
-                } else if (args[0].equalsIgnoreCase("world")) {
-                    boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
-                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                    for (World world : Bukkit.getWorlds()) {
-                        if (isEnabled && bannedWorlds.contains(world.getName())) {
-                            continue;
-                        }
-                        if (world.getName().toLowerCase().startsWith(input)) {
-                            completions.add(world.getName());
-                        }
-                    }
-                } else if (args[0].equalsIgnoreCase("reload") ||
-                        args[0].equalsIgnoreCase("cancel") ||
-                        args[0].equalsIgnoreCase("near") ||
-                        args[0].equalsIgnoreCase("help") ||
-                        args[0].equalsIgnoreCase("base") ||
-                        args[0].equalsIgnoreCase("back") ||
-                        args[0].equalsIgnoreCase("accept") ||
-                        args[0].equalsIgnoreCase("deny") ||
-                        args[0].equalsIgnoreCase("chunky") ||
-                        args[0].equalsIgnoreCase("far") ||
-                        args[0].equalsIgnoreCase("middle") ||
-                        args[0].equalsIgnoreCase("version")) {
-                    for (String argument : getAllArguments(sender, args)) {
-                        if (argument.toLowerCase().startsWith(input)) {
-                            completions.add(argument);
-                        }
-                    }
-                }
-            } else if (args.length == 3) {
-                String input = args[2].toLowerCase();
-                if (args[0].equalsIgnoreCase("portal")) {
-                    if (args[1].equalsIgnoreCase("del") || args[1].equalsIgnoreCase("list")) {
-                        Map<String, PortalData> playerPortals = Variables.playerPortals.get(sender.getName());
-                        if (playerPortals != null) {
-                            playerPortals.keySet().stream()
-                                    .filter(portalName -> portalName.toLowerCase().startsWith(input))
-                                    .limit(8)
-                                    .forEach(completions::add);
-                        }
-                    }
-                } else if (args[0].equalsIgnoreCase("player")) {
-                    boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
-                    List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-                    for (World world : Bukkit.getWorlds()) {
-                        if (isEnabled && bannedWorlds.contains(world.getName())) {
-                            continue;
-                        }
-                        if (world.getName().toLowerCase().startsWith(input)) {
-                            completions.add(world.getName());
-                        }
-                    }
-                } else if (args[0].equalsIgnoreCase("chunky") && !args[1].equalsIgnoreCase("stop")) {
-                    if ("stop".startsWith(input)) completions.add("stop");
-                } else if (args[0].equalsIgnoreCase("biome") && sender.hasPermission("sRandomRTP.Command.RtpBiome")) {
-                    completions.addAll(getSimpleBiomeSuggestions(args[2]));
-                }
-            } else if (args.length == 5) {
-                String input = args[4].toLowerCase();
-                if (args[0].equalsIgnoreCase("portal") && args[1].equalsIgnoreCase("set")) {
-                    if ("circle".startsWith(input)) completions.add("circle");
-                    if ("square".startsWith(input)) completions.add("square");
+            String input = args.length == 0 ? "" : args[args.length - 1].toLowerCase();
+            for (String argument : getAllArguments(sender, args)) {
+                if (argument != null && argument.toLowerCase().startsWith(input)) {
+                    completions.add(argument);
                 }
             }
             return completions;
-        } catch (Throwable e) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            String callingClassName = stackTrace[2].getClassName();
-            LoggerUtility.loggerUtility(callingClassName, e);
+        } catch (RuntimeException e) {
+            LoggerUtility.loggerUtility(OnTabCompletes.class, e);
         }
         return java.util.Collections.emptyList();
+    }
+
+    private List<String> getRootArguments(CommandSender sender) {
+        List<String> arguments = new ArrayList<String>();
+        if (sender.hasPermission(Permissions.RELOAD)) {
+            arguments.add("reload");
+        }
+        if (sender.hasPermission(Permissions.CANCEL)) {
+            arguments.add("cancel");
+        }
+        if (sender.hasPermission(Permissions.VERSION)) {
+            arguments.add("version");
+        }
+        if (sender.hasPermission(Permissions.NEAR)) {
+            arguments.add("near");
+        }
+        if (sender.hasPermission(Permissions.HELP)) {
+            arguments.add("help");
+        }
+        if (sender.hasPermission(Permissions.PLAYER)) {
+            arguments.add("player");
+        }
+        if (sender.hasPermission(Permissions.BASE)) {
+            arguments.add("base");
+        }
+        if (sender.hasPermission(Permissions.BACK)) {
+            arguments.add("back");
+        }
+        if (sender.hasPermission(Permissions.WORLD)) {
+            arguments.add("world");
+        }
+        if (sender.hasPermission(Permissions.ACCEPT)) {
+            arguments.add("accept");
+        }
+        if (sender.hasPermission(Permissions.DENY)) {
+            arguments.add("deny");
+        }
+        if (sender.hasPermission(Permissions.PORTAL)) {
+            arguments.add("portal");
+        }
+        if (sender.hasPermission(Permissions.CHUNKY)) {
+            arguments.add("chunky");
+        }
+        if (sender.hasPermission(Permissions.FAR)) {
+            arguments.add("far");
+        }
+        if (sender.hasPermission(Permissions.MIDDLE)) {
+            arguments.add("middle");
+        }
+        if (sender.hasPermission(Permissions.RTP_BIOME)) {
+            arguments.add("biome");
+        }
+        addAdminBarArguments(sender, arguments);
+        return arguments;
+    }
+
+    private List<String> getSecondArgumentSuggestions(CommandSender sender, String[] args) {
+        String subCommand = args[0].toLowerCase();
+        if ("portal".equals(subCommand) && sender.hasPermission(Permissions.PORTAL)) {
+            return PortalCommandSupport.actionSuggestions();
+        }
+        if ("world".equals(subCommand) && sender.hasPermission(Permissions.WORLD)) {
+            return getWorldSuggestions(10);
+        }
+        if ("player".equals(subCommand)) {
+            return getOnlinePlayerNames();
+        }
+        if ("biome".equals(subCommand) && sender.hasPermission(Permissions.RTP_BIOME)) {
+            return getBiomeArgumentSuggestions(args[1]);
+        }
+        if ("chunky".equals(subCommand)) {
+            return Arrays.asList("stop");
+        }
+        if ("allbars".equals(subCommand) && Variables.getAdminBarService().shouldShowAllInTab(sender)) {
+            return Arrays.asList("on", "off");
+        }
+        AdminBarType adminBarType = AdminBarType.fromSubCommand(subCommand);
+        if (adminBarType != null && Variables.getAdminBarService().shouldShowInTab(sender, adminBarType)) {
+            return Arrays.asList("on", "off");
+        }
+        return java.util.Collections.emptyList();
+    }
+
+    private List<String> getThirdArgumentSuggestions(CommandSender sender, String[] args) {
+        String subCommand = args[0].toLowerCase();
+        if ("portal".equals(subCommand)
+                && ("del".equalsIgnoreCase(args[1]) || "list".equalsIgnoreCase(args[1]))) {
+            return PortalCommandSupport.portalNameSuggestions(sender, args[2], 8);
+        }
+        if ("player".equals(subCommand)) {
+            return getWorldSuggestions(10);
+        }
+        if ("chunky".equals(subCommand) && !"stop".equalsIgnoreCase(args[1])) {
+            return Arrays.asList("stop");
+        }
+        if ("biome".equals(subCommand) && sender.hasPermission(Permissions.RTP_BIOME)) {
+            return getSimpleBiomeSuggestions(args[2]);
+        }
+        return java.util.Collections.emptyList();
+    }
+
+    private void addAdminBarArguments(CommandSender sender, List<String> arguments) {
+        AdminBarService adminBarService = Variables.getAdminBarService();
+        if (adminBarService.shouldShowInTab(sender, AdminBarType.TPS)) {
+            arguments.add("tpsbar");
+        }
+        if (adminBarService.shouldShowInTab(sender, AdminBarType.RAM)) {
+            arguments.add("rambar");
+        }
+        if (adminBarService.shouldShowInTab(sender, AdminBarType.MSPT)) {
+            arguments.add("msptbar");
+        }
+        if (adminBarService.shouldShowAllInTab(sender)) {
+            arguments.add("allbars");
+        }
+    }
+
+    private List<String> getOnlinePlayerNames() {
+        List<String> playerNames = new ArrayList<String>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            playerNames.add(player.getName());
+        }
+        return playerNames;
+    }
+
+    private List<String> getWorldSuggestions(int limit) {
+        List<String> worlds = new ArrayList<String>();
+        boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
+        List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+        for (World world : Bukkit.getWorlds()) {
+            if (isEnabled && bannedWorlds.contains(world.getName())) {
+                continue;
+            }
+            worlds.add(world.getName());
+            if (limit > 0 && worlds.size() >= limit) {
+                break;
+            }
+        }
+        return worlds;
+    }
+
+    private boolean isPortalSetShapeRequest(String[] args) {
+        return args.length == 5
+                && "portal".equalsIgnoreCase(args[0])
+                && "set".equalsIgnoreCase(args[1]);
     }
 
     private List<String> getBiomeArgumentSuggestions(String rawInput) {

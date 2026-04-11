@@ -11,11 +11,12 @@ public class CheckingInstalledPlaceHolderAPI {
         try {
             if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
                 new Placeholders().register();
+                return true;
             } else {
                 Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cPlaceHolderAPI is not installed, some features will be disabled!");
             }
             return false;
-        } catch (Throwable e) {
+        } catch (RuntimeException e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);

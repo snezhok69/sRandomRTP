@@ -4,16 +4,16 @@ public class PortalData {
     private String playerName;
     private String worldName;
     private String portalName;
-    private String x;
-    private String y;
-    private String z;
+    private double x;
+    private double y;
+    private double z;
     private String shape;
 
-    public PortalData(String playerName, String worldName, String portalName, String x, String y, String z) {
+    public PortalData(String playerName, String worldName, String portalName, double x, double y, double z) {
         this(playerName, worldName, portalName, x, y, z, "circle");
     }
 
-    public PortalData(String playerName, String worldName, String portalName, String x, String y, String z, String shape) {
+    public PortalData(String playerName, String worldName, String portalName, double x, double y, double z, String shape) {
         this.playerName = playerName;
         this.worldName = worldName;
         this.portalName = portalName;
@@ -35,15 +35,15 @@ public class PortalData {
         return portalName;
     }
 
-    public String getX() {
+    public double getX() {
         return x;
     }
 
-    public String getY() {
+    public double getY() {
         return y;
     }
 
-    public String getZ() {
+    public double getZ() {
         return z;
     }
 
@@ -53,5 +53,19 @@ public class PortalData {
 
     public void setShape(String shape) {
         this.shape = shape;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PortalData)) return false;
+        PortalData that = (PortalData) o;
+        return java.util.Objects.equals(playerName, that.playerName)
+                && java.util.Objects.equals(portalName, that.portalName);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(playerName, portalName);
     }
 }

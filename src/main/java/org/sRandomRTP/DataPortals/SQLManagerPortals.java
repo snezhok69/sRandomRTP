@@ -1,141 +1,103 @@
 package org.sRandomRTP.DataPortals;
 
-import org.bukkit.Bukkit;
 import org.sRandomRTP.DifferentMethods.Variables;
-import java.io.File;
+import org.sRandomRTP.Services.PortalRepository;
+
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.CompletableFuture;
 
 public class SQLManagerPortals {
 
-    public static CompletableFuture<Void> openConnectionSQL() {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                File pluginDir = Variables.getInstance().getDataFolder();
-                if (!pluginDir.exists()) {
-                    pluginDir.mkdirs();
-                }
-
-                String dbPath = pluginDir.getPath() + File.separator + "Portals.db";
-
-                boolean isNewDatabase = !new File(dbPath).exists();
-
-                Variables.connectionSQLPortal = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-
-                if (isNewDatabase) {
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §aСоздание новой базы данных...");
-                    createTableSQL().get();
-                }
-            } catch (Exception e) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cОшибка при создании/подключении к базе данных: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
+    /**
+     * Called with existing [portal_names, portal_data] (null if no row yet).
+     * Return updated [portal_names, portal_data], or null to delete the row entirely.
+     */
+    @FunctionalInterface
+    interface PortalDataTransformer {
+        String[] transform(String[] existing) throws SQLException;
     }
 
-    public static CompletableFuture<Void> createTableSQL() {
-        return CompletableFuture.runAsync(() -> {
-            if (Variables.connectionSQLPortal == null) {
-                try {
-                    openConnectionSQL().get();
-                } catch (Exception e) {
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cНе удалось подключиться к базе данных!");
-                    return;
-                }
-            }
-
-            try (Statement statement = Variables.connectionSQLPortal.createStatement()) {
-                statement.executeUpdate("CREATE TABLE IF NOT EXISTS PlayerPortals ("
-                        + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "player_name TEXT NOT NULL,"
-                        + "portal_names TEXT NOT NULL,"
-                        + "portal_data TEXT NOT NULL,"
-                        + "UNIQUE(player_name)"
-                        + ")");
-
-                statement.executeUpdate("CREATE TABLE IF NOT EXISTS PlayerPortalsBlocks ("
-                        + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "player_Name TEXT NOT NULL,"
-                        + "portal_Name TEXT NOT NULL,"
-                        + "portal_Radius TEXT NOT NULL,"
-                        + "block_Data TEXT,"
-                        + "shape TEXT DEFAULT 'circle'"
-                        + ")");
-
-                statement.executeUpdate("CREATE TABLE IF NOT EXISTS PlayerPortalsTasks ("
-                        + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                        + "player_Name TEXT NOT NULL,"
-                        + "portal_Name TEXT NOT NULL,"
-                        + "task_Type TEXT NOT NULL,"
-                        + "delay BIGINT NOT NULL,"
-                        + "period BIGINT NOT NULL,"
-                        + "center_X DOUBLE NOT NULL,"
-                        + "center_Y DOUBLE NOT NULL,"
-                        + "center_Z DOUBLE NOT NULL,"
-                        + "radius INTEGER NOT NULL,"
-                        + "taskIds TEXT NOT NULL,"
-                        + "world TEXT NOT NULL,"
-                        + "shape TEXT DEFAULT 'circle'"
-                        + ")");
-
-                DatabaseMetaData metaData = Variables.connectionSQLPortal.getMetaData();
-
-                ResultSet columnsBlocks = metaData.getColumns(null, null, "PlayerPortalsBlocks", "shape");
-                if (!columnsBlocks.next()) {
-                    statement.executeUpdate("ALTER TABLE PlayerPortalsBlocks ADD COLUMN shape TEXT DEFAULT 'circle'");
-                }
-                columnsBlocks.close();
-
-                ResultSet columnsTasks = metaData.getColumns(null, null, "PlayerPortalsTasks", "shape");
-                if (!columnsTasks.next()) {
-                    statement.executeUpdate("ALTER TABLE PlayerPortalsTasks ADD COLUMN shape TEXT DEFAULT 'circle'");
-                }
-                columnsTasks.close();
-
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §aСтруктура базы данных успешно создана/обновлена");
-
-            } catch (SQLException e) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cОшибка при создании таблиц: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public static Connection getConnectionSQL() {
+    /**
+     * Generic SELECT → transform → INSERT/UPDATE/DELETE for the PlayerPortals table.
+     * Eliminates the duplicated SELECT * + if/else pattern from Save, Rename, Remove.
+     */
+    static void upsertPortalData(Connection conn, String playerName,
+                                 PortalDataTransformer transformer) throws SQLException {
+        conn.setAutoCommit(false);
         try {
-            if (Variables.connectionSQLPortal == null || Variables.connectionSQLPortal.isClosed()) {
-                File pluginDir = Variables.getInstance().getDataFolder();
-                if (!pluginDir.exists()) {
-                    pluginDir.mkdirs();
+            try (PreparedStatement sel = conn.prepareStatement(
+                    "SELECT portal_names, portal_data FROM PlayerPortals WHERE player_name COLLATE BINARY = ?")) {
+                sel.setString(1, playerName);
+                try (ResultSet rs = sel.executeQuery()) {
+                    String[] existing = rs.next()
+                            ? new String[]{rs.getString("portal_names"), rs.getString("portal_data")}
+                            : null;
+                    String[] updated = transformer.transform(existing);
+                    if (updated == null) {
+                        try (PreparedStatement del = conn.prepareStatement(
+                                "DELETE FROM PlayerPortals WHERE player_name COLLATE BINARY = ?")) {
+                            del.setString(1, playerName);
+                            del.executeUpdate();
+                        }
+                    } else if (existing == null) {
+                        try (PreparedStatement ins = conn.prepareStatement(
+                                "INSERT INTO PlayerPortals (player_name, portal_names, portal_data) VALUES (?, ?, ?)")) {
+                            ins.setString(1, playerName);
+                            ins.setString(2, updated[0]);
+                            ins.setString(3, updated[1]);
+                            ins.executeUpdate();
+                        }
+                    } else {
+                        try (PreparedStatement upd = conn.prepareStatement(
+                                "UPDATE PlayerPortals SET portal_names = ?, portal_data = ? WHERE player_name COLLATE BINARY = ?")) {
+                            upd.setString(1, updated[0]);
+                            upd.setString(2, updated[1]);
+                            upd.setString(3, playerName);
+                            upd.executeUpdate();
+                        }
+                    }
                 }
-
-                Class.forName("org.sqlite.JDBC");
-                Variables.connectionSQLPortal = DriverManager.getConnection("jdbc:sqlite:" +
-                        pluginDir.getPath() + File.separator + "Portals.db");
             }
-            return Variables.connectionSQLPortal;
-        } catch (ClassNotFoundException | SQLException e) {
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cОшибка при подключении к базе данных: " + e.getMessage());
-            e.printStackTrace();
-            return null;
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(true);
         }
     }
 
-    public static CompletableFuture<Void> closeConnectionMYSQL() {
-        return CompletableFuture.runAsync(() -> {
+    /**
+     * Runs an async DB operation that returns CompletableFuture&lt;Void&gt;.
+     * Handles null-repo guard and SQLException logging so callers don't repeat the boilerplate.
+     */
+    static CompletableFuture<Void> runDbAsync(String opName, PortalRepository.SqlConsumer action) {
+        PortalRepository repo = Variables.getPortalRepository();
+        if (repo == null) return CompletableFuture.completedFuture(null);
+        return repo.runAsync(conn -> {
             try {
-                if (Variables.connectionSQLPortal != null && !Variables.connectionSQLPortal.isClosed()) {
-                    Variables.connectionSQLPortal.close();
-                    Variables.connectionSQLPortal = null;
-                }
+                action.accept(conn);
             } catch (SQLException e) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cОшибка при закрытии соединения с базой данных: " + e.getMessage());
-                e.printStackTrace();
+                Variables.getInstance().getLogger().severe("Failed to " + opName + ": " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Fire-and-forget variant: runs an async DB operation without returning a future.
+     * Handles null-repo guard and SQLException logging.
+     */
+    static void fireAndForgetAsync(String opName, PortalRepository.SqlConsumer action) {
+        PortalRepository repo = Variables.getPortalRepository();
+        if (repo == null) return;
+        repo.runAsync(conn -> {
+            try {
+                action.accept(conn);
+            } catch (SQLException e) {
+                Variables.getInstance().getLogger().severe("Failed to " + opName + ": " + e.getMessage());
             }
         });
     }

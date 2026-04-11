@@ -1,45 +1,41 @@
 package org.sRandomRTP.Commands;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.sRandomRTP.DifferentMethods.Teleport.CompatibleTeleport;
+import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
-
-import java.util.List;
+import org.sRandomRTP.Services.RuntimeStateRegistry;
 
 public class CommandBack {
     public static void handleBackCommand(CommandSender sender) {
-        Player player = (Player) sender;
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(Variables.pluginName + " §cOnly players can execute this command!");
-            return;
-        }
-        if (!player.hasPermission("sRandomRTP.Command.Back")) {
-            List<String> formattedMessage = LoadMessages.nopermissioncommand;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                sender.sendMessage(formattedLine);
-            }
-            return;
-        }
-        if (Variables.initialPositions.containsKey(player)) {
-            Location initialLocation = Variables.initialPositions.get(player);
-            player.teleportAsync(initialLocation);
-            List<String> formattedMessage = LoadMessages.teleportBackSuccess;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                sender.sendMessage(formattedLine);
-                Variables.initialPositions.remove(player);
-            }
+        java.util.Optional<Player> playerOpt = CommandUtils.requirePlayer(sender);
+        if (!playerOpt.isPresent()) return;
+        if (!CommandUtils.checkPermission(sender, Permissions.BACK)) return;
+        Player player = playerOpt.get();
+        RuntimeStateRegistry state = Variables.getRuntimeState();
+        Location initialLocation = state.getInitialPosition(player);
+        if (initialLocation != null) {
+            CompatibleTeleport.teleport(
+                    player,
+                    initialLocation,
+                    PlayerTeleportEvent.TeleportCause.PLUGIN,
+                    Variables.isLoggingEnabled(),
+                    "back command"
+            ).whenComplete((success, throwable) -> RegionTaskExecutor.runAtEntity(player, () -> {
+                if (throwable != null || !Boolean.TRUE.equals(success)) {
+                    Variables.getMessageService().send(sender,
+                            java.util.Collections.singletonList("&cTeleport failed. Check LogsErrors/latest-error.log"));
+                    return;
+                }
+                Variables.getMessageService().send(sender, LoadMessages.teleportBackSuccess);
+                state.removeInitialPosition(player);
+            }));
         } else {
-            List<String> formattedMessage = LoadMessages.teleportBackFailure;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                sender.sendMessage(formattedLine);
-            }
+            Variables.getMessageService().send(sender, LoadMessages.teleportBackFailure);
         }
     }
 }
