@@ -21,7 +21,7 @@ public class GetProtectedRegionName {
                 }
             }
             return null;
-        } catch (Throwable e) {
+        } catch (RuntimeException e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);

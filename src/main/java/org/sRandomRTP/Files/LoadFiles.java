@@ -7,6 +7,10 @@ import java.io.File;
 
 public class LoadFiles {
     public static void loadFiles() {
+        if (Variables.getPluginContext() != null) {
+            Variables.getPluginContext().getConfigRegistry().reload();
+            return;
+        }
         Variables.effectfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/effects.yml"));
         Variables.particlesfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/particles.yml"));
         Variables.teleportfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/teleport.yml"));
@@ -17,7 +21,9 @@ public class LoadFiles {
         Variables.soundfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/sound.yml"));
         Variables.farfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/far.yml"));
         Variables.middlefile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/middle.yml"));
+        Variables.biomefile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/biome.yml"));
         Variables.portalfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/portal.yml"));
         Variables.chunkfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/chunk-loading.yml"));
+        Variables.adminbarsfile = YamlConfiguration.loadConfiguration(new File(Variables.getInstance().getDataFolder(), "Settings/admin-bars.yml"));
     }
 }

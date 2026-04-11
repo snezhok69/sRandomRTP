@@ -1,38 +1,62 @@
-# sRandomRTP 3.0 – Portal Horizons
+# sRandomRTP 3.0 – Portals, new ranges, and Folia support
 
-## Teleport system overhaul
-- Rebuilt the random teleport engine with request tracking, chunk preloading, and golden-angle coordinate generation to deliver faster, safer locations even under Folia using the new `TeleportRequestManager`, `TeleportWithChunkLoading`, and `GenerateCoordinates` pipeline.
-- Added a configurable chunk warming scheduler (`chunk-warming` and `chunk-loading.yml`) so servers can proactively keep spawn/player surroundings loaded and avoid lag spikes when teleporting.
-- Expanded region safety features with per-player search cancellation, region-radius checks for `/rtp base`, and smarter biome/block filtering (including automatic cave biome blocking and async banned list loading with logging hooks).
+New commands!​
+1. Added commands:
 
-## New commands and integrations
-- Introduced `/rtp far` and `/rtp middle` with dedicated radius presets (`far.yml`, `middle.yml`) and bossbar-controlled cooldowns for long-range exploration.
-- Added `/rtp portal <set|del|list>` for creating persistent teleport portals backed by SQLite storage, configurable shapes (circle/square), protected frames, particle effects, and optional per-portal RTP triggers.
-- Integrated Chunky via `/rtp chunky <radius|stop>` so admins can pre-generate or cancel chunk fills directly through the plugin when the Chunky API is available.
-- Extended `/rtp player` with optional world targeting, request expiration feedback, and richer accept/deny handling controlled by `teleport.rtp-player-messages`.
-- Re-introduced `/rtp biome <biome>` (or `<biome1, biome2>`) with its own cooldown, boss bar countdown, and Folia-safe search pipeline so players can target up to two specific biomes without sacrificing the new safety checks.
+/rtp far  
+/rtp middle  
+/rtp portal set <name> <radius> [circle|square]  
+/rtp portal del <name>  
+/rtp portal list [-p:<page>]  
+/rtp chunky <radius>  
+/rtp chunky stop  
+/rtp player <player> [world]  
+/rtp biome <biome|biome1,biome2>  
 
-## Configuration and localization updates
-- Ship new configuration files (`portal.yml`, `far.yml`, `middle.yml`, `chunk-loading.yml`) alongside additional keys in `teleport.yml` such as `regionradius`, `rtp-player-messages`, Nether/End achievement gates, and redirect messaging for banned worlds.
-- Language packs were renamed to the new `lang/*.yml` format, refreshed with dozens of portal/chunky strings, and now auto-reload together with Settings edits while the server is running.
-- Added console filtering toggles (`Disable-Moved-Too-Quickly-Messages`) and logging improvements so administrators can opt into detailed diagnostics without spam.
-- Teleport timeout settings (`teleport-timeout`) have been moved from `config.yml` to `teleport.yml` — all timeout options (enable, duration) are unified and managed only there.
-- chunk-warming is now fully configured via `chunk-loading.yml` (removed from `config.yml`); all in-code references updated for consistency.
-- Helper files like `README.md` and other non-yml docs are no longer auto-copied from resources, fixing plugin startup errors. These files remain as documentation inside the JAR or repository only.
-- Per-world radius support for `far` and `middle` RTP commands is now fully applied, matching behavior with the standard RTP logic.
+1.1. /rtp far – teleports players to a long-range zone using radii from far.yml. Permission: sRandomRTP.Command.Far  
+1.2. /rtp middle – teleports to a mid-range zone using radii from middle.yml. Permission: sRandomRTP.Command.Middle  
+1.3. /rtp portal <set|del|list> – builds and manages protected portals (circle/square) with particles, configurable materials, per-portal cooldowns, and SQLite persistence. Permission: sRandomRTP.Command.Portal  
+1.4. /rtp chunky <radius|stop> – starts or stops Chunky-based pregeneration directly from the plugin. Permission: sRandomRTP.Command.Chunky  
+1.5. /rtp player <player> [world] – can send a target to another world, honors banned-world redirects, and notifies sender/target. Permission: sRandomRTP.Command.Player  
+1.6. /rtp biome <biome1,biome2> – accepts biome lists and uses dedicated banned block/biome rules for this command. Permission: sRandomRTP.Command.Biome  
+1.7. /rtp accept and /rtp deny now use request timeouts and double-request protection. Permissions: sRandomRTP.Command.Accept / sRandomRTP.Command.Deny  
+1.8. /rtp back and /rtp base respect the new height rules, world checks, and chunk preloading. Permissions: sRandomRTP.Command.Back / sRandomRTP.Command.Base  
+1.9. Permission sRandomRtp.Cooldown.N still sets per-player cooldowns; the global bypass was renamed to sRandomRTP.Command.bypass.
 
-## Platform & infrastructure
-- Marked the plugin as `folia-supported` and bundled FoliaLib so boss bars, timers, and portal tasks run safely across Paper and Folia cores.
-- Portals, boss bars, and teleport cooldown resources now live in thread-safe `PlayerResourceMap` containers, preventing leaks on reloads and disconnects.
-- Portal metadata, block compositions, and active Folia tasks are persisted in the new `Portals.db` SQLite database to survive restarts.
+New teleportation features!​
+1. Separate range presets: base (teleport.yml), middle (middle.yml), and far (far.yml) with circle/square selection, absolute coordinates, and per-world overrides.  
+2. Y-limits for overworld/Nether/End, automatic cave and ocean/river biome blocking, and strict world-border protection.  
+3. Search timeouts (attempt/total), parallel candidate batches, and the long-teleport-wait hint keep searches from stalling.  
+4. Extra cancel triggers: mouse movement, player movement, damage taken, and block breaking—each with its own cooldown flag.  
+5. Advancement checks on /rtp world, flexible banned-world redirects, and optional world targeting inside /rtp player.  
+6. Chunk warming and destination preloading (chunk-warming/chunk-loading) smooth out teleports on both Paper and Folia.  
+7. Portals can run configured commands on entry and optionally trigger RTP into a chosen world.
 
-## Gameplay quality of life
-- Players breaking blocks (or protected portal components) now cleanly cancel pending teleports and receive localized feedback instead of silent failures.
-- Redirects to fallback worlds and advancement checks for Nether/End teleports keep players from bypassing progression while surfacing clear messages to both caller and target.
-- Action titles, subtitles, and success messages gained the `%y%` placeholder alongside dedicated “long teleport wait” prompts for slow searches.
+Configuration and localization updates!​
+1. Settings:
+   - config.yml: Disable-Moved-Too-Quickly-Messages, short language codes (en, ru, ...), refreshed permission list.  
+   - teleport.yml: minY/minY-nether/minY-end, block-cave-biomes, block-ocean-river-biomes, per-world radii, coordinate-generation, use-absolute-coordinates, parallel-search, teleport-timeout, break-block-cancel-rtp, and banned-world redirect.  
+   - far.yml & middle.yml: dedicated radii and coordinate shapes for the new range commands.  
+   - portal.yml: portal materials/particles, block protection, post-jump cooldown, and command lists on entry.  
+   - chunk-loading.yml: preload radius, timeouts, limits, and the chunk-warming scheduler.  
+   - near.yml: simplified radii for /rtp near.  
+2. Locales moved to lang/*.yml with new keys:
+   - long-teleport-wait, titleMessage-loading/subtitleMessage-loading, worldborder-error, redirect-world/rederictworldnear-error;  
+   - full portal flow, block protection, Chunky messages, richer /rtp player prompts, and the %y% placeholder in teleported/title/subtitle.  
+3. Turkish (tr.yml) was added and all filenames are unified.
 
-## Deprecations & removals
-- Legacy synchronous auto-update tasks and hard-coded language file lists were replaced by Folia-aware scheduling and dynamic watchers.
+Platform and dependencies!​
+1. Plugin version 3.0, API 1.16, folia-supported flag, and mandatory LuckPerms.  
+2. FoliaLib and PaperLib are shaded for safe scheduling; SQLite stores portal data.  
+3. Chunky added as softdepend; WorldEdit/Vault/PlaceholderAPI stay optional.  
+4. Maven: shade 3.4.1 with relocated libraries plus tcoded/codemc repositories for new artifacts.
 
-## Upgrade guidance
-- Because 3.0 rewrites every command, config, locale, and database schema, **delete your old `Settings/`, `lang/`, `Data/` (and `Portals.db`) files—or simply remove the entire `plugins/sRandomRTP/` folder—before starting the server** so fresh defaults can be generated without conflicts.
+Miscellaneous improvements!​
+1. Logging is more flexible, and “moved too quickly” spam can be suppressed in console.  
+2. Teleport success messages now show the Y coordinate and refreshed hints for long searches.  
+3. Fixed duplicate /rtp player requests, banned-world sends, portal cleanup on delete, and graceful handling of missing WorldGuard/Vault/Chunky.  
+4. Added guards against invalid radii, portal names, and empty list pages to avoid crashes or hangs.  
+5. Numerous small safety and task-management optimizations across the teleport pipeline.
+
+Notes
+- The 3.0 update was developed for a long time, so some edge cases might be missed. Please report bugs or issues on the Discord server or by opening a GitHub issue.

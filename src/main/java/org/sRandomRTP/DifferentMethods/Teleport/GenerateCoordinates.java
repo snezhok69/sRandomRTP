@@ -21,27 +21,28 @@ public class GenerateCoordinates {
 
     public static int[] generateCoordinates(String playerName, int attemptNumber, long sessionNonce, int centerX, int centerZ, int radius,
                                             int minRadius, String generationMethod, boolean useAbsoluteCoordinates) {
+        long startedAt = System.nanoTime();
         int newX, newZ;
         String generationDetails = "";
+        boolean loggingEnabled = Variables.isLoggingEnabled();
 
         if (generationMethod == null) {
             generationMethod = "CIRCLE";
-            if (Variables.getInstance().getConfig().getBoolean("logs", false)) {
+            if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage("Warning: generationMethod was null, defaulting to CIRCLE");
             }
         }
 
         int effectiveMinRadius = Math.max(0, Math.min(minRadius, radius));
         int effectiveMaxRadius = Math.max(effectiveMinRadius, radius);
-        if ((effectiveMinRadius != minRadius || effectiveMaxRadius != radius) &&
-                Variables.getInstance().getConfig().getBoolean("logs", false)) {
+        if ((effectiveMinRadius != minRadius || effectiveMaxRadius != radius) && loggingEnabled) {
             Bukkit.getConsoleSender().sendMessage("Adjusted radii for generation: min=" + effectiveMinRadius + ", max=" + effectiveMaxRadius);
         }
 
         boolean deterministic = attemptNumber > 0;
         long baseSeed = playerName != null ? playerName.hashCode() : 0L;
         long combinedSeed = mixSeeds(baseSeed, sessionNonce);
-        SplittableRandom seedRandom = new SplittableRandom(combinedSeed);
+        SplittableRandom seedRandom = Variables.getRngProvider().deterministic(combinedSeed);
         double angleSeed = seedRandom.nextDouble();
         double radialSeed = seedRandom.nextDouble();
 
@@ -93,38 +94,38 @@ public class GenerateCoordinates {
         } else if (useAbsoluteCoordinates) {
             double randomDistance = effectiveMinRadius;
             if (effectiveMaxRadius > effectiveMinRadius) {
-                randomDistance = effectiveMinRadius + Math.random() * (effectiveMaxRadius - effectiveMinRadius);
+                randomDistance = Variables.getRngProvider().nextDouble(effectiveMinRadius, effectiveMaxRadius);
             }
 
             if (generationMethod.equalsIgnoreCase("SQUARE")) {
-                int side = (int) (Math.random() * 4);
+                int side = Variables.getRngProvider().nextInt(4);
                 String sideName;
 
                 switch (side) {
                     case 0:
-                        newX = centerX + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         newZ = centerZ - (int) randomDistance;
                         sideName = "top";
                         break;
                     case 1:
                         newX = centerX + (int) randomDistance;
-                        newZ = centerZ + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         sideName = "right";
                         break;
                     case 2:
-                        newX = centerX + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         newZ = centerZ + (int) randomDistance;
                         sideName = "bottom";
                         break;
                     default:
                         newX = centerX - (int) randomDistance;
-                        newZ = centerZ + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         sideName = "left";
                         break;
                 }
                 generationDetails = "SQUARE (absolute), side: " + sideName + ", distance: " + (int) randomDistance;
             } else {
-                double angle = Math.random() * 2 * Math.PI;
+                double angle = Variables.getRngProvider().nextDouble(0.0D, Math.PI * 2);
                 newX = centerX + (int) (randomDistance * Math.cos(angle));
                 newZ = centerZ + (int) (randomDistance * Math.sin(angle));
                 generationDetails = "CIRCLE (absolute), angle: " + Math.toDegrees(angle) + "°, distance: " + (int) randomDistance;
@@ -137,47 +138,55 @@ public class GenerateCoordinates {
             double radiusDiff = Math.max(maxRadiusD * maxRadiusD - minSquared, 0);
 
             if (generationMethod.equalsIgnoreCase("SQUARE")) {
-                int side = (int) (Math.random() * 4);
+                int side = Variables.getRngProvider().nextInt(4);
                 String sideName;
 
                 int randomValue = (effectiveMaxRadius <= effectiveMinRadius)
                         ? effectiveMinRadius
-                        : effectiveMinRadius + (int) (Math.random() * (effectiveMaxRadius - effectiveMinRadius));
+                        : Variables.getRngProvider().nextInt(effectiveMinRadius, effectiveMaxRadius);
 
                 switch (side) {
                     case 0:
-                        newX = centerX + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         newZ = centerZ - randomValue;
                         sideName = "top";
                         break;
                     case 1:
                         newX = centerX + randomValue;
-                        newZ = centerZ + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         sideName = "right";
                         break;
                     case 2:
-                        newX = centerX + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         newZ = centerZ + randomValue;
                         sideName = "bottom";
                         break;
                     default:
                         newX = centerX - randomValue;
-                        newZ = centerZ + (int) ((Math.random() * 2 - 1) * effectiveMaxRadius);
+                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
                         sideName = "left";
                         break;
                 }
                 generationDetails = "SQUARE (relative), side: " + sideName + ", random value: " + randomValue;
             } else {
-                double angle = Math.random() * 2 * Math.PI;
-                double randomRadius = Math.sqrt(minSquared + Math.random() * radiusDiff);
+                double angle = Variables.getRngProvider().nextDouble(0.0D, Math.PI * 2);
+                double randomRadius = Math.sqrt(minSquared + Variables.getRngProvider().nextDouble() * radiusDiff);
                 newX = centerX + (int) (randomRadius * Math.cos(angle));
                 newZ = centerZ + (int) (randomRadius * Math.sin(angle));
                 generationDetails = "CIRCLE (relative), angle: " + Math.toDegrees(angle) + "°, random radius: " + (int) randomRadius;
             }
         }
 
-        if (Variables.getInstance().getConfig().getBoolean("logs", false)) {
+        // Clamp to safe Minecraft world bounds to prevent integer overflow near world edge
+        final int WORLD_LIMIT = 29_999_984;
+        newX = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, newX));
+        newZ = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, newZ));
+
+        if (loggingEnabled) {
             Bukkit.getConsoleSender().sendMessage("Coordinate generation details: " + generationDetails);
+        }
+        if (Variables.getTeleportMetrics() != null) {
+            Variables.getTeleportMetrics().recordCoordinateGeneration(System.nanoTime() - startedAt);
         }
         return new int[]{newX, newZ};
     }

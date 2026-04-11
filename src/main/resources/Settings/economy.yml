@@ -1,3 +1,5 @@
+config-version: 3
+
 teleport:
   Money:
    # If true, money will be deducted after successful teleportation. (Need Vault)

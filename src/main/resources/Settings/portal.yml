@@ -1,4 +1,6 @@
 # Commands to be executed when jumping into the portal
+config-version: 3
+
 portal-commands:
   # Enable/disable command execution when entering the portal
   enabled: true
@@ -10,8 +12,8 @@ portal-commands:
 # Setting up cooldown for the portal
 portal:
   rtp:
-    enabled: false  # Установите true для активации RTP при входе в портал
-    world: "world"  # Укажите название мира для телепортации
+    enabled: false  # Set to true to activate RTP when entering the portal
+    world: "world"  # Specify the world name for teleportation
   # If false, the portal blocks can be broken and replaced with their own, but this may break the database and cause a bug.
   # If true, the portal blocks cannot be broken.
   protect_blocks: true
@@ -22,7 +24,7 @@ portal:
     floor: "GLASS"
     # Portal boundaries
     border: "OBSIDIAN"
-  # Настройка партиклов для портала
+  # Particle settings for the portal
   particles:
     # Particles for the portal floor
     # All particles https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html

@@ -7,3 +7,9 @@
 hoco
 .hoco
 target
+.git-rewrite
+.claude
+1.txt
+.agents
+.mcp.json
+CLAUDE.md

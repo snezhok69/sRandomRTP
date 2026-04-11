@@ -1,3 +1,5 @@
+config-version: 3
+
 teleport:
   # Enables or disables effects after teleportation.
   Enabled: true

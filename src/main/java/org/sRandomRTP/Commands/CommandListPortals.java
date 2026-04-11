@@ -10,10 +10,14 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.sRandomRTP.DataPortals.PortalData;
+import org.sRandomRTP.DifferentMethods.Teleport.CompatibleTeleport;
+import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
+import org.sRandomRTP.Services.RuntimeStateRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,29 +36,18 @@ public class CommandListPortals {
 
         if (args.length == 1) {
             if (args[0].startsWith("-p:")) {
-                try {
-                    String pageStr = args[0].split(":")[1];
-                    currentPage = Integer.parseInt(pageStr);
-                    if (currentPage < 1) {
-                        for (String line : LoadMessages.error_page_number_invalid) {
-                            sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-                        }
-                        return;
-                    }
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                    for (String line : LoadMessages.error_page_number_invalid) {
-                        sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-                    }
+                int page = parsePage(args[0]);
+                if (page == -1) {
+                    Variables.getMessageService().send(sender, LoadMessages.error_page_number_invalid);
                     return;
                 }
+                currentPage = page;
             } else {
                 String portalName = args[0];
                 if (sender instanceof Player) {
                     teleportToPortal((Player) sender, portalName);
                 } else {
-                    for (String line : LoadMessages.nopermissioncommand) {
-                        sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-                    }
+                    Variables.sendPlayersOnly(sender);
                 }
                 return;
             }
@@ -64,63 +57,53 @@ public class CommandListPortals {
 
         if (args.length >= 2) {
             if (args[1].startsWith("-p:")) {
-                try {
-                    String pageStr = args[1].split(":")[1];
-                    currentPage = Integer.parseInt(pageStr);
-                    if (currentPage < 1) {
-                        for (String line : LoadMessages.error_page_number_invalid) {
-                            sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-                        }
-                        return;
-                    }
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                    for (String line : LoadMessages.error_page_number_invalid) {
-                        sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-                    }
+                int page = parsePage(args[1]);
+                if (page == -1) {
+                    Variables.getMessageService().send(sender, LoadMessages.error_page_number_invalid);
                     return;
                 }
+                currentPage = page;
                 showPortalsList(sender, currentPage);
             } else {
                 String portalName = args[1];
                 if (sender instanceof Player) {
                     teleportToPortal((Player) sender, portalName);
                 } else {
-                    for (String line : LoadMessages.nopermissioncommand) {
-                        sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-                    }
+                    Variables.sendPlayersOnly(sender);
                 }
             }
         }
     }
 
+    /**
+     * Parses a page number from a "-p:N" argument.
+     * @return the page number (≥1), or -1 if the argument is invalid
+     */
+    private static int parsePage(String arg) {
+        try {
+            int page = Integer.parseInt(arg.split(":")[1]);
+            return page >= 1 ? page : -1;
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            return -1;
+        }
+    }
+
     private static void showPortalsList(CommandSender sender, int currentPage) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(Variables.pluginName + " §cThis command can only be used by players.");
-            return;
-        }
-        Player player = (Player) sender;
-        Map<String, PortalData> playerPortals = Variables.playerPortals.get(player.getName());
-        if (!player.hasPermission("sRandomRTP.Command.Portal")) {
-            List<String> formattedMessage = LoadMessages.nopermissioncommand;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line));
-                sender.sendMessage(formattedLine);
-            }
-            return;
-        }
+        java.util.Optional<Player> playerOpt = CommandUtils.requirePlayer(sender);
+        if (!playerOpt.isPresent()) return;
+        if (!CommandUtils.checkPermission(sender, Permissions.PORTAL)) return;
+        Player player = playerOpt.get();
+        RuntimeStateRegistry state = Variables.getRuntimeState();
+        Map<String, PortalData> playerPortals = state.getPlayerPortals(player.getName());
         if (playerPortals == null || playerPortals.isEmpty()) {
-            for (String line : LoadMessages.error_no_portals) {
-                sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-            }
+            Variables.getMessageService().send(sender, LoadMessages.error_no_portals);
             return;
         }
         List<String> allPortals = new ArrayList<>(playerPortals.keySet());
         int totalPortals = allPortals.size();
         int totalPages = (int) Math.ceil((double) totalPortals / PORTALS_PER_PAGE);
         if (currentPage > totalPages) {
-            for (String line : LoadMessages.error_page_not_found) {
-                sender.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%page%", String.valueOf(currentPage)))));
-            }
+            Variables.getMessageService().send(sender, LoadMessages.error_page_not_found, "%page%", String.valueOf(currentPage));
             return;
         }
 
@@ -139,9 +122,9 @@ public class CommandListPortals {
 
             if (portalData != null) {
                 String worldName = portalData.getWorldName();
-                double x = Double.parseDouble(portalData.getX());
-                double y = Double.parseDouble(portalData.getY());
-                double z = Double.parseDouble(portalData.getZ());
+                double x = portalData.getX();
+                double y = portalData.getY();
+                double z = portalData.getZ();
 
                 BaseComponent[] deleteButtonText = TextComponent.fromLegacyText(TranslateRGBColors.translateRGBColors(LoadMessages.portal_delete_button));
                 TextComponent deleteButton = new TextComponent(deleteButtonText);
@@ -194,27 +177,33 @@ public class CommandListPortals {
     }
 
     private static void teleportToPortal(Player player, String portalName) {
-        Map<String, PortalData> playerPortals = Variables.playerPortals.get(player.getName());
-        if (playerPortals == null || !playerPortals.containsKey(portalName)) {
-            for (String line : LoadMessages.error_portal_not_found) {
-                player.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%portal%", portalName))));
-            }
+        RuntimeStateRegistry state = Variables.getRuntimeState();
+        PortalData portalData = state.getPlayerPortal(player.getName(), portalName);
+        if (portalData == null) {
+            Variables.getMessageService().send(player, LoadMessages.error_portal_not_found, "%portal%", portalName);
             return;
         }
-        PortalData portalData = playerPortals.get(portalName);
         World world = Bukkit.getWorld(portalData.getWorldName());
         if (world == null) {
-            for (String line : LoadMessages.error_world_not_found) {
-                player.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line)));
-            }
+            Variables.getMessageService().send(player, LoadMessages.error_world_not_found);
             return;
         }
-        double x = Double.parseDouble(portalData.getX());
-        double y = Double.parseDouble(portalData.getY()) + 5;
-        double z = Double.parseDouble(portalData.getZ());
-        player.teleportAsync(new Location(world, x, y, z));
-        for (String line : LoadMessages.portal_teleport_success) {
-            player.sendMessage(TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', line.replace("%portal%", portalName))));
-        }
+        double x = portalData.getX();
+        double y = portalData.getY() + 5;
+        double z = portalData.getZ();
+        CompatibleTeleport.teleport(
+                player,
+                new Location(world, x, y, z),
+                PlayerTeleportEvent.TeleportCause.PLUGIN,
+                Variables.isLoggingEnabled(),
+                "portal list teleport"
+        ).whenComplete((success, throwable) -> RegionTaskExecutor.runAtEntity(player, () -> {
+            if (throwable != null || !Boolean.TRUE.equals(success)) {
+                Variables.getMessageService().send(player,
+                        java.util.Collections.singletonList("&cTeleport to portal failed. Check LogsErrors/latest-error.log"));
+                return;
+            }
+            Variables.getMessageService().send(player, LoadMessages.portal_teleport_success, "%portal%", portalName);
+        }));
     }
 }

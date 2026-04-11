@@ -1,3 +1,5 @@
+config-version: 3
+
 teleport:
   # If true, there will be a bossbar delay.
   # If false, there will be no bossbar delay.

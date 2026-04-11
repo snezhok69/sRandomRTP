@@ -52,6 +52,21 @@ public class PortalDataBlocks {
     }
 
     public static Map<String, PortalDataBlocks> getPortalBlocksCache() {
-        return Variables.playerPortalsBlocks;
+        return Variables.getRuntimeState().getPlayerPortalsBlocks();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PortalDataBlocks)) return false;
+        PortalDataBlocks that = (PortalDataBlocks) o;
+        return x == that.x && y == that.y && z == that.z
+                && java.util.Objects.equals(world, that.world)
+                && java.util.Objects.equals(portalName, that.portalName);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(world, portalName, x, y, z);
     }
 }

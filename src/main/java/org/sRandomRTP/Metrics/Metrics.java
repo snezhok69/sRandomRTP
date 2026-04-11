@@ -6,12 +6,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
-import java.lang.reflect.Method;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -93,14 +96,7 @@ public class Metrics {
     }
 
     private int getPlayerAmount() {
-        try {
-            Method onlinePlayersMethod = Class.forName("org.bukkit.Server").getMethod("getOnlinePlayers");
-            return onlinePlayersMethod.getReturnType().equals(Collection.class)
-                    ? ((Collection<?>) onlinePlayersMethod.invoke(Bukkit.getServer())).size()
-                    : ((Player[]) onlinePlayersMethod.invoke(Bukkit.getServer())).length;
-        } catch (Exception e) {
-            return Bukkit.getOnlinePlayers().size();
-        }
+        return Bukkit.getOnlinePlayers().size();
     }
 
     public static class MetricsBase {
@@ -203,7 +199,7 @@ public class Metrics {
                     () -> {
                         try {
                             sendData(data);
-                        } catch (Exception e) {
+                        } catch (IOException e) {
                             if (logErrors) {
                                 errorLogger.accept("Could not submit bStats metrics data", e);
                             }
@@ -211,7 +207,7 @@ public class Metrics {
                     });
         }
 
-        private void sendData(JsonObjectBuilder.JsonObject data) throws Exception {
+        private void sendData(JsonObjectBuilder.JsonObject data) throws IOException {
             if (logSentData) {
                 infoLogger.accept("Sent bStats metrics data: " + data.toString());
             }
@@ -413,7 +409,7 @@ public class Metrics {
                     return null;
                 }
                 builder.appendField("data", data);
-            } catch (Throwable t) {
+            } catch (RuntimeException t) {
                 if (logErrors) {
                     errorLogger.accept("Failed to get data for custom chart with id " + chartId, t);
                 }
@@ -422,20 +418,20 @@ public class Metrics {
             return builder.build();
         }
 
-        protected abstract JsonObjectBuilder.JsonObject getChartData() throws Exception;
+        protected abstract JsonObjectBuilder.JsonObject getChartData();
     }
 
     public static class SimplePie extends CustomChart {
-        private final Callable<String> callable;
+        private final Supplier<String> supplier;
 
-        public SimplePie(String chartId, Callable<String> callable) {
+        public SimplePie(String chartId, Supplier<String> supplier) {
             super(chartId);
-            this.callable = callable;
+            this.supplier = supplier;
         }
 
         @Override
-        protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
-            String value = callable.call();
+        protected JsonObjectBuilder.JsonObject getChartData() {
+            String value = supplier.get();
             if (value == null || value.isEmpty()) {
                 return null;
             }
@@ -444,17 +440,17 @@ public class Metrics {
     }
 
     public static class DrilldownPie extends CustomChart {
-        private final Callable<Map<String, Map<String, Integer>>> callable;
+        private final Supplier<Map<String, Map<String, Integer>>> supplier;
 
-        public DrilldownPie(String chartId, Callable<Map<String, Map<String, Integer>>> callable) {
+        public DrilldownPie(String chartId, Supplier<Map<String, Map<String, Integer>>> supplier) {
             super(chartId);
-            this.callable = callable;
+            this.supplier = supplier;
         }
 
         @Override
-        protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
+        protected JsonObjectBuilder.JsonObject getChartData() {
             JsonObjectBuilder builder = new JsonObjectBuilder();
-            Map<String, Map<String, Integer>> map = callable.call();
+            Map<String, Map<String, Integer>> map = supplier.get();
             if (map == null || map.isEmpty()) {
                 return null;
             }

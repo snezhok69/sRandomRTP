@@ -1,0 +1,57 @@
+config-version: 3
+
+teleport-biome:
+  # Radius profile for /rtp biome.
+  # The search area is centered on the current world border center, not on the player.
+  radius-biome: 30000
+  # Minimum distance from the search center.
+  # Do not set this equal to radius-biome, or the search area becomes too narrow.
+  minradius-biome: 10000
+  # Coordinate generation method for candidate positions.
+  # CIRCLE = circular ring from minradius to radius.
+  # SQUARE = square ring; this profile avoids the common "corner-only" minradius issue.
+  coordinate-generation-biome: CIRCLE
+  # If true, minradius-biome is treated as an absolute distance from the center.
+  use-absolute-coordinates-biome: true
+  # Maximum number of attempts for /rtp biome before the request fails.
+  maxtries-biome: 48
+  # Search mode for biome matching.
+  # TWO_PHASE = fast random attempts first, then expanded biome probing before expensive safety checks.
+  search-mode: TWO_PHASE
+  # How many early attempts should use fast random candidate generation before switching to biome scan.
+  fast-random-attempts: 12
+  # How many biome probe samples to inspect during the biome-scan phase for each attempt.
+  probe-samples-per-attempt: 8
+  # For now only vanilla Bukkit biomes are supported in /rtp biome arguments.
+  allow-vanilla-only: true
+  # Per-world overrides (optional).
+  # Format:
+  #   world_name:
+  #     radius: 30000
+  #     minradius: 10000
+  #     maxtries: 48
+  per-world-biome:
+    world:
+      radius: 30000
+      minradius: 10000
+      maxtries: 48
+    world_nether:
+      radius: 6000
+      minradius: 1500
+      maxtries: 36
+    world_the_end:
+      radius: 10000
+      minradius: 2500
+      maxtries: 40
+
+  # Usage examples:
+  # /rtp biome desert
+  # /rtp biome desert savanna badlands
+  # /rtp biome cherry_grove, meadow, grove
+  #
+  # Argument rules:
+  # - You can pass one or more biomes.
+  # - Commas and spaces are both accepted separators.
+  # - Names are case-insensitive.
+  # - Spaces and hyphens in arguments are normalized to underscores.
+  # - Only vanilla Bukkit biome names are accepted at this stage.

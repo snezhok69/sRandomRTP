@@ -123,6 +123,7 @@ messages:
     - '&a/rtp delportal - &6delete a portal.'
     - '&a/rtp listportal - &6view list of portals.'
     - '&a/rtp chunky N - &6start generating N chunks.'
+    - '&a/rtp tpsbar|rambar|msptbar - &6toggle admin monitoring bossbars.'
     - '&a/rtp chunky stop - &6stop chunk generation in current player world.'
     - ''
   Plugin-Enabled-Message:

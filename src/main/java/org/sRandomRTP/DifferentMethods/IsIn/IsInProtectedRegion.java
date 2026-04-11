@@ -10,15 +10,20 @@ import org.sRandomRTP.DifferentMethods.LoggerUtility;
 
 public class IsInProtectedRegion {
     public static boolean isInProtectedRegion(Location loc) {
+        // Быстрый guard — если WorldGuard не загружен, не пытаемся вызывать его API
         try {
-        RegionManager regionManager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(loc.getWorld()));
-        if (regionManager != null) {
+            WorldGuard wg = WorldGuard.getInstance();
+            if (wg == null) return false;
+            RegionManager regionManager = wg.getPlatform().getRegionContainer()
+                    .get(BukkitAdapter.adapt(loc.getWorld()));
+            if (regionManager == null) return false;
             BlockVector3 pt = BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
             ApplicableRegionSet set = regionManager.getApplicableRegions(pt);
             return set.size() > 0;
-        }
-        return false;
-        } catch (Throwable e) {
+        } catch (NoClassDefFoundError ignored) {
+            // WorldGuard не установлен на сервере
+            return false;
+        } catch (RuntimeException e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             String callingClassName = stackTrace[2].getClassName();
             LoggerUtility.loggerUtility(callingClassName, e);

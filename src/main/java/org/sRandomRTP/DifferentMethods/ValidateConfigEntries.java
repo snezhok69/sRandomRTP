@@ -10,7 +10,10 @@ import java.util.List;
 public class ValidateConfigEntries {
 
     public static void validateConfigEntries(FileConfiguration config) {
-        try {
+        if (config == null) {
+            return;
+        }
+
         List<String> bannedBlocks = config.getStringList("teleport.bannedBlocks");
         List<String> invalidBlocks = new ArrayList<>();
         for (String block : bannedBlocks) {
@@ -35,11 +38,6 @@ public class ValidateConfigEntries {
         }
         if (!invalidBiomes.isEmpty()) {
             Bukkit.getConsoleSender().sendMessage("Invalid banned biomes: " + String.join(", ", invalidBiomes));
-        }
-        } catch (Throwable e) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            String callingClassName = stackTrace[2].getClassName();
-            LoggerUtility.loggerUtility(callingClassName, e);
         }
     }
 }

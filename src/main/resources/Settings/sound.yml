@@ -1,3 +1,5 @@
+config-version: 3
+
 teleport:
   # Sounds when waiting for the boss-bar
   boss-bar-teleport-sound:

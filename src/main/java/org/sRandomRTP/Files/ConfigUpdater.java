@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConstructor;
 import org.bukkit.configuration.file.YamlRepresenter;
 import org.bukkit.plugin.Plugin;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.PluginVersionCatalog;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import java.io.*;
@@ -19,10 +20,8 @@ import java.util.*;
 public class ConfigUpdater {
     private static final char SEPARATOR = '.';
 
-    // FIXED: Now includes "teleport.per-world" as an ignored section by default
     public static boolean update(String resourceName, File toUpdate, String... ignoredSections) throws IOException {
         List<String> allIgnoredSections = new ArrayList<>(Arrays.asList(ignoredSections));
-        // Add per-world section to ignored sections if not already present
         if (!allIgnoredSections.contains("teleport.per-world")) {
             allIgnoredSections.add("teleport.per-world");
         }
@@ -33,10 +32,13 @@ public class ConfigUpdater {
         Preconditions.checkArgument(toUpdate.exists(), "The toUpdate file doesn't exist!");
         InputStream resourceStream = plugin.getResource(resourceName);
         if (resourceStream == null) {
-            System.err.println("Resource not found: " + resourceName);
+            Variables.getInstance().getLogger().warning("Resource not found: " + resourceName);
             return false;
         }
-        FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader((plugin.getResource(resourceName)), StandardCharsets.UTF_8));
+        FileConfiguration defaultConfig;
+        try (InputStream rs = resourceStream) {
+            defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(rs, StandardCharsets.UTF_8));
+        }
         FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(new FileInputStream(toUpdate), StandardCharsets.UTF_8));
         Map<String, String> comments = parseComments(plugin, resourceName, defaultConfig);
         Map<String, String> ignoredSectionsValues = parseIgnoredSections(toUpdate, comments, ignoredSections == null ? Collections.emptyList() : ignoredSections);
@@ -46,9 +48,6 @@ public class ConfigUpdater {
         Path toUpdatePath = toUpdate.toPath();
         String existingContent = new String(Files.readAllBytes(toUpdatePath), StandardCharsets.UTF_8);
         String updatedContent = value;
-        if (!existingContent.equals(updatedContent)) {
-            Files.write(toUpdatePath, updatedContent.getBytes(StandardCharsets.UTF_8));
-        }
         if (!existingContent.equals(updatedContent)) {
             Files.write(toUpdatePath, updatedContent.getBytes(StandardCharsets.UTF_8));
             return true;
@@ -76,6 +75,9 @@ public class ConfigUpdater {
             Object currentValue = currentConfig.get(fullKey);
             if (currentValue == null)
                 currentValue = defaultConfig.get(fullKey);
+            if (PluginVersionCatalog.CONFIG_VERSION_PATH.equals(fullKey)) {
+                currentValue = PluginVersionCatalog.CONFIG_VERSION;
+            }
             String[] splitFullKey = fullKey.split("[" + SEPARATOR + "]");
             String trailingKey = splitFullKey[splitFullKey.length - 1];
             if (currentValue instanceof ConfigurationSection) {
@@ -101,58 +103,58 @@ public class ConfigUpdater {
 
     private static Map<String, String> parseComments(Plugin plugin, String resourceName, FileConfiguration defaultConfig) throws IOException {
         List<String> keys = new ArrayList<>(defaultConfig.getKeys(true));
-        BufferedReader reader = new BufferedReader(new InputStreamReader((plugin.getResource(resourceName)), StandardCharsets.UTF_8));
         Map<String, String> comments = new LinkedHashMap<>();
         StringBuilder commentBuilder = new StringBuilder();
         KeyBuilder keyBuilder = new KeyBuilder(defaultConfig, SEPARATOR);
         String previousKey = null;
         String nextValidKey = null;
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String trimmedLine = line.trim();
-            if (nextValidKey != null) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader((plugin.getResource(resourceName)), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String trimmedLine = line.trim();
+                if (nextValidKey != null) {
+                    if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
+                        commentBuilder.append(trimmedLine).append("\n");
+                        continue;
+                    }
+                    if (trimmedLine.startsWith("-"))
+                        continue;
+                    keyBuilder.parseLine(trimmedLine, false);
+                    if (!defaultConfig.contains(keyBuilder.toString())) {
+                        keyBuilder.removeLastKey();
+                        continue;
+                    }
+                    if (keyBuilder.toString().equals(nextValidKey))
+                        nextValidKey = null;
+                    keyBuilder.removeLastKey();
+                }
+                if (trimmedLine.startsWith("-")) {
+                    int currentKeyIndex = keys.indexOf(previousKey);
+                    if (currentKeyIndex != keys.size() - 1)
+                        nextValidKey = keys.get(currentKeyIndex + 1);
+
+                    continue;
+                }
                 if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
                     commentBuilder.append(trimmedLine).append("\n");
-                    continue;
-                }
-                if (trimmedLine.startsWith("-"))
-                    continue;
-                keyBuilder.parseLine(trimmedLine, false);
-                if (!defaultConfig.contains(keyBuilder.toString())) {
-                    keyBuilder.removeLastKey();
-                    continue;
-                }
-                if (keyBuilder.toString().equals(nextValidKey))
-                    nextValidKey = null;
-                keyBuilder.removeLastKey();
-            }
-            if (trimmedLine.startsWith("-")) {
-                int currentKeyIndex = keys.indexOf(previousKey);
-                if (currentKeyIndex != keys.size() - 1)
-                    nextValidKey = keys.get(currentKeyIndex + 1);
-
-                continue;
-            }
-            if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
-                commentBuilder.append(trimmedLine).append("\n");
-            } else {
-                keyBuilder.parseLine(trimmedLine, true);
-                String key = keyBuilder.toString();
-                if (commentBuilder.length() > 0) {
-                    comments.put(key, commentBuilder.toString());
-                    commentBuilder.setLength(0);
-                }
-                previousKey = key;
-                int nextKeyIndex = keys.indexOf(keyBuilder.toString()) + 1;
-                if (nextKeyIndex < keys.size()) {
-                    String nextKey = keys.get(nextKeyIndex);
-                    while (!keyBuilder.isEmpty() && !nextKey.startsWith(keyBuilder.toString() + SEPARATOR)) {
-                        keyBuilder.removeLastKey();
+                } else {
+                    keyBuilder.parseLine(trimmedLine, true);
+                    String key = keyBuilder.toString();
+                    if (commentBuilder.length() > 0) {
+                        comments.put(key, commentBuilder.toString());
+                        commentBuilder.setLength(0);
+                    }
+                    previousKey = key;
+                    int nextKeyIndex = keys.indexOf(keyBuilder.toString()) + 1;
+                    if (nextKeyIndex < keys.size()) {
+                        String nextKey = keys.get(nextKeyIndex);
+                        while (!keyBuilder.isEmpty() && !nextKey.startsWith(keyBuilder.toString() + SEPARATOR)) {
+                            keyBuilder.removeLastKey();
+                        }
                     }
                 }
             }
         }
-        reader.close();
         if (commentBuilder.length() > 0)
             comments.put(null, commentBuilder.toString());
         return comments;
@@ -165,15 +167,16 @@ public class ConfigUpdater {
         options.setLineBreak(DumperOptions.LineBreak.UNIX);
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         Yaml yaml = new Yaml(new YamlConstructor(), new YamlRepresenter(), options);
-        Map<Object, Object> root = yaml.load(new FileReader(toUpdate));
+        Map<Object, Object> root;
+        try (FileReader fr = new FileReader(toUpdate, StandardCharsets.UTF_8)) {
+            root = yaml.load(fr);
+        }
         ignoredSections.forEach(section -> {
             String[] split = section.split("[" + SEPARATOR + "]");
             String key = split[split.length - 1];
             Map<Object, Object> map = getSection(section, root);
 
-            // FIXED: Handle case where section might not exist in current config
             if (map == null || !map.containsKey(getKeyAsObject(key, map))) {
-                // Section doesn't exist in current config - use empty map
                 ignoredSectionValues.put(section, buildEmptySection(section, comments));
                 return;
             }
@@ -191,7 +194,6 @@ public class ConfigUpdater {
         return ignoredSectionValues;
     }
 
-    // NEW: Helper method to build empty section with comments
     private static String buildEmptySection(String fullKey, Map<String, String> comments) {
         String indents = KeyBuilder.getIndents(fullKey, SEPARATOR);
         String[] split = fullKey.split("[" + SEPARATOR + "]");
@@ -213,11 +215,9 @@ public class ConfigUpdater {
         if (keys.length == 1) {
             if (value instanceof Map)
                 return root;
-            // FIXED: Return null instead of throwing exception
             return null;
         }
         if (!(value instanceof Map))
-            // FIXED: Return null instead of throwing exception
             return null;
         return getSection(keys[1], (Map<Object, Object>) value);
     }
@@ -230,7 +230,6 @@ public class ConfigUpdater {
             keyBuilder.append(".");
         keyBuilder.append(key);
         if (!ymlMap.containsKey(originalKey)) {
-            // FIXED: Return empty string instead of throwing exception
             return "";
         }
         String comment = comments.get(keyBuilder.toString());

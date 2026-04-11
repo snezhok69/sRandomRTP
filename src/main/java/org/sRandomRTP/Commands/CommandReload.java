@@ -8,60 +8,66 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.DifferentMethods.Text.LoadLanguageFile;
-import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.*;
-import org.sRandomRTP.Checkings.AutoCheckingVersion;
 import org.sRandomRTP.DataPortals.PortalDataTasks;
+import org.sRandomRTP.Services.BootstrapCoordinator;
+import org.sRandomRTP.Services.DiagnosticsService;
+import org.sRandomRTP.Services.RuntimeStateRegistry;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommandReload {
-    public static boolean isReloaded = false;
+    private static final AtomicBoolean isReloading = new AtomicBoolean(false);
 
     public static void commandReload(CommandSender sender) {
+        DiagnosticsService.Report reloadReport = Variables.getPluginContext()
+                .getDiagnosticsService().startReport("latest-reload-report");
         long startTime = System.currentTimeMillis();
-        if (!sender.hasPermission("sRandomRTP.Command.Reload")) {
-            List<String> formattedMessage = LoadMessages.nopermissionreload;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(line);
-                sender.sendMessage(formattedLine);
-            }
+        if (!sender.hasPermission(Permissions.RELOAD)) {
+            Variables.getMessageService().send(sender, LoadMessages.nopermissionreload);
+            reloadReport.stepWarn("permission-check", "sender has no reload permission");
+            reloadReport.finishSuccess();
             return;
         }
 
-        if (isReloaded) {
-            List<String> formattedMessage = LoadMessages.reloadingwait;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(line);
-                sender.sendMessage(formattedLine);
-            }
+        if (!isReloading.compareAndSet(false, true)) {
+            Variables.getMessageService().send(sender, LoadMessages.reloadingwait);
+            reloadReport.stepWarn("reload-guard", "reload already in progress");
+            reloadReport.finishSuccess();
             return;
         }
 
         try {
             Variables.getInstance().reloadConfig();
-            LoadFiles.loadFiles();
-
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eПроверка файлов...");
-            FilesCreate filesCreate = new FilesCreate();
-            List<String> createdFiles = filesCreate.filesCreate();
+            BootstrapCoordinator.FileChangeSummary summary =
+                    Variables.getPluginContext().getBootstrapCoordinator().synchronizeFiles();
+            if (!summary.isSuccessful()) {
+                reloadReport.stepFail("files-sync", summary.getFailure());
+                Variables.getMessageService().send(sender, Collections.singletonList(
+                        "&cReload failed during file synchronization. Check Diagnostics/latest-reload-report.txt and LogsErrors/latest-error.log"));
+                reloadReport.finishFailure(summary.getFailure());
+                isReloading.set(false);
+                return;
+            }
+            reloadReport.stepOk("files-sync", "created=" + summary.getCreatedFiles().size()
+                    + ", updated=" + summary.getUpdatedFiles().size());
+            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking files...");
             long createTime = System.currentTimeMillis();
-            for (String message : createdFiles) {
+            for (String message : summary.getCreatedFiles()) {
                 if (message != null) {
                     long elapsedTime = System.currentTimeMillis() - createTime;
-                    String formattedLine = String.format(Variables.pluginName + " §8- §aФайл %s успешно создан §6(%d мс)", message, elapsedTime);
+                    String formattedLine = String.format(Variables.pluginName + " §8- §aFile %s created successfully §6(%d ms)", message, elapsedTime);
                     Bukkit.getConsoleSender().sendMessage(formattedLine);
                 }
             }
 
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eОбновление файлов...");
-            FilesUpdate filesUpdate = new FilesUpdate();
-            List<String> filesUpdates = filesUpdate.filesUpdate();
+            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eUpdating files...");
             long updateTime = System.currentTimeMillis();
-            for (String message : filesUpdates) {
+            for (String message : summary.getUpdatedFiles()) {
                 long elapsedTime = System.currentTimeMillis() - updateTime;
-                String formattedLine = String.format(Variables.pluginName + " §8- §aФайл %s успешно обновлен §6(%d мс)", message, elapsedTime);
+                String formattedLine = String.format(Variables.pluginName + " §8- §aFile %s updated successfully §6(%d ms)", message, elapsedTime);
                 Bukkit.getConsoleSender().sendMessage(formattedLine);
             }
 
@@ -72,14 +78,10 @@ public class CommandReload {
             loadLanguageFile.loadLanguageFile();
             YamlConfiguration langFile = loadLanguageFile.getLangFile();
             LoadMessages.loadMessages(langFile);
+            reloadReport.stepOk("language-load", "language and messages reloaded");
 
-            List<String> formattedMessage = LoadMessages.reloadingstart;
-            for (String line : formattedMessage) {
-                String formattedLine = TranslateRGBColors.translateRGBColors(line);
-                sender.sendMessage(formattedLine);
-            }
+            Variables.getMessageService().send(sender, LoadMessages.reloadingstart);
 
-            isReloaded = true;
             final int[] step = {0};
             WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
                 try {
@@ -88,6 +90,7 @@ public class CommandReload {
                             loadLanguageFile.loadLanguageFile();
                             YamlConfiguration reloadedLang = loadLanguageFile.getLangFile();
                             LoadMessages.loadMessages(reloadedLang);
+                            reloadReport.stepOk("step-0", "language files reloaded");
                             break;
                         case 1:
                             Variables.getInstance().reloadConfig();
@@ -95,58 +98,72 @@ public class CommandReload {
                             LoadKeys.loadKeys(Variables.getInstance().getConfig());
                             LoadBlockList.loadBlockList();
                             refreshPortalSettings();
+                            warnIfConfigInvalid();
+                            reloadReport.stepOk("step-1", "configs, block lists and portal settings refreshed");
                             break;
                         case 2:
-                            if (Variables.autoCheckVersionTask != null) {
-                                Variables.autoCheckVersionTask.cancel();
-                            }
-                            AutoCheckingVersion.autoCheckingVersion();
+                            Variables.getReleaseCheckService().restartAutoChecks();
+                            reloadReport.stepOk("step-2", "background version checker restarted");
                             break;
                         case 3:
-                            List<String> formattedMessage2 = LoadMessages.successfullyreload;
-                            for (String line : formattedMessage2) {
+                            for (String line : LoadMessages.successfullyreload) {
                                 long endTime = System.currentTimeMillis();
                                 long reloadPluginTime = endTime - startTime;
                                 line = line.replace("%mc%", reloadPluginTime + "");
-                                String formattedLine = TranslateRGBColors.translateRGBColors(line);
-                                sender.sendMessage(formattedLine);
+                                sender.sendMessage(Variables.getMessageService().format(line));
                             }
                             if (Variables.commandReloadTask != null) {
                                 Variables.commandReloadTask.cancel();
                                 Variables.commandReloadTask = null;
                             }
-                            isReloaded = false;
+                            isReloading.set(false);
+                            reloadReport.finishSuccess();
                             return;
                     }
                     step[0]++;
-                } catch (Throwable e) {
-                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                    String callingClassName = stackTrace[2].getClassName();
-                    LoggerUtility.loggerUtility(callingClassName, e);
+                } catch (RuntimeException e) {
+                    reloadReport.stepFail("reload-step-" + step[0], e);
+                    reloadReport.finishFailure(e);
+                    LoggerUtility.loggerUtility(CommandReload.class, e);
                     if (Variables.commandReloadTask != null) {
                         Variables.commandReloadTask.cancel();
                         Variables.commandReloadTask = null;
                     }
-                    isReloaded = false;
+                    isReloading.set(false);
                 }
             }, 1L, 1L);
             Variables.commandReloadTask = task;
-        } catch (Throwable e) {
-            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-            String callingClassName = stackTrace[2].getClassName();
-            LoggerUtility.loggerUtility(callingClassName, e);
+        } catch (RuntimeException e) {
+            reloadReport.stepFail("reload-bootstrap", e);
+            reloadReport.finishFailure(e);
+            LoggerUtility.loggerUtility(CommandReload.class, e);
             if (Variables.commandReloadTask != null) {
                 Variables.commandReloadTask.cancel();
                 Variables.commandReloadTask = null;
             }
-            isReloaded = false;
+            isReloading.set(false);
+        }
+    }
+
+    /**
+     * Logs a warning if critical config sections are null after reload.
+     * This can happen when a YAML file is malformed or has a wrong structure.
+     */
+    private static void warnIfConfigInvalid() {
+        if (Variables.teleportfile == null || !Variables.teleportfile.contains("teleport")) {
+            Variables.getInstance().getLogger().warning(
+                    "[sRandomRTP] teleport.yml is missing or has no 'teleport' section — some features may not work correctly.");
+        }
+        if (Variables.getInstance().getConfig() == null) {
+            Variables.getInstance().getLogger().warning(
+                    "[sRandomRTP] config.yml failed to reload — plugin may behave incorrectly.");
         }
     }
 
     private static void refreshPortalSettings() {
         try {
-            for (Map.Entry<String, PortalDataTasks> entry : Variables.playerPortalsTasks.entrySet()) {
-                PortalDataTasks portalData = entry.getValue();
+            RuntimeStateRegistry state = Variables.getRuntimeState();
+            for (PortalDataTasks portalData : state.getPlayerPortalsTasks().values()) {
 
                 if (portalData.getParticlesTask() != null) {
                     portalData.getParticlesTask().cancel();
@@ -162,7 +179,7 @@ public class CommandReload {
                     portalData.setParticlesTask(newParticlesTask);
                 }
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             Variables.getInstance().getLogger().warning("[sRandomRTP] Error refreshing portal settings: " + e.getMessage());
         }
     }

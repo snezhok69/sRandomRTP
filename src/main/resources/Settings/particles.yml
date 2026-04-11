@@ -1,3 +1,5 @@
+config-version: 3
+
 teleport:
   particles:
     # If true, particles on successful teleportation are enabled.

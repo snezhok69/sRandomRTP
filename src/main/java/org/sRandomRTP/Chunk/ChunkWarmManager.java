@@ -25,28 +25,38 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class ChunkWarmManager implements Listener {
     private static ChunkWarmManager instance;
+    private static volatile Method isChunkGeneratedMethod;
+    private static volatile boolean reflectionResolved;
 
     private final JavaPlugin plugin;
     private final Set<CompletableFuture<?>> inflightLoads = ConcurrentHashMap.newKeySet();
     private final Map<UUID, long[]> lastWarmedPlayerChunk = new ConcurrentHashMap<>();
+    // Long key: ((worldIndex & 0xFFFF) << 48) | ((chunkX & 0xFFFFFF) << 24) | (chunkZ & 0xFFFFFF)
+    // Avoids String allocation in the hot warm loop.
+    private final Map<Long, Long> recentlyScheduledChunks = new ConcurrentHashMap<>();
+    private final Map<String, Integer> worldIndices = new ConcurrentHashMap<>();
+    private final AtomicLong worldIndexCounter = new AtomicLong();
 
     private WrappedTask warmTask;
     private boolean listenerRegistered;
 
-    private boolean enabled;
-    private boolean warmSpawns;
-    private boolean warmPlayers;
-    private boolean triggerOnWorldLoad;
-    private boolean triggerOnJoin;
-    private boolean triggerOnMove;
-    private int warmRadius;
-    private int loadsPerTickBudget;
-    private long warmPeriodTicks;
-    private int maxInflightLoads;
-    private double tpsPauseThreshold;
+    // volatile so the async warm task sees updates written by synchronized reload()
+    private volatile boolean enabled;
+    private volatile boolean warmSpawns;
+    private volatile boolean warmPlayers;
+    private volatile boolean triggerOnWorldLoad;
+    private volatile boolean triggerOnJoin;
+    private volatile boolean triggerOnMove;
+    private volatile int warmRadius;
+    private volatile int loadsPerTickBudget;
+    private volatile long warmPeriodTicks;
+    private volatile int maxInflightLoads;
+    private volatile double tpsPauseThreshold;
+    private volatile long cachedMaxAge = 5000L;
 
     private ChunkWarmManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -76,6 +86,7 @@ public final class ChunkWarmManager implements Listener {
         this.warmPeriodTicks = Math.max(1L, Variables.chunkfile.getLong("chunk-warming.warm-period-ticks", 20L));
         this.maxInflightLoads = Math.max(1, Variables.chunkfile.getInt("chunk-warming.max-inflight-loads", 64));
         this.tpsPauseThreshold = Variables.chunkfile.getDouble("chunk-warming.tps-pause-threshold", 18.5D);
+        this.cachedMaxAge = Math.max(5000L, this.warmPeriodTicks * 100L);
         this.warmSpawns = Variables.chunkfile.getBoolean("chunk-warming.warm-spawn-locations", true);
         this.warmPlayers = Variables.chunkfile.getBoolean("chunk-warming.warm-player-locations", true);
         this.triggerOnWorldLoad = Variables.chunkfile.getBoolean("chunk-warming.trigger-on-world-load", true);
@@ -103,7 +114,7 @@ public final class ChunkWarmManager implements Listener {
         warmTask = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
             try {
                 runWarmCycle();
-            } catch (Throwable throwable) {
+            } catch (RuntimeException throwable) {
                 LoggerUtility.loggerUtility(ChunkWarmManager.class.getName(), throwable);
             }
         }, warmPeriodTicks, warmPeriodTicks);
@@ -116,9 +127,10 @@ public final class ChunkWarmManager implements Listener {
         }
     }
 
-    private void disableWarmth() {
+    private synchronized void disableWarmth() {
         cancelWarmTask();
         lastWarmedPlayerChunk.clear();
+        recentlyScheduledChunks.clear();
         inflightLoads.clear();
         if (listenerRegistered) {
             HandlerList.unregisterAll(this);
@@ -139,6 +151,11 @@ public final class ChunkWarmManager implements Listener {
         if (getInflight() >= maxInflightLoads) {
             return;
         }
+
+        // Proactively evict expired entries so the map does not accumulate stale chunks
+        // between visits (entries are removed lazily in isRecentlyScheduled, but this
+        // cleans up chunks that are never revisited).
+        evictExpiredScheduledChunks();
 
         AtomicInteger budget = new AtomicInteger(loadsPerTickBudget);
 
@@ -216,6 +233,10 @@ public final class ChunkWarmManager implements Listener {
                         continue;
                     }
 
+                    if (isRecentlyScheduled(world, chunkX, chunkZ)) {
+                        continue;
+                    }
+
                     if (!isChunkGeneratedSafe(world, chunkX, chunkZ)) {
                         continue;
                     }
@@ -223,6 +244,7 @@ public final class ChunkWarmManager implements Listener {
                     budget.decrementAndGet();
                     CompletableFuture<?> future = PaperLib.getChunkAtAsync(world, chunkX, chunkZ, false)
                             .exceptionally(throwable -> null);
+                    recentlyScheduledChunks.put(chunkKeyLong(world, chunkX, chunkZ), System.currentTimeMillis());
                     inflightLoads.add(future);
                     future.whenComplete((chunk, throwable) -> inflightLoads.remove(future));
                 }
@@ -232,32 +254,71 @@ public final class ChunkWarmManager implements Listener {
 
     private boolean isChunkGeneratedSafe(World world, int chunkX, int chunkZ) {
         try {
-            Method method = world.getClass().getMethod("isChunkGenerated", int.class, int.class);
-            Object result = method.invoke(world, chunkX, chunkZ);
+            resolveReflection(world);
+            if (isChunkGeneratedMethod == null) {
+                return world.isChunkLoaded(chunkX, chunkZ);
+            }
+            Object result = isChunkGeneratedMethod.invoke(world, chunkX, chunkZ);
             if (result instanceof Boolean) {
                 return (Boolean) result;
             }
             return false;
-        } catch (NoSuchMethodException ignored) {
-            return world.isChunkLoaded(chunkX, chunkZ);
-        } catch (Throwable throwable) {
-            LoggerUtility.loggerUtility(ChunkWarmManager.class.getName(), throwable);
+        } catch (ReflectiveOperationException | RuntimeException throwable) {
+            LoggerUtility.loggerUtility(ChunkWarmManager.class, throwable);
             return false;
         }
     }
 
     private boolean tpsBelow(double threshold) {
-        try {
-            Object server = Bukkit.getServer();
-            Method method = server.getClass().getMethod("getTPS");
-            Object value = method.invoke(server);
-            if (value instanceof double[]) {
-                double[] tps = (double[]) value;
-                return tps.length > 0 && tps[0] < threshold;
-            }
-        } catch (Throwable ignored) {
+        double currentTps = Variables.getServerMetricsProvider().getPrimaryTps();
+        return !Double.isNaN(currentTps) && currentTps < threshold;
+    }
+
+    private synchronized void resolveReflection(World world) {
+        if (reflectionResolved) {
+            return;
         }
-        return false;
+        if (world != null) {
+            try {
+                isChunkGeneratedMethod = world.getClass().getMethod("isChunkGenerated", int.class, int.class);
+            } catch (NoSuchMethodException ignored) {
+                isChunkGeneratedMethod = null;
+            }
+        }
+        reflectionResolved = true;
+    }
+
+    private void evictExpiredScheduledChunks() {
+        long now = System.currentTimeMillis();
+        long maxAge = cachedMaxAge;
+        recentlyScheduledChunks.entrySet().removeIf(e -> now - e.getValue() > maxAge);
+    }
+
+    private boolean isRecentlyScheduled(World world, int chunkX, int chunkZ) {
+        long key = chunkKeyLong(world, chunkX, chunkZ);
+        long now = System.currentTimeMillis();
+        Long previous = recentlyScheduledChunks.get(key);
+        if (previous == null) {
+            return false;
+        }
+        if (now - previous > cachedMaxAge) {
+            recentlyScheduledChunks.remove(key, previous);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Compact long key for a chunk — avoids String allocation in the hot warm loop.
+     * Encoding: bits 63-48 = world index (16 bits), bits 47-24 = chunkX (24 bits), bits 23-0 = chunkZ (24 bits).
+     * ChunkX/Z are shifted by 0x800000 to map the signed range [-8388608, 8388607] to unsigned [0, 16777215].
+     */
+    private long chunkKeyLong(World world, int chunkX, int chunkZ) {
+        int worldIdx = worldIndices.computeIfAbsent(world.getName(),
+                k -> (int) (worldIndexCounter.getAndIncrement() & 0xFFFFL));
+        return ((long) (worldIdx & 0xFFFF) << 48)
+                | ((long) ((chunkX + 0x800000) & 0xFFFFFF) << 24)
+                | ((chunkZ + 0x800000) & 0xFFFFFF);
     }
 
     private int getInflight() {

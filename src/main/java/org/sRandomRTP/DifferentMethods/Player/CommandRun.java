@@ -13,7 +13,8 @@ public class CommandRun {
             return;
         }
         List<String> commandList = Variables.teleportfile.getStringList("teleport.Commandsteleport.Commands");
-        String playerName = player.getName();
+        // Sanitize player name to prevent command injection on servers with non-standard auth plugins
+        String playerName = player.getName().replaceAll("[^a-zA-Z0-9_]", "");
         Variables.getFoliaLib().getImpl().runNextTick(task -> {
             for (String command : commandList) {
                 String replacedCommand = command.replace("%player%", playerName);

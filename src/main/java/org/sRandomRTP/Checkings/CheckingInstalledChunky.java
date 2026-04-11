@@ -5,7 +5,7 @@ import org.popcraft.chunky.api.ChunkyAPI;
 import org.sRandomRTP.DifferentMethods.Variables;
 
 public class CheckingInstalledChunky {
-    public static boolean сheckingInstalledсhunky() {
+    public static boolean checkingInstalledChunky() {
         String version = Bukkit.getServer().getBukkitVersion();
         String[] versionParts = version.split("\\.");
         if (versionParts.length >= 2) {
