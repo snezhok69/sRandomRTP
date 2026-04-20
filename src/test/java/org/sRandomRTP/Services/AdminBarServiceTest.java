@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.sRandomRTP.DifferentMethods.Variables;
 
+import java.lang.reflect.Field;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -14,11 +16,22 @@ import static org.mockito.Mockito.when;
 class AdminBarServiceTest {
 
     @BeforeEach
-    void setUp() {
-        Variables.adminbarsfile = new YamlConfiguration();
-        Variables.adminbarsfile.set("admin-bars.enabled", true);
-        Variables.adminbarsfile.set("admin-bars.tpsbar.enabled", true);
-        Variables.adminbarsfile.set("admin-bars.rambar.enabled", true);
+    void setUp() throws Exception {
+        YamlConfiguration adminBarsConfig = new YamlConfiguration();
+        adminBarsConfig.set("admin-bars.enabled", true);
+        adminBarsConfig.set("admin-bars.tpsbar.enabled", true);
+        adminBarsConfig.set("admin-bars.rambar.enabled", true);
+
+        ConfigRegistry configRegistry = Mockito.mock(ConfigRegistry.class);
+        when(configRegistry.getAdminBarsFile()).thenReturn(adminBarsConfig);
+
+        PluginContext pluginContext = Mockito.mock(PluginContext.class);
+        when(pluginContext.getConfigRegistry()).thenReturn(configRegistry);
+
+        // Инжектируем мок-контекст через reflection (Variables.pluginContext — private volatile)
+        Field field = Variables.class.getDeclaredField("pluginContext");
+        field.setAccessible(true);
+        field.set(null, pluginContext);
     }
 
     @Test

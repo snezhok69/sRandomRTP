@@ -5,16 +5,21 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Variables;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class CommandRun {
 
+    /** Pre-compiled pattern — compiling regex on every call is wasteful. */
+    private static final Pattern PLAYER_NAME_SANITIZE = Pattern.compile("[^a-zA-Z0-9_]");
+
     public static void commandrun(Player player) {
-        if (!Variables.teleportfile.getBoolean("teleport.Commandsteleport.enabled")) {
+        org.bukkit.configuration.file.FileConfiguration teleportfile = Variables.getPluginContext().getConfigRegistry().getTeleportFile();
+        if (!teleportfile.getBoolean("teleport.Commandsteleport.enabled")) {
             return;
         }
-        List<String> commandList = Variables.teleportfile.getStringList("teleport.Commandsteleport.Commands");
+        List<String> commandList = teleportfile.getStringList("teleport.Commandsteleport.Commands");
         // Sanitize player name to prevent command injection on servers with non-standard auth plugins
-        String playerName = player.getName().replaceAll("[^a-zA-Z0-9_]", "");
+        String playerName = PLAYER_NAME_SANITIZE.matcher(player.getName()).replaceAll("");
         Variables.getFoliaLib().getImpl().runNextTick(task -> {
             for (String command : commandList) {
                 String replacedCommand = command.replace("%player%", playerName);

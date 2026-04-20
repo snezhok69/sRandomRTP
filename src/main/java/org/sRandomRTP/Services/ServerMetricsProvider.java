@@ -2,6 +2,8 @@ package org.sRandomRTP.Services;
 
 import org.bukkit.Bukkit;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Locale;
@@ -42,16 +44,26 @@ public class ServerMetricsProvider {
 
     private final RuntimeServerAccess runtimeServerAccess;
 
+    // ── Result cache ────────────────────────────────────────────────────────
+    // Reflection invoke() is called on every metric read (up to 20×/sec for admin bars).
+    // A 500ms cache reduces this to ≤2 reflection calls per second without meaningful staleness.
+    private static final long CACHE_TTL_NANOS = 500_000_000L; // 500 ms
+    private volatile double cachedTps = Double.NaN;
+    private volatile double cachedMspt = Double.NaN;
+    private volatile long lastRefreshNanos = 0L;
+
+    // MethodHandle is preferred over Method.invoke() because the JIT can inline through it
+    // once the call-site becomes monomorphic, eliminating per-call reflection overhead.
     private volatile Class<?> resolvedServerClass;
-    private volatile Method directGetTpsMethod;
-    private volatile Method directAverageTickTimeMethod;
-    private volatile Method directTickTimesMethod;
-    private volatile Method spigotMethod;
-    private volatile Method spigotGetTpsMethod;
-    private volatile Method spigotTickTimesMethod;
-    private volatile Method craftGetServerMethod;
-    private volatile Method internalAverageTickTimeMethod;
-    private volatile Method internalTickTimesMethod;
+    private volatile MethodHandle directGetTpsHandle;
+    private volatile MethodHandle directAverageTickTimeHandle;
+    private volatile MethodHandle directTickTimesHandle;
+    private volatile MethodHandle spigotHandle;
+    private volatile MethodHandle spigotGetTpsHandle;
+    private volatile MethodHandle spigotTickTimesHandle;
+    private volatile MethodHandle craftGetServerHandle;
+    private volatile MethodHandle internalAverageTickTimeHandle;
+    private volatile MethodHandle internalTickTimesHandle;
     private volatile Field internalRecentTpsField;
     private volatile Field internalTickTimesField;
 
@@ -85,24 +97,52 @@ public class ServerMetricsProvider {
     }
 
     public double getPrimaryTps() {
+        // Fast path: return cached value if still fresh
+        if (System.nanoTime() - lastRefreshNanos < CACHE_TTL_NANOS && !Double.isNaN(cachedTps)) {
+            return cachedTps;
+        }
+        refreshCache();
+        return cachedTps;
+    }
+
+    public double getAverageTickTimeMs() {
+        // Fast path: return cached value if still fresh
+        if (System.nanoTime() - lastRefreshNanos < CACHE_TTL_NANOS && !Double.isNaN(cachedMspt)) {
+            return cachedMspt;
+        }
+        refreshCache();
+        return cachedMspt;
+    }
+
+    private synchronized void refreshCache() {
+        // Double-check: another thread may have refreshed while we waited for the lock
+        if (System.nanoTime() - lastRefreshNanos < CACHE_TTL_NANOS) {
+            return;
+        }
+        cachedTps = readPrimaryTps();
+        cachedMspt = readAverageTickTimeMs();
+        lastRefreshNanos = System.nanoTime();
+    }
+
+    private double readPrimaryTps() {
         Object server = getServer();
         if (server == null) {
             return Double.NaN;
         }
         ensureResolved(server);
 
-        double direct = extractTps(invoke(server, directGetTpsMethod));
+        double direct = extractTps(invoke(server, directGetTpsHandle));
         if (!Double.isNaN(direct)) {
             return direct;
         }
 
-        Object spigot = invoke(server, spigotMethod);
-        double spigotValue = extractTps(invoke(spigot, spigotGetTpsMethod));
+        Object spigot = invoke(server, spigotHandle);
+        double spigotValue = extractTps(invoke(spigot, spigotGetTpsHandle));
         if (!Double.isNaN(spigotValue)) {
             return spigotValue;
         }
 
-        Object internalServer = invoke(server, craftGetServerMethod);
+        Object internalServer = invoke(server, craftGetServerHandle);
         double internalValue = extractTps(readField(internalServer, internalRecentTpsField));
         if (!Double.isNaN(internalValue)) {
             return internalValue;
@@ -111,36 +151,36 @@ public class ServerMetricsProvider {
         return Double.NaN;
     }
 
-    public double getAverageTickTimeMs() {
+    private double readAverageTickTimeMs() {
         Object server = getServer();
         if (server == null) {
             return Double.NaN;
         }
         ensureResolved(server);
 
-        double directAverage = extractSingleNumber(invoke(server, directAverageTickTimeMethod));
+        double directAverage = extractSingleNumber(invoke(server, directAverageTickTimeHandle));
         if (!Double.isNaN(directAverage)) {
             return directAverage;
         }
 
-        double directTickTimesAverage = averageTickTimes(invoke(server, directTickTimesMethod));
+        double directTickTimesAverage = averageTickTimes(invoke(server, directTickTimesHandle));
         if (!Double.isNaN(directTickTimesAverage)) {
             return directTickTimesAverage;
         }
 
-        Object spigot = invoke(server, spigotMethod);
-        double spigotTickTimesAverage = averageTickTimes(invoke(spigot, spigotTickTimesMethod));
+        Object spigot = invoke(server, spigotHandle);
+        double spigotTickTimesAverage = averageTickTimes(invoke(spigot, spigotTickTimesHandle));
         if (!Double.isNaN(spigotTickTimesAverage)) {
             return spigotTickTimesAverage;
         }
 
-        Object internalServer = invoke(server, craftGetServerMethod);
-        double internalAverage = extractSingleNumber(invoke(internalServer, internalAverageTickTimeMethod));
+        Object internalServer = invoke(server, craftGetServerHandle);
+        double internalAverage = extractSingleNumber(invoke(internalServer, internalAverageTickTimeHandle));
         if (!Double.isNaN(internalAverage)) {
             return internalAverage;
         }
 
-        double internalTickTimesAverage = averageTickTimes(invoke(internalServer, internalTickTimesMethod));
+        double internalTickTimesAverage = averageTickTimes(invoke(internalServer, internalTickTimesHandle));
         if (!Double.isNaN(internalTickTimesAverage)) {
             return internalTickTimesAverage;
         }
@@ -157,34 +197,56 @@ public class ServerMetricsProvider {
         return runtimeServerAccess == null ? null : runtimeServerAccess.getBukkitServer();
     }
 
-    private synchronized void ensureResolved(Object server) {
+    private void ensureResolved(Object server) {
         if (server == null) {
             return;
         }
         Class<?> serverClass = server.getClass();
+        // Fast path: volatile read without locking — covers 99.9% of calls after first resolution
         if (serverClass == resolvedServerClass) {
             return;
         }
+        // Slow path: acquire lock and re-check (double-check locking pattern)
+        synchronized (this) {
+            if (serverClass == resolvedServerClass) {
+                return;
+            }
+            resolveUnderLock(server, serverClass);
+        }
+    }
 
-        directGetTpsMethod = findNoArgMethod(serverClass, "getTPS");
-        directAverageTickTimeMethod = findFirstNoArgMethod(serverClass, AVERAGE_TICK_METHOD_CANDIDATES);
-        directTickTimesMethod = findFirstNoArgMethod(serverClass, TICK_TIME_METHOD_CANDIDATES);
-        spigotMethod = findNoArgMethod(serverClass, "spigot");
-        craftGetServerMethod = findNoArgMethod(serverClass, "getServer");
+    private void resolveUnderLock(Object server, Class<?> serverClass) {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-        Object spigotDelegate = invoke(server, spigotMethod);
+        directGetTpsHandle          = toHandle(lookup, findNoArgMethod(serverClass, "getTPS"));
+        directAverageTickTimeHandle = toHandle(lookup, findFirstNoArgMethod(serverClass, AVERAGE_TICK_METHOD_CANDIDATES));
+        directTickTimesHandle       = toHandle(lookup, findFirstNoArgMethod(serverClass, TICK_TIME_METHOD_CANDIDATES));
+        spigotHandle                = toHandle(lookup, findNoArgMethod(serverClass, "spigot"));
+        craftGetServerHandle        = toHandle(lookup, findNoArgMethod(serverClass, "getServer"));
+
+        Object spigotDelegate = invoke(server, spigotHandle);
         Class<?> spigotClass = spigotDelegate == null ? null : spigotDelegate.getClass();
-        spigotGetTpsMethod = spigotClass == null ? null : findNoArgMethod(spigotClass, "getTPS");
-        spigotTickTimesMethod = spigotClass == null ? null : findFirstNoArgMethod(spigotClass, TICK_TIME_METHOD_CANDIDATES);
+        spigotGetTpsHandle      = spigotClass == null ? null : toHandle(lookup, findNoArgMethod(spigotClass, "getTPS"));
+        spigotTickTimesHandle   = spigotClass == null ? null : toHandle(lookup, findFirstNoArgMethod(spigotClass, TICK_TIME_METHOD_CANDIDATES));
 
-        Object internalServer = invoke(server, craftGetServerMethod);
+        Object internalServer = invoke(server, craftGetServerHandle);
         Class<?> internalClass = internalServer == null ? null : internalServer.getClass();
-        internalAverageTickTimeMethod = internalClass == null ? null : findFirstNoArgMethod(internalClass, AVERAGE_TICK_METHOD_CANDIDATES);
-        internalTickTimesMethod = internalClass == null ? null : findFirstNoArgMethod(internalClass, TICK_TIME_METHOD_CANDIDATES);
-        internalRecentTpsField = internalClass == null ? null : findFirstField(internalClass, TPS_FIELD_CANDIDATES);
-        internalTickTimesField = internalClass == null ? null : findFirstField(internalClass, TICK_TIME_FIELD_CANDIDATES);
+        internalAverageTickTimeHandle = internalClass == null ? null : toHandle(lookup, findFirstNoArgMethod(internalClass, AVERAGE_TICK_METHOD_CANDIDATES));
+        internalTickTimesHandle       = internalClass == null ? null : toHandle(lookup, findFirstNoArgMethod(internalClass, TICK_TIME_METHOD_CANDIDATES));
+        internalRecentTpsField  = internalClass == null ? null : findFirstField(internalClass, TPS_FIELD_CANDIDATES);
+        internalTickTimesField  = internalClass == null ? null : findFirstField(internalClass, TICK_TIME_FIELD_CANDIDATES);
 
         resolvedServerClass = serverClass;
+    }
+
+    /** Converts a reflected {@link Method} to a {@link MethodHandle} for JIT-inlinable dispatch. */
+    private static MethodHandle toHandle(MethodHandles.Lookup lookup, Method method) {
+        if (method == null) return null;
+        try {
+            return lookup.unreflect(method);
+        } catch (IllegalAccessException ignored) {
+            return null;
+        }
     }
 
     private Method findFirstNoArgMethod(Class<?> type, String[] candidates) {
@@ -248,13 +310,13 @@ public class ServerMetricsProvider {
         return null;
     }
 
-    private Object invoke(Object target, Method method) {
-        if (target == null || method == null) {
+    private static Object invoke(Object target, MethodHandle handle) {
+        if (target == null || handle == null) {
             return null;
         }
         try {
-            return method.invoke(target);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return handle.invoke(target);
+        } catch (Throwable ignored) {
             return null;
         }
     }

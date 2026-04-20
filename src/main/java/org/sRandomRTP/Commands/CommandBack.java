@@ -5,7 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.sRandomRTP.DifferentMethods.Teleport.CompatibleTeleport;
-import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
@@ -25,7 +25,7 @@ public class CommandBack {
                     PlayerTeleportEvent.TeleportCause.PLUGIN,
                     Variables.isLoggingEnabled(),
                     "back command"
-            ).whenComplete((success, throwable) -> RegionTaskExecutor.runAtEntity(player, () -> {
+            ).whenComplete((success, throwable) -> FoliaSchedulerFacade.runAtEntity(player, () -> {
                 if (throwable != null || !Boolean.TRUE.equals(success)) {
                     Variables.getMessageService().send(sender,
                             java.util.Collections.singletonList("&cTeleport failed. Check LogsErrors/latest-error.log"));

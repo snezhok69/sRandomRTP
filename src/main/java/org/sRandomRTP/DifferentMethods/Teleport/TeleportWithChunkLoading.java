@@ -1,6 +1,5 @@
 package org.sRandomRTP.DifferentMethods.Teleport;
 
-import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -12,14 +11,16 @@ import org.sRandomRTP.Utils.AsyncChunkUtil;
 import java.util.concurrent.CompletableFuture;
 
 public class TeleportWithChunkLoading {
-    public static void teleportWithChunkLoading(Player player, Location teleportLocation, boolean loggingEnabled, int finalNewX, int finalNewZ, int newY) {
+
+    public static void teleportWithChunkLoading(Player player, Location teleportLocation,
+                                                boolean loggingEnabled,
+                                                int finalNewX, int finalNewZ, int newY) {
         if (player == null || teleportLocation == null || teleportLocation.getWorld() == null) {
             if (loggingEnabled) {
                 Bukkit.getLogger().severe("[TeleportWithChunkLoading] Cannot teleport because target data is missing");
             }
             return;
         }
-
         if (!player.isOnline()) {
             if (loggingEnabled) {
                 Bukkit.getLogger().info("[TeleportWithChunkLoading] Player " + player.getName() + " went offline before teleportation");
@@ -28,82 +29,59 @@ public class TeleportWithChunkLoading {
             return;
         }
 
-        World world = teleportLocation.getWorld();
-        final int chunkX = teleportLocation.getBlockX() >> 4;
-        final int chunkZ = teleportLocation.getBlockZ() >> 4;
+        // Build the final teleport runnable once — Folia wraps it in runAtLocation, Paper runs it directly.
+        final Runnable doTeleport = () ->
+                PerformTeleport.performTeleport(player, teleportLocation, loggingEnabled, finalNewX, finalNewZ, newY);
 
-        if (Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()) {
+        final boolean isFolia = Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia();
+        final Runnable scheduledAction;
+        if (isFolia) {
             if (loggingEnabled) {
-                Bukkit.getLogger().info("[TeleportWithChunkLoading] (Folia) Loading chunk async [" + chunkX + ", " + chunkZ + "] before region task");
+                Bukkit.getLogger().info("[TeleportWithChunkLoading] (Folia) Loading chunk async before region task");
             }
-
-            // Load the chunk asynchronously first — avoids blocking the region thread
-            CompletableFuture<Chunk> chunkFuture = AsyncChunkUtil.requestChunk(world, chunkX, chunkZ);
-            TeleportRequestContext ctxEarly = TeleportRequestManager.getContext(player.getUniqueId());
-            if (ctxEarly != null) {
-                ctxEarly.trackFuture(chunkFuture);
+            scheduledAction = () -> {
+                // On Folia we must schedule the teleport through the region owning the location.
+                CompletableFuture<Void> taskFuture = Variables.getFoliaLib().getImpl()
+                        .runAtLocation(teleportLocation.clone(), ignored -> {
+                            FoliaSchedulerFacade.runAtEntity(player, doTeleport);
+                        });
+                TeleportRequestContext ctxInner = TeleportRequestManager.getContext(player.getUniqueId());
+                if (ctxInner != null) {
+                    ctxInner.trackFuture(taskFuture);
+                }
+            };
+        } else {
+            if (loggingEnabled) {
+                Bukkit.getLogger().info("[TeleportWithChunkLoading] (Non-Folia) Ensuring chunk is loaded before teleport");
             }
-
-            chunkFuture.whenComplete((chunk, throwable) -> {
-                if (throwable != null) {
-                    if (loggingEnabled) {
-                        Bukkit.getLogger().severe("[TeleportWithChunkLoading] (Folia) Failed to load chunk async: " + throwable.getMessage());
-                    }
-                    CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                    return;
-                }
-
-                if (ctxEarly != null && ctxEarly.isInactive()) {
-                    if (loggingEnabled) {
-                        Bukkit.getLogger().info("[TeleportWithChunkLoading] Aborting due to context cancelled/expired for player " + player.getName());
-                    }
-                    CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                    return;
-                }
-
-                if (!player.isOnline()) {
-                    if (loggingEnabled) {
-                        Bukkit.getLogger().info("[TeleportWithChunkLoading] Player went offline before teleport after chunk load");
-                    }
-                    CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                    return;
-                }
-
-                java.util.concurrent.CompletableFuture<Void> taskFuture = Variables.getFoliaLib().getImpl().runAtLocation(teleportLocation.clone(), ignored -> {
-                    try {
-                        if (ctxEarly != null && ctxEarly.isInactive()) {
-                            CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                            return;
-                        }
-                        RegionTaskExecutor.runAtEntity(player, () ->
-                                PerformTeleport.performTeleport(player, teleportLocation, loggingEnabled, finalNewX, finalNewZ, newY));
-                    } catch (RuntimeException t) {
-                        if (loggingEnabled) {
-                            Bukkit.getLogger().severe("[TeleportWithChunkLoading] Unexpected error in region task: " + t.getMessage());
-                        }
-                        CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                    }
-                });
-                if (ctxEarly != null) {
-                    ctxEarly.trackFuture(taskFuture);
-                }
-            });
-            return;
+            scheduledAction = () -> FoliaSchedulerFacade.runAtEntity(player, doTeleport);
         }
 
-        if (loggingEnabled) {
-            Bukkit.getLogger().info("[TeleportWithChunkLoading] (Non-Folia) Ensuring chunk is loaded before teleport");
-        }
-        CompletableFuture<Chunk> future = AsyncChunkUtil.requestChunk(world, chunkX, chunkZ);
+        World world   = teleportLocation.getWorld();
+        int chunkX    = teleportLocation.getBlockX() >> 4;
+        int chunkZ    = teleportLocation.getBlockZ() >> 4;
+        executeAfterChunkLoad(player, world, chunkX, chunkZ, loggingEnabled, scheduledAction);
+    }
+
+    /**
+     * Loads the chunk at {@code (chunkX, chunkZ)} asynchronously, then — once the chunk is ready —
+     * calls {@code onChunkReady} on the async completion thread.
+     *
+     * <p>All common guards (throwable, context cancelled, chunk null, player offline) are
+     * handled here so the caller only provides the scheduler-specific teleport action.</p>
+     */
+    private static void executeAfterChunkLoad(Player player, World world, int chunkX, int chunkZ,
+                                              boolean loggingEnabled, Runnable onChunkReady) {
+        CompletableFuture<Chunk> chunkFuture = AsyncChunkUtil.requestChunk(world, chunkX, chunkZ);
         TeleportRequestContext context = TeleportRequestManager.getContext(player.getUniqueId());
         if (context != null) {
-            context.trackFuture(future);
+            context.trackFuture(chunkFuture);
         }
 
-        future.whenComplete((chunk, throwable) -> {
+        chunkFuture.whenComplete((chunk, throwable) -> {
             if (throwable != null) {
                 if (loggingEnabled) {
-                    Bukkit.getLogger().severe("[TeleportWithChunkLoading] Error while loading chunk: " + throwable.getMessage());
+                    Bukkit.getLogger().severe("[TeleportWithChunkLoading] Failed to load chunk async: " + throwable.getMessage());
                 }
                 CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
                 return;
@@ -111,7 +89,7 @@ public class TeleportWithChunkLoading {
 
             if (context != null && context.isInactive()) {
                 if (loggingEnabled) {
-                    Bukkit.getLogger().info("[TeleportWithChunkLoading] Aborting after chunk load due to cancel/expired");
+                    Bukkit.getLogger().info("[TeleportWithChunkLoading] Aborting: context cancelled/expired for " + player.getName());
                 }
                 CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
                 return;
@@ -133,8 +111,7 @@ public class TeleportWithChunkLoading {
                 return;
             }
 
-            RegionTaskExecutor.runAtEntity(player, () ->
-                    PerformTeleport.performTeleport(player, teleportLocation, loggingEnabled, finalNewX, finalNewZ, newY));
+            onChunkReady.run();
         });
     }
 }

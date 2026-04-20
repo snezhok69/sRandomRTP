@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods;
+import org.sRandomRTP.Utils.CoordinateUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -93,7 +94,7 @@ public final class BiomeConfigurableRtpHandler extends AbstractRtpHandler {
     }
 
     private FileConfiguration getConfigFile() {
-        return Variables.biomefile;
+        return Variables.getPluginContext().getConfigRegistry().getBiomeFile();
     }
 
     private String getConfigPrefix() {
@@ -131,7 +132,7 @@ public final class BiomeConfigurableRtpHandler extends AbstractRtpHandler {
     private int[] generateSquareRingCoordinates(Player player, int centerX, int centerZ, int radius,
                                                 int minRadius, int generationIndex, long sessionNonce) {
         long baseSeed = player != null ? player.getName().hashCode() : 0L;
-        long combinedSeed = mixSeeds(baseSeed, sessionNonce ^ (generationIndex * 31L + 17L));
+        long combinedSeed = CoordinateUtils.mixSeeds(baseSeed, sessionNonce ^ (generationIndex * 31L + 17L));
         SplittableRandom random = generationIndex >= 0
                 ? Variables.getRngProvider().deterministic(combinedSeed)
                 : Variables.getRngProvider().deterministic(System.nanoTime());
@@ -158,13 +159,4 @@ public final class BiomeConfigurableRtpHandler extends AbstractRtpHandler {
         return random.nextInt(minInclusive, maxInclusive + 1);
     }
 
-    private long mixSeeds(long baseSeed, long sessionNonce) {
-        long mixed = baseSeed ^ sessionNonce;
-        mixed ^= (mixed >>> 30);
-        mixed *= 0xbf58476d1ce4e5b9L;
-        mixed ^= (mixed >>> 27);
-        mixed *= 0x94d049bb133111ebL;
-        mixed ^= (mixed >>> 31);
-        return mixed;
-    }
 }

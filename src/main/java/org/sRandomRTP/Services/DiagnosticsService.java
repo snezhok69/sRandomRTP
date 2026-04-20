@@ -69,7 +69,7 @@ public class DiagnosticsService {
         public void finishSuccess() {
             line("Finished: " + timestamp());
             line("Status: SUCCESS");
-            flush();
+            flush(false);   // respect logs flag — skip file write when logs: false
         }
 
         public void finishFailure(Throwable throwable) {
@@ -78,14 +78,17 @@ public class DiagnosticsService {
             }
             line("Finished: " + timestamp());
             line("Status: FAILURE");
-            flush();
+            flush(true);    // always write — critical failure
         }
 
         private void line(String value) {
             lines.add(value);
         }
 
-        private void flush() {
+        private void flush(boolean force) {
+            if (!force && !org.sRandomRTP.DifferentMethods.Variables.isLoggingEnabled()) {
+                return;
+            }
             if (!diagnosticsFolder.exists()) {
                 diagnosticsFolder.mkdirs();
             }

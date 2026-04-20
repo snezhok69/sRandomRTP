@@ -1,8 +1,8 @@
 package org.sRandomRTP.DifferentMethods.Teleport;
 
 import io.papermc.lib.PaperLib;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.ConfigCache;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -10,7 +10,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SearchPhasePolicy {
 
+    /**
+     * Cached once at class-load — PaperLib already computes this once internally, but avoids
+     * repeated method calls. Guarded with try/catch so unit tests (no live Bukkit server)
+     * do not cause ExceptionInInitializerError.
+     */
+    private static final boolean IS_PAPER = resolvePaper();
+
+    private static boolean resolvePaper() {
+        try {
+            return PaperLib.isPaper();
+        } catch (RuntimeException | ExceptionInInitializerError e) {
+            return false; // unit-test / stub environment
+        }
+    }
+
     private static final AtomicInteger GLOBAL_INFLIGHT_CANDIDATES = new AtomicInteger();
+    /**
+     * Incremented on every {@link #reset()} call. Each {@link CandidatePermit} captures the epoch
+     * at acquisition time. On {@link CandidatePermit#release()}, a permit whose epoch no longer
+     * matches the current epoch is a no-op — it was created before the last reload and must not
+     * decrement the post-reset counter.
+     */
+    private static final AtomicInteger RELOAD_EPOCH = new AtomicInteger(0);
     private static final double INTERNAL_TPS_DRAG_THRESHOLD = 17.5D;
     private static final double INTERNAL_MSPT_DRAG_THRESHOLD = 40.0D;
     private static final int INTERNAL_CHUNK_PRESSURE_THRESHOLD = 12;
@@ -18,15 +40,23 @@ public final class SearchPhasePolicy {
     private SearchPhasePolicy() {
     }
 
+    /**
+     * Resets the global in-flight candidate counter to zero and advances the reload epoch.
+     * Must be called from {@code CommandReload} after config is reloaded so that
+     * any counter drift from pre-reload searches is cleared, and stale permits
+     * issued before the reload do not decrement the freshly-zeroed counter.
+     */
+    public static void reset() {
+        GLOBAL_INFLIGHT_CANDIDATES.set(0);
+        RELOAD_EPOCH.incrementAndGet();
+    }
+
     public static boolean shouldUseParallelCandidateSearch() {
-        FileConfiguration teleportConfig = Variables.teleportfile;
-        if (teleportConfig == null || !PaperLib.isPaper()) {
+        if (!IS_PAPER) {
             return false;
         }
-        if (!teleportConfig.getBoolean("teleport.parallel-search.enabled", false)) {
-            return false;
-        }
-        return teleportConfig.getInt("teleport.parallel-search.candidates-per-batch", 1) >= 2;
+        ConfigCache cfg = Variables.configCache;
+        return cfg.parallelSearchEnabled && cfg.parallelSearchCandidatesPerBatch >= 2;
     }
 
     public static int resolveBatchSize(TeleportRequestContext context) {
@@ -38,11 +68,9 @@ public final class SearchPhasePolicy {
             return 1;
         }
 
-        FileConfiguration teleportConfig = Variables.teleportfile;
-        int configured = Math.max(1, teleportConfig.getInt("teleport.parallel-search.candidates-per-batch", 2));
-        int maxBatch = Math.min(3, configured);
-        int maxInflight = Math.max(1, teleportConfig.getInt("teleport.parallel-search.max-global-inflight", 24));
-        int remainingCapacity = Math.max(0, maxInflight - GLOBAL_INFLIGHT_CANDIDATES.get());
+        ConfigCache cfg = Variables.configCache;
+        int maxBatch = Math.min(3, cfg.parallelSearchCandidatesPerBatch);
+        int remainingCapacity = Math.max(0, cfg.parallelSearchMaxGlobalInflight - GLOBAL_INFLIGHT_CANDIDATES.get());
         int effective = remainingCapacity <= 0 ? 1 : Math.min(maxBatch, remainingCapacity);
 
         if (context != null && effective > 1) {
@@ -52,23 +80,16 @@ public final class SearchPhasePolicy {
     }
 
     public static boolean shouldPreferGeneratedChunks(TeleportRequestContext context, int attemptNumber) {
-        FileConfiguration teleportConfig = Variables.teleportfile;
-        if (teleportConfig == null || !PaperLib.isPaper()) {
+        if (!IS_PAPER || context == null) {
             return false;
         }
-        if (!teleportConfig.getBoolean("teleport.prefer-generated-chunks.enabled", false)) {
-            return false;
-        }
-        if (context == null) {
+        ConfigCache cfg = Variables.configCache;
+        if (!cfg.preferGeneratedChunksEnabled) {
             return false;
         }
 
-        long windowMs = Math.max(0L, teleportConfig.getLong("teleport.prefer-generated-chunks.window-ms", 1000L));
-        int maxAttempts = Math.max(1, teleportConfig.getInt("teleport.prefer-generated-chunks.max-attempts", 8));
-
-        boolean withinWindow = context.getElapsedMillis() <= windowMs;
-        boolean withinAttempts = attemptNumber <= maxAttempts;
-        boolean preferGenerated = withinWindow && withinAttempts;
+        boolean preferGenerated = context.getElapsedMillis() <= cfg.preferGeneratedChunksWindowMs
+                && attemptNumber <= cfg.preferGeneratedChunksMaxAttempts;
 
         if (preferGenerated) {
             context.incrementGeneratedOnlyPhaseHits();
@@ -84,33 +105,37 @@ public final class SearchPhasePolicy {
             return CandidatePermit.unavailable();
         }
 
-        FileConfiguration teleportConfig = Variables.teleportfile;
-        int maxInflight = teleportConfig == null ? 24
-                : Math.max(1, teleportConfig.getInt("teleport.parallel-search.max-global-inflight", 24));
+        int maxInflight = Variables.configCache.parallelSearchMaxGlobalInflight;
+        // Capture epoch before the atomic increment so the permit's epoch always matches
+        // the generation in which it was issued.
+        int epoch = RELOAD_EPOCH.get();
 
-        int updated = GLOBAL_INFLIGHT_CANDIDATES.incrementAndGet();
-        if (updated > maxInflight) {
-            GLOBAL_INFLIGHT_CANDIDATES.decrementAndGet();
+        // Atomically increment counter only if limit not exceeded (eliminates TOCTOU).
+        int prev = GLOBAL_INFLIGHT_CANDIDATES.getAndUpdate(current -> current < maxInflight ? current + 1 : current);
+        if (prev >= maxInflight) {
             return primaryCandidate ? CandidatePermit.primaryNoop() : CandidatePermit.unavailable();
         }
-        return CandidatePermit.acquired();
+        return CandidatePermit.acquired(epoch);
     }
 
     public static final class CandidatePermit {
-        private static final CandidatePermit UNAVAILABLE = new CandidatePermit(false, false);
-        private static final CandidatePermit PRIMARY_NOOP = new CandidatePermit(true, false);
+        private static final CandidatePermit UNAVAILABLE = new CandidatePermit(false, false, -1);
+        private static final CandidatePermit PRIMARY_NOOP = new CandidatePermit(true, false, -1);
 
         private final boolean usable;
         private final boolean acquired;
+        /** Epoch value at acquisition time; -1 for static singletons that are never released. */
+        private final int epoch;
         private final AtomicBoolean released = new AtomicBoolean(false);
 
-        private CandidatePermit(boolean usable, boolean acquired) {
+        private CandidatePermit(boolean usable, boolean acquired, int epoch) {
             this.usable = usable;
             this.acquired = acquired;
+            this.epoch = epoch;
         }
 
-        public static CandidatePermit acquired() {
-            return new CandidatePermit(true, true);
+        public static CandidatePermit acquired(int epoch) {
+            return new CandidatePermit(true, true, epoch);
         }
 
         public static CandidatePermit unavailable() {
@@ -129,7 +154,11 @@ public final class SearchPhasePolicy {
             if (!acquired || !released.compareAndSet(false, true)) {
                 return;
             }
-            GLOBAL_INFLIGHT_CANDIDATES.updateAndGet(current -> current <= 0 ? 0 : current - 1);
+            // Only decrement the counter if this permit was issued in the current reload epoch.
+            // Stale permits (epoch < current) must not touch the post-reset counter.
+            if (epoch == RELOAD_EPOCH.get()) {
+                GLOBAL_INFLIGHT_CANDIDATES.updateAndGet(current -> current <= 0 ? 0 : current - 1);
+            }
         }
     }
 

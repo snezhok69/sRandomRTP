@@ -1,15 +1,24 @@
-# Project exclude paths
+# Build outputs
 /target/
-.idea
-.cursor
+target/
+
+# IDE and editor files
+.idea/
+.vscode/
+.cursor/
 .cursorrules
-.vscode
-hoco
-.hoco
-target
-.git-rewrite
-.claude
-1.txt
-.agents
+
+# OS files
+.DS_Store
+
+# Local agent and secret config
+.agents/
+.claude/
 .mcp.json
 CLAUDE.md
+
+# Local scratch files
+1.txt
+hoco
+.hoco
+.git-rewrite/

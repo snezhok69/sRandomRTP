@@ -62,7 +62,7 @@ public final class TeleportExecutionService {
             if (!player.isOnline()) {
                 TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "player offline");
                 RuntimeStateRegistry state = Variables.getRuntimeState();
-                state.setPlayerSearching(player, false);
+                if (state != null) state.setPlayerSearching(player, false);
                 return;
             }
 
@@ -78,15 +78,12 @@ public final class TeleportExecutionService {
             return;
         }
 
-        FoliaSchedulerFacade.runAtEntity(player, new Runnable() {
-            @Override
-            public void run() {
-                if (context != null && context.isInactive()) {
-                    CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-                    return;
-                }
-                PerformTeleport.performTeleport(player, resolution, loggingEnabled);
+        FoliaSchedulerFacade.runAtEntity(player, () -> {
+            if (context != null && context.isInactive()) {
+                CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
+                return;
             }
+            PerformTeleport.performTeleport(player, resolution, loggingEnabled);
         });
     }
 }

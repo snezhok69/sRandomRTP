@@ -3,6 +3,7 @@ package org.sRandomRTP.Files;
 import org.bukkit.Bukkit;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -16,7 +17,7 @@ public class CheckingFile {
         try (InputStream baseInputStream = Variables.getInstance().getResource("lang/" + baseFileName);
              InputStream compareToInputStream = Variables.getInstance().getResource("lang/" + compareToFileName)) {
             if (baseInputStream == null || compareToInputStream == null) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cUnable to compare language files: §e" + baseFileName + " §cor §e" + compareToFileName + " §cnot found.");
+                Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cUnable to compare language files: §e" + baseFileName + " §cor §e" + compareToFileName + " §cnot found.");
                 return;
             }
             Yaml yaml = new Yaml();

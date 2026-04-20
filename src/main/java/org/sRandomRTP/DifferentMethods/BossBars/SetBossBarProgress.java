@@ -15,18 +15,18 @@ public class SetBossBarProgress {
     public static void setBossBarProgress(CommandSender sender, Player player, double progress, String message) {
         try {
             RuntimeStateRegistry state = Variables.getRuntimeState();
-            BossBar existingBossBar = state.getBossBars().get(player);
-            if (existingBossBar == null) {
-                BarColor color = BarColor.valueOf(Variables.bossbarfile.getString("teleport.bar-color"));
-                BarStyle style = BarStyle.valueOf(Variables.bossbarfile.getString("teleport.bar-style"));
-                BossBar bossBar = Bukkit.createBossBar(message, color, style);
-                bossBar.setProgress(1.0);
-                bossBar.addPlayer(player);
-                state.getBossBars().put(player, bossBar);
-            } else {
-                existingBossBar.setProgress(progress);
-                existingBossBar.setTitle(message);
-            }
+            // computeIfAbsent is atomic on the ConcurrentHashMap-backed PlayerResourceMap,
+            // preventing two concurrent RTP countdowns from creating duplicate bars for the same player.
+            BossBar bar = state.getBossBars().computeIfAbsent(player, p -> {
+                BarColor color = BarColor.valueOf(Variables.getPluginContext().getConfigRegistry().getBossBarFile().getString("teleport.bar-color"));
+                BarStyle style = BarStyle.valueOf(Variables.getPluginContext().getConfigRegistry().getBossBarFile().getString("teleport.bar-style"));
+                BossBar b = Bukkit.createBossBar(message, color, style);
+                b.setProgress(1.0);
+                b.addPlayer(p);
+                return b;
+            });
+            bar.setProgress(progress);
+            bar.setTitle(message);
         } catch (RuntimeException e) {
             LoggerUtility.loggerUtility(SetBossBarProgress.class, e);
         }

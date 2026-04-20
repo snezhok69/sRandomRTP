@@ -22,7 +22,7 @@ public final class PortalSettings {
     }
 
     public static PortalSettings current() {
-        return new PortalSettings(Variables.portalfile);
+        return new PortalSettings(Variables.getPluginContext().getConfigRegistry().getPortalFile());
     }
 
     public Material getFloorMaterial() {

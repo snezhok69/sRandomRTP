@@ -41,7 +41,7 @@ public final class ChunkTicketManager {
             return;
         }
 
-        Plugin plugin = Variables.instance;
+        Plugin plugin = Variables.getInstance();
         if (plugin == null) {
             return;
         }
@@ -58,7 +58,7 @@ public final class ChunkTicketManager {
     }
 
     private static void releaseTicket(World world, int chunkX, int chunkZ, String key) {
-        Plugin plugin = Variables.instance;
+        Plugin plugin = Variables.getInstance();
         if (plugin == null) {
             return;
         }

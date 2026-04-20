@@ -76,7 +76,7 @@ public final class TeleportCancellationSupport {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
         RemoveAllBossBars.removeBossBar(player);
         CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-        // Отмена поиска — позиция /back не нужна, очищаем чтобы не копилась в памяти
+        // Search cancelled — /back position not needed, clear it to avoid memory accumulation
         state.removeInitialPosition(player);
         return true;
     }

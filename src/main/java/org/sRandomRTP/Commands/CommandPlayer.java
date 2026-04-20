@@ -2,11 +2,11 @@ package org.sRandomRTP.Commands;
 
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Cooldowns.CooldownBypassBossBarPlayer;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.DifferentMethods.RequirementChecker;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
 
@@ -15,7 +15,7 @@ public class CommandPlayer {
     public static void commandPlayer(CommandSender sender, Player targetPlayer, World targetWorld) {
         try {
             if (targetPlayer == null) {
-                Variables.sendError(sender, "Target player not found.");
+                ChatUtils.sendError(sender, "Target player not found.");
                 return;
             }
             RuntimeStateRegistry state = Variables.getRuntimeState();
@@ -24,13 +24,12 @@ public class CommandPlayer {
                 return;
             }
             if (!(sender instanceof Player)) {
-                Variables.sendPlayersOnly(sender);
+                ChatUtils.sendPlayersOnly(sender);
                 return;
             }
             Player player = (Player) sender;
             World world = targetWorld != null ? targetWorld : targetPlayer.getWorld();
-            FileConfiguration config = Variables.getInstance().getConfig();
-            boolean loggingEnabled = config.getBoolean("logs", false);
+            boolean loggingEnabled = Variables.isLoggingEnabled();
 
             if (!player.hasPermission(Permissions.PLAYER)) {
                 Variables.getMessageService().send(sender, LoadMessages.nopermissioncommand);
@@ -42,7 +41,7 @@ public class CommandPlayer {
             int teleportCost = RequirementChecker.checkRequirements(player, targetPlayer, loggingEnabled);
             if (teleportCost < 0) return;
 
-            if (state.getPlayerConfirmStatus().getOrDefault(targetPlayer.getName(), false)) {
+            if (state.getPlayerConfirmStatus().getOrDefault(targetPlayer.getUniqueId(), false)) {
                 Variables.getMessageService().send(sender, LoadMessages.rtpplayeralreadyrequested);
                 return;
             }

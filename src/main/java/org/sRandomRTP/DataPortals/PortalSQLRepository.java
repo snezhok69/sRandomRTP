@@ -6,7 +6,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.sRandomRTP.Commands.CommandSetPortal;
+import org.sRandomRTP.Commands.portal.PortalParticleManager;
+import org.sRandomRTP.Commands.portal.PortalTriggerHandler;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
 
@@ -31,6 +32,7 @@ public class PortalSQLRepository {
     public static CompletableFuture<Void> loadPortalsPlayerFromDatabaseSQL() {
         return SQLManagerPortals.runDbAsync("load portals from database", conn -> {
             RuntimeStateRegistry state = Variables.getRuntimeState();
+            if (state == null) return;
             state.getPlayerPortals().clear();
             try (PreparedStatement selectStatement = conn.prepareStatement(
                     "SELECT player_name, portal_names, portal_data FROM PlayerPortals")) {
@@ -83,9 +85,10 @@ public class PortalSQLRepository {
         });
     }
 
-    public static void loadPortalBlocksPlayerToDatabaseSQL() {
-        SQLManagerPortals.fireAndForgetAsync("load portal blocks from database", conn -> {
+    public static CompletableFuture<Void> loadPortalBlocksPlayerToDatabaseSQL() {
+        return SQLManagerPortals.runDbAsync("load portal blocks from database", conn -> {
             RuntimeStateRegistry state = Variables.getRuntimeState();
+            if (state == null) return;
             state.clearPortalBlocks();
             try (PreparedStatement statement = conn.prepareStatement(
                     "SELECT player_Name, portal_Name, block_Data, shape FROM PlayerPortalsBlocks");
@@ -94,6 +97,11 @@ public class PortalSQLRepository {
                     String playerName = resultSet.getString("player_Name");
                     String portalName = resultSet.getString("portal_Name");
                     String blockData  = resultSet.getString("block_Data");
+                    if (playerName == null || portalName == null || blockData == null) {
+                        Variables.getInstance().getLogger().warning(
+                                "[sRandomRTP] Skipping portal block row with null player_Name, portal_Name, or block_Data");
+                        continue;
+                    }
                     for (String block : PortalDataSerializer.parseData(blockData)) {
                         try {
                             String[] parts = block.split(":");
@@ -127,9 +135,10 @@ public class PortalSQLRepository {
         });
     }
 
-    public static void loadPortalTasksFromDatabaseSQL() {
-        SQLManagerPortals.fireAndForgetAsync("load portal tasks from database", conn -> {
+    public static CompletableFuture<Void> loadPortalTasksFromDatabaseSQL() {
+        return SQLManagerPortals.runDbAsync("load portal tasks from database", conn -> {
             RuntimeStateRegistry state = Variables.getRuntimeState();
+            if (state == null) return;
             state.getPlayerPortalsTasks().clear();
             try (PreparedStatement statement = conn.prepareStatement(
                     "SELECT player_Name, portal_Name, task_Type, delay, period, center_X, center_Y, center_Z, radius, taskIds, world, shape FROM PlayerPortalsTasks");
@@ -148,8 +157,15 @@ public class PortalSQLRepository {
                     String worldName  = resultSet.getString("world");
                     String shape      = resultSet.getString("shape");
 
+                    if (playerName == null || portalName == null || taskType == null || worldName == null) {
+                        Variables.getInstance().getLogger().warning(
+                                "[sRandomRTP] Skipping portal task row with null player_Name, portal_Name, task_Type, or world");
+                        continue;
+                    }
                     if (shape == null || shape.isEmpty()) shape = "circle";
-                    if (taskIds == null) taskIds = "empty_id <|||> empty_id";
+                    // Guard against both null and empty string: "".split(...) produces [""],
+                    // and taskIdsArray[1] would then throw ArrayIndexOutOfBoundsException.
+                    if (taskIds == null || taskIds.isEmpty()) taskIds = "empty_id <|||> empty_id";
 
                     World world = Bukkit.getWorld(worldName);
                     if (world == null) continue;
@@ -168,13 +184,16 @@ public class PortalSQLRepository {
                         WrappedTask triggerTask   = null;
                         if (taskType.contains("particles")) {
                             particlesTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                                    () -> CommandSetPortal.spawnParticles(center, finalRadius, finalShape),
+                                    () -> PortalParticleManager.spawnParticles(center, finalRadius, finalShape),
                                     finalDelay, finalPeriod);
                         }
                         if (taskType.contains("trigger")) {
-                            triggerTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                                    () -> CommandSetPortal.handlePortalTrigger(center, finalRadius, finalShape),
-                                    finalDelay, finalPeriod);
+                            PortalTriggerHandler triggerHandler = Variables.getPortalTriggerHandler();
+                            if (triggerHandler != null) {
+                                triggerTask = Variables.getFoliaLib().getImpl().runTimerAsync(
+                                        () -> triggerHandler.handlePortalTrigger(center, finalRadius, finalShape),
+                                        finalDelay, finalPeriod);
+                            }
                         }
                         String combinedTaskIds = particlesTaskId + " <|||> " + triggerTaskId;
                         state.putPortalTask(portalName,
@@ -189,10 +208,6 @@ public class PortalSQLRepository {
     }
 
     // ── Save ──────────────────────────────────────────────────────────────────
-
-    public static CompletableFuture<Void> savePortalPlayerToDatabaseSQL(String playerName, String worldName, String portalName, double x, double y, double z) {
-        return savePortalPlayerToDatabaseSQL(playerName, worldName, portalName, x, y, z, "circle");
-    }
 
     public static CompletableFuture<Void> savePortalPlayerToDatabaseSQL(String playerName, String worldName, String portalName, double x, double y, double z, String shape) {
         return SQLManagerPortals.runDbAsync("save portal data for " + playerName, conn ->
@@ -217,10 +232,6 @@ public class PortalSQLRepository {
         );
     }
 
-    public static void savePortalBlocksPlayerToDatabaseSQL(String playerName, String portalName, int portalRadius, String allBlocksData) {
-        savePortalBlocksPlayerToDatabaseSQL(playerName, portalName, portalRadius, allBlocksData, "circle");
-    }
-
     public static void savePortalBlocksPlayerToDatabaseSQL(String playerName, String portalName, int portalRadius, String allBlocksData, String shape) {
         SQLManagerPortals.fireAndForgetAsync("save portal blocks for " + playerName, conn -> {
             try (PreparedStatement statement = conn.prepareStatement(
@@ -233,10 +244,6 @@ public class PortalSQLRepository {
                 statement.executeUpdate();
             }
         });
-    }
-
-    public static void savePortalTasksToDatabaseSQL(String playerName, String portalName, String taskType, long delay, long period, Location center, int radius, String taskIds, World world) {
-        savePortalTasksToDatabaseSQL(playerName, portalName, taskType, delay, period, center, radius, taskIds, world, "circle");
     }
 
     public static void savePortalTasksToDatabaseSQL(String playerName, String portalName, String taskType, long delay, long period, Location center, int radius, String taskIds, World world, String shape) {
@@ -284,8 +291,8 @@ public class PortalSQLRepository {
         );
     }
 
-    public static void removePortalBlocksPlayerToDatabaseSQL(String portalName) {
-        SQLManagerPortals.fireAndForgetAsync("remove portal blocks for '" + portalName + "'", conn -> {
+    public static CompletableFuture<Void> removePortalBlocksPlayerToDatabaseSQL(String portalName) {
+        return SQLManagerPortals.runDbAsync("remove portal blocks for '" + portalName + "'", conn -> {
             try (PreparedStatement deleteStatement = conn.prepareStatement(
                     "DELETE FROM PlayerPortalsBlocks WHERE portal_Name = ?")) {
                 deleteStatement.setString(1, portalName);
@@ -294,10 +301,12 @@ public class PortalSQLRepository {
             RuntimeStateRegistry state = Variables.getRuntimeState();
             List<PortalDataBlocks> removedBlocks = state.removePortalBlocksForPortal(portalName);
             for (PortalDataBlocks blockData : removedBlocks) {
+                // Bukkit.getWorld() is safe on Paper's async thread; block modification
+                // is deferred to the location thread via runAtLocation.
                 World world = Bukkit.getWorld(blockData.getWorld());
                 if (world != null) {
                     Location blockLocation = new Location(world, blockData.getX(), blockData.getY(), blockData.getZ());
-                    state.getPlacedBlocks().remove(blockLocation);
+                    state.getPlacedBlocks().remove(blockLocation); // ConcurrentHashMap — thread-safe
                     Variables.getFoliaLib().getImpl().runAtLocation(blockLocation, loc -> {
                         blockLocation.getBlock().setType(Material.AIR);
                     });
@@ -306,8 +315,8 @@ public class PortalSQLRepository {
         });
     }
 
-    public static void removePortalTasksFromDatabaseSQL(String portalName) {
-        SQLManagerPortals.fireAndForgetAsync("remove portal tasks for '" + portalName + "'", conn -> {
+    public static CompletableFuture<Void> removePortalTasksFromDatabaseSQL(String portalName) {
+        return SQLManagerPortals.runDbAsync("remove portal tasks for '" + portalName + "'", conn -> {
             try (PreparedStatement deleteStatement = conn.prepareStatement(
                     "DELETE FROM PlayerPortalsTasks WHERE portal_Name = ?")) {
                 deleteStatement.setString(1, portalName);

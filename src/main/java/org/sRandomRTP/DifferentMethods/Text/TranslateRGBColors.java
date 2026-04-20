@@ -13,15 +13,17 @@ public class TranslateRGBColors {
         if (message == null || message.isEmpty()) {
             return message;
         }
-
+        // Single-pass O(N) replacement using appendReplacement/appendTail.
+        // The previous loop-with-replace approach was O(N²) because it rebuilt
+        // a new Matcher on the partially-replaced string after every substitution.
+        StringBuffer sb = new StringBuffer();
         Matcher match = RGB_PATTERN.matcher(message);
         while (match.find()) {
-            String color = message.substring(match.start(), match.end());
-            String hex = match.group(1);
-            net.md_5.bungee.api.ChatColor chatColor = net.md_5.bungee.api.ChatColor.of("#" + hex);
-            message = message.replace(color, chatColor + "");
-            match = RGB_PATTERN.matcher(message);
+            net.md_5.bungee.api.ChatColor chatColor =
+                    net.md_5.bungee.api.ChatColor.of("#" + match.group(1));
+            match.appendReplacement(sb, Matcher.quoteReplacement(chatColor.toString()));
         }
-        return ChatColor.translateAlternateColorCodes('&', message);
+        match.appendTail(sb);
+        return ChatColor.translateAlternateColorCodes('&', sb.toString());
     }
 }

@@ -13,9 +13,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DifferentMethods.Teleport.CompatibleTeleport;
-import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class CommandListPortals {
                 if (sender instanceof Player) {
                     teleportToPortal((Player) sender, portalName);
                 } else {
-                    Variables.sendPlayersOnly(sender);
+                    ChatUtils.sendPlayersOnly(sender);
                 }
                 return;
             }
@@ -69,7 +70,7 @@ public class CommandListPortals {
                 if (sender instanceof Player) {
                     teleportToPortal((Player) sender, portalName);
                 } else {
-                    Variables.sendPlayersOnly(sender);
+                    ChatUtils.sendPlayersOnly(sender);
                 }
             }
         }
@@ -197,7 +198,7 @@ public class CommandListPortals {
                 PlayerTeleportEvent.TeleportCause.PLUGIN,
                 Variables.isLoggingEnabled(),
                 "portal list teleport"
-        ).whenComplete((success, throwable) -> RegionTaskExecutor.runAtEntity(player, () -> {
+        ).whenComplete((success, throwable) -> FoliaSchedulerFacade.runAtEntity(player, () -> {
             if (throwable != null || !Boolean.TRUE.equals(success)) {
                 Variables.getMessageService().send(player,
                         java.util.Collections.singletonList("&cTeleport to portal failed. Check LogsErrors/latest-error.log"));

@@ -7,9 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.mockito.Mockito;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.ConfigRegistry;
+import org.sRandomRTP.Services.PluginContext;
+
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class TeleportRequestManagerMockBukkitTest {
 
@@ -17,7 +23,7 @@ class TeleportRequestManagerMockBukkitTest {
     private PlayerMock player;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         server = MockBukkit.mock();
         player = server.addPlayer("teleport-tester");
 
@@ -25,17 +31,30 @@ class TeleportRequestManagerMockBukkitTest {
         teleportConfig.set("teleport.teleport-timeout.enabled", true);
         teleportConfig.set("teleport.teleport-timeout.attempt-timeout-ms", 1_500L);
         teleportConfig.set("teleport.teleport-timeout.total-timeout-ms", 4_500L);
-        Variables.teleportfile = teleportConfig;
-        Variables.econ = null;
+
+        ConfigRegistry configRegistry = Mockito.mock(ConfigRegistry.class);
+        when(configRegistry.getTeleportFile()).thenReturn(teleportConfig);
+
+        PluginContext pluginContext = Mockito.mock(PluginContext.class);
+        when(pluginContext.getConfigRegistry()).thenReturn(configRegistry);
+
+        Field field = Variables.class.getDeclaredField("pluginContext");
+        field.setAccessible(true);
+        field.set(null, pluginContext);
+
+        // Phase 2.2: TeleportRequestManager now reads timeout values from ConfigCache,
+        // not from live YAML — populate the cache with the same values the test expects.
+        Variables.configCache = org.sRandomRTP.Services.ConfigCache.buildFrom(configRegistry);
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws Exception {
         if (player != null) {
             TeleportRequestManager.cancelRequest(player.getUniqueId(), false, "test cleanup");
         }
-        Variables.teleportfile = null;
-        Variables.econ = null;
+        Field field = Variables.class.getDeclaredField("pluginContext");
+        field.setAccessible(true);
+        field.set(null, null);
         if (MockBukkit.isMocked()) {
             MockBukkit.unmock();
         }

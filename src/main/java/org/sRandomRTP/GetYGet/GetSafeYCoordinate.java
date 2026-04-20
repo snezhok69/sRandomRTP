@@ -8,19 +8,76 @@ import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.sRandomRTP.BlockBiomes.BiomeBlockValidator;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Teleport.SearchPhasePolicy;
 import org.sRandomRTP.DifferentMethods.Variables;
-import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
 
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
 
 public class GetSafeYCoordinate {
+
+    /** Class-level logger — never null even during plugin reload/disable race. */
+    private static final Logger LOG = Logger.getLogger(GetSafeYCoordinate.class.getName());
+
+    // Static EnumSet caches for O(1) material checks — avoids repeated switch evaluation
+    private static final Set<Material> FLUID_MATERIALS = EnumSet.of(
+            Material.WATER, Material.LAVA,
+            Material.KELP, Material.KELP_PLANT,
+            Material.SEAGRASS, Material.TALL_SEAGRASS,
+            Material.BUBBLE_COLUMN, Material.VINE
+    );
+
+    private static final Set<Material> UNSAFE_OCCUPANT_MATERIALS = EnumSet.of(
+            Material.COBWEB,
+            Material.POWDER_SNOW,
+            Material.FIRE,
+            Material.SOUL_FIRE,
+            Material.CACTUS,
+            Material.CAMPFIRE,
+            Material.SOUL_CAMPFIRE,
+            Material.MAGMA_BLOCK
+    );
+
+    private static final Set<Material> UNSAFE_SUPPORT_MATERIALS = EnumSet.of(
+            Material.CACTUS,
+            Material.CAMPFIRE,
+            Material.SOUL_CAMPFIRE,
+            Material.MAGMA_BLOCK,
+            Material.FIRE,
+            Material.SOUL_FIRE
+    );
+
+    /** Bedrock variants — used by Nether safe-Y check to reject ceiling/floor positions. */
+    static final Set<Material> BEDROCK_MATERIALS = EnumSet.of(Material.BEDROCK);
+
+    /**
+     * All leaf-block variants — populated once at class-load by scanning Material names.
+     * Replaces the per-call {@code type.name().contains("LEAVES")} string allocation.
+     */
+    private static final Set<Material> LEAF_MATERIALS;
+    static {
+        Set<Material> leaves = EnumSet.noneOf(Material.class);
+        for (Material m : Material.values()) {
+            if (m.name().contains("LEAVES")) {
+                leaves.add(m);
+            }
+        }
+        LEAF_MATERIALS = leaves.isEmpty() ? java.util.Collections.emptySet() : leaves;
+    }
+
+    /** Priority Y-levels probed first in Nether to avoid the solid ceiling/floor zones. */
+    private static final int[] NETHER_PRIORITY_HEIGHTS = {31, 64, 100, 120};
+    /** Priority Y-levels probed first in End and other non-overworld/nether environments. */
+    private static final int[] END_PRIORITY_HEIGHTS    = {80, 100, 60, 40};
+
     private static final int[][] PRIMARY_COLUMN_OFFSETS = {
             {0, 0}, {2, 0}, {0, 2}, {-2, 0}, {0, -2},
             {2, 2}, {-2, 2}, {2, -2}, {-2, -2}
@@ -78,7 +135,7 @@ public class GetSafeYCoordinate {
 
         if (Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()) {
             Location location = new Location(world, x, world.getMinHeight(), z);
-            RegionTaskExecutor.runAtLocation(location, () -> {
+            FoliaSchedulerFacade.runAtLocation(location, () -> {
                 try {
                     if (context != null && context.isInactive()) {
                         future.complete(failure(x, z));
@@ -117,7 +174,7 @@ public class GetSafeYCoordinate {
             }
 
             Location location = new Location(world, x, world.getMinHeight(), z);
-            RegionTaskExecutor.runAtLocation(location, () -> {
+            FoliaSchedulerFacade.runAtLocation(location, () -> {
                 try {
                     if (context != null && context.isInactive()) {
                         future.complete(failure(x, z));
@@ -280,7 +337,8 @@ public class GetSafeYCoordinate {
 
         int maxY = world.getMaxHeight() - 1;
         int minWorldY = world.getMinHeight();
-        int minY = Math.max(minWorldY, Variables.cachedMinY);
+        // Capture once — avoids a volatile memory-barrier on every iteration of the Y scan loop
+        int minY = Math.max(minWorldY, Variables.configCache.minY);
         int relativeX = x & 0xF; // x % 16
         int relativeZ = z & 0xF; // z % 16
 
@@ -294,7 +352,7 @@ public class GetSafeYCoordinate {
         Material topSurfaceMaterial = chunk.getBlock(relativeX, clampY(surfaceY, minWorldY, maxY), relativeZ).getType();
         if (isFluidMaterial(topSurfaceMaterial) || BiomeBlockValidator.isBlockBanned(topSurfaceMaterial)) {
             if (allowFailureLog && loggingEnabled) {
-                Variables.instance.getLogger().fine("Skipping location at X:" + x + ", Z:" + z
+                LOG.fine("Skipping location at X:" + x + ", Z:" + z
                         + " because the top surface block is unsafe: " + topSurfaceMaterial);
             }
             return failure(x, z);
@@ -302,7 +360,7 @@ public class GetSafeYCoordinate {
 
         if (isLikelyOcean(chunk, relativeX, relativeZ, surfaceY, oceanFloorY)) {
             if (allowFailureLog && loggingEnabled) {
-                Variables.instance.getLogger().fine("Skipping location at X:" + x + ", Z:" + z + " due to deep water surface.");
+                LOG.fine("Skipping location at X:" + x + ", Z:" + z + " due to deep water surface.");
             }
             return failure(x, z);
         }
@@ -319,14 +377,14 @@ public class GetSafeYCoordinate {
                     && hasGentleSlope(chunk, relativeX, relativeZ, y, minY, maxY)) {
                 Biome biome = world.getBiome(x, y, z);
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found near surface: " + y);
+                    LOG.info("Safe Y found near surface: " + y);
                 }
                 return new CoordinateWithBiome(x, y, z, biome);
             }
         }
 
         if (allowFailureLog && loggingEnabled) {
-            Variables.instance.getLogger().warning("Failed to find safe Y at X:" + x + ", Z:" + z);
+            LOG.warning("Failed to find safe Y at X:" + x + ", Z:" + z);
         }
         return failure(x, z);
     }
@@ -338,13 +396,11 @@ public class GetSafeYCoordinate {
         int relativeX = x & 0xF;
         int relativeZ = z & 0xF;
 
-        int[] netherHeights = {31, 64, 100, 120};
-
-        for (int y : netherHeights) {
+        for (int y : NETHER_PRIORITY_HEIGHTS) {
             if (y >= minY && y < maxY && isSafePositionFast(world, chunk, x, y, z, relativeX, relativeZ)) {
                 Biome biome = world.getBiome(x, y, z);
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found in Nether at key height: " + y);
+                    LOG.info("Safe Y found in Nether at key height: " + y);
                 }
                 return new CoordinateWithBiome(x, y, z, biome);
             }
@@ -361,7 +417,7 @@ public class GetSafeYCoordinate {
             if (isSafePositionFast(world, chunk, x, topY, z, relativeX, relativeZ)) {
                 Biome biome = world.getBiome(x, topY, z);
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found in Nether from top: " + topY);
+                    LOG.info("Safe Y found in Nether from top: " + topY);
                 }
                 return new CoordinateWithBiome(x, topY, z, biome);
             }
@@ -370,7 +426,7 @@ public class GetSafeYCoordinate {
             if (isSafePositionFast(world, chunk, x, bottomY, z, relativeX, relativeZ)) {
                 Biome biome = world.getBiome(x, bottomY, z);
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found in Nether from bottom: " + bottomY);
+                    LOG.info("Safe Y found in Nether from bottom: " + bottomY);
                 }
                 return new CoordinateWithBiome(x, bottomY, z, biome);
             }
@@ -385,14 +441,14 @@ public class GetSafeYCoordinate {
             if (isSafePositionFast(world, chunk, x, y, z, relativeX, relativeZ)) {
                 Biome biome = world.getBiome(x, y, z);
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found in Nether with detailed search: " + y);
+                    LOG.info("Safe Y found in Nether with detailed search: " + y);
                 }
                 return new CoordinateWithBiome(x, y, z, biome);
             }
         }
 
         if (allowFailureLog && loggingEnabled) {
-            Variables.instance.getLogger().warning("Failed to find safe Y in Nether at X:" + x + ", Z:" + z);
+            LOG.warning("Failed to find safe Y in Nether at X:" + x + ", Z:" + z);
         }
         return failure(x, z);
     }
@@ -404,13 +460,11 @@ public class GetSafeYCoordinate {
         int relativeX = x & 0xF;
         int relativeZ = z & 0xF;
 
-        int[] endHeights = {80, 100, 60, 40};
-
-        for (int y : endHeights) {
+        for (int y : END_PRIORITY_HEIGHTS) {
             if (y >= minY && y < maxY && isSafePositionFast(world, chunk, x, y, z, relativeX, relativeZ)) {
                 Biome biome = world.getBiome(x, y, z);
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found in End at key height: " + y);
+                    LOG.info("Safe Y found in End at key height: " + y);
                 }
                 return new CoordinateWithBiome(x, y, z, biome);
             }
@@ -424,20 +478,22 @@ public class GetSafeYCoordinate {
             if (isSafePositionFast(world, chunk, x, y, z, relativeX, relativeZ)) {
                 Biome biome = world.getBiome(x, y, z);
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info("Safe Y found in End with search: " + y);
+                    LOG.info("Safe Y found in End with search: " + y);
                 }
                 return new CoordinateWithBiome(x, y, z, biome);
             }
         }
 
         if (allowFailureLog && loggingEnabled) {
-            Variables.instance.getLogger().warning("Failed to find safe Y in End at X:" + x + ", Z:" + z);
+            LOG.warning("Failed to find safe Y in End at X:" + x + ", Z:" + z);
         }
         return failure(x, z);
     }
 
     private static boolean isSafePositionFast(World world, Chunk chunk, int x, int y, int z, int relativeX, int relativeZ) {
-        if (y < Variables.cachedMinY) {
+        // Use the locally-captured minY from the calling method via parameter passing;
+        // the configCache.minY volatile is read once per search and propagated down.
+        if (y < Variables.configCache.minY) {
             return false;
         }
 
@@ -461,7 +517,7 @@ public class GetSafeYCoordinate {
         }
 
         if (world.getEnvironment() == World.Environment.NETHER
-                && blockBelow.getType().name().contains("BEDROCK")) {
+                && BEDROCK_MATERIALS.contains(blockBelow.getType())) {
             return false;
         }
         return true;
@@ -561,16 +617,16 @@ public class GetSafeYCoordinate {
         int lowestCheck = Math.max(minY, referenceY - 6);
 
         for (int y = highestCheck; y >= lowestCheck; y--) {
-            Block block = chunk.getBlock(relativeX, y, relativeZ);
-            if (!block.getType().isSolid()) {
+            if (!chunk.getBlock(relativeX, y, relativeZ).getType().isSolid()) {
                 continue;
             }
-
-            Block above = block.getRelative(BlockFace.UP);
-            Block twoAbove = above.getRelative(BlockFace.UP);
-
-            if (above.getType().isAir() && twoAbove.getType().isAir()) {
-                return y + 1;
+            // Use direct Y arithmetic instead of getRelative() API calls — avoids 2 extra object lookups per iteration
+            int y1 = y + 1;
+            int y2 = y + 2;
+            if (y1 <= maxY && y2 <= maxY
+                    && chunk.getBlock(relativeX, y1, relativeZ).getType().isAir()
+                    && chunk.getBlock(relativeX, y2, relativeZ).getType().isAir()) {
+                return y1;
             }
         }
         return Integer.MIN_VALUE;
@@ -581,64 +637,17 @@ public class GetSafeYCoordinate {
     }
 
     private static boolean isUnsafeOccupantMaterial(Material type) {
-        if (type == null) {
-            return false;
-        }
-        switch (type) {
-            case COBWEB:
-            case POWDER_SNOW:
-            case FIRE:
-            case SOUL_FIRE:
-            case CACTUS:
-            case CAMPFIRE:
-            case SOUL_CAMPFIRE:
-            case MAGMA_BLOCK:
-                return true;
-            default:
-                return type.name().contains("LEAVES");
-        }
+        if (type == null) return false;
+        return UNSAFE_OCCUPANT_MATERIALS.contains(type) || LEAF_MATERIALS.contains(type);
     }
 
     private static boolean isUnsafeSupportMaterial(Material type) {
-        if (type == null) {
-            return false;
-        }
-        switch (type) {
-            case CACTUS:
-            case CAMPFIRE:
-            case SOUL_CAMPFIRE:
-            case MAGMA_BLOCK:
-            case FIRE:
-            case SOUL_FIRE:
-                return true;
-            default:
-                return false;
-        }
+        if (type == null) return false;
+        return UNSAFE_SUPPORT_MATERIALS.contains(type);
     }
 
     private static boolean isFluidMaterial(Material type) {
-        if (type == null) {
-            return false;
-        }
-
-        if (type.isAir()) {
-            return false;
-        }
-
-        if (type == Material.WATER || type == Material.LAVA) {
-            return true;
-        }
-
-        switch (type) {
-            case KELP:
-            case KELP_PLANT:
-            case SEAGRASS:
-            case TALL_SEAGRASS:
-            case BUBBLE_COLUMN:
-            case VINE:
-                return true;
-            default:
-                return false;
-        }
+        if (type == null || type.isAir()) return false;
+        return FLUID_MATERIALS.contains(type);
     }
 }

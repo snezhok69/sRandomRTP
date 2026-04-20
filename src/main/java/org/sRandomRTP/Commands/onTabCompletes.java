@@ -184,8 +184,9 @@ public class OnTabCompletes implements TabCompleter {
 
     private List<String> getWorldSuggestions(int limit) {
         List<String> worlds = new ArrayList<String>();
-        boolean isEnabled = Variables.teleportfile.getBoolean("teleport.bannedworld.enabled");
-        List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+        org.bukkit.configuration.file.FileConfiguration teleportfile = Variables.getPluginContext().getConfigRegistry().getTeleportFile();
+        boolean isEnabled = teleportfile.getBoolean("teleport.bannedworld.enabled");
+        List<String> bannedWorlds = teleportfile.getStringList("teleport.bannedworld.worlds");
         for (World world : Bukkit.getWorlds()) {
             if (isEnabled && bannedWorlds.contains(world.getName())) {
                 continue;

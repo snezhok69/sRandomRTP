@@ -16,7 +16,14 @@ public final class TeleportRequestContext {
 
     private static final Logger LOG = Logger.getLogger(TeleportRequestContext.class.getName());
 
-    /** Single shared scheduler for all per-attempt timeouts — eliminates thread-pool-per-future leak. */
+    /**
+     * Single shared scheduler for all per-attempt timeouts — eliminates thread-pool-per-future leak.
+     *
+     * <p>This is the one intentional static thread pool in the plugin. It must fire independently
+     * of Bukkit's scheduler (which stops during server shutdown), so a daemon-threaded
+     * ScheduledExecutorService is the right choice here. It is shut down by
+     * {@link #shutdownTimeoutScheduler()}, which is called from {@code Main.onDisable()}.
+     */
     private static final java.util.concurrent.ScheduledExecutorService TIMEOUT_SCHEDULER =
             java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "rtp-timeout");
@@ -28,7 +35,9 @@ public final class TeleportRequestContext {
     public static void shutdownTimeoutScheduler() {
         TIMEOUT_SCHEDULER.shutdown();
         try {
-            if (!TIMEOUT_SCHEDULER.awaitTermination(5, TimeUnit.SECONDS)) {
+            // 500 ms is sufficient: this scheduler only holds lightweight timeout futures,
+            // not heavy work. Waiting longer would stall server restart under load.
+            if (!TIMEOUT_SCHEDULER.awaitTermination(500, TimeUnit.MILLISECONDS)) {
                 TIMEOUT_SCHEDULER.shutdownNow();
             }
         } catch (InterruptedException e) {
@@ -192,13 +201,25 @@ public final class TeleportRequestContext {
         }
 
         final CompletableFuture<?> trackedFuture = decorated;
-        pendingFutures.add(trackedFuture);
-        // Re-check after add to close the TOCTOU window between the early-exit check and add
-        if (isCancelled() || isCompleted()) {
-            pendingFutures.remove(trackedFuture);
+
+        // Atomic check-then-add: synchronized with cancelPendingFuture() so that
+        // a future cannot be added to pendingFutures AFTER cancel/complete has already
+        // drained the set.  cancel(false) is called *outside* the lock to avoid running
+        // completion callbacks while holding it (prevents re-entrant pendingFutures access).
+        boolean shouldCancel;
+        synchronized (this) {
+            if (isCancelled() || isCompleted()) {
+                shouldCancel = true;
+            } else {
+                pendingFutures.add(trackedFuture);
+                shouldCancel = false;
+            }
+        }
+        if (shouldCancel) {
             trackedFuture.cancel(false);
             return;
         }
+
         trackedFuture.whenComplete((result, throwable) -> pendingFutures.remove(trackedFuture));
     }
 
@@ -283,10 +304,16 @@ public final class TeleportRequestContext {
     }
 
     private void cancelPendingFuture() {
-        // removeIf is atomic per-entry on ConcurrentHashMap.KeySetView, closing the
-        // gap that existed between the old for-loop end and clear() where a concurrently
-        // added future could be removed without being cancelled.
-        pendingFutures.removeIf(f -> {
+        // Drain pendingFutures under the same lock used by trackFuture() so that no
+        // new future can slip in between the state-flag flip and this drain.
+        // Cancellation is done *outside* the lock to prevent completion callbacks from
+        // running while we hold it (avoids re-entrant pendingFutures operations).
+        java.util.List<CompletableFuture<?>> snapshot;
+        synchronized (this) {
+            snapshot = new java.util.ArrayList<>(pendingFutures);
+            pendingFutures.clear();
+        }
+        for (CompletableFuture<?> f : snapshot) {
             if (f != null && !f.isDone()) {
                 try {
                     f.cancel(false);
@@ -294,7 +321,6 @@ public final class TeleportRequestContext {
                     LOG.log(Level.FINER, "[RTP] cancelPendingFuture error", t);
                 }
             }
-            return true;
-        });
+        }
     }
 }

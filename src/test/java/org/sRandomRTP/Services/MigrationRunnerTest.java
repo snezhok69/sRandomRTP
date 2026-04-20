@@ -1,6 +1,8 @@
 package org.sRandomRTP.Services;
 
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,6 +21,24 @@ class MigrationRunnerTest {
     @TempDir
     Path tempDir;
 
+    private ConfigRegistry configRegistry;
+    private PortalRepository repository;
+    private MigrationRunner migrationRunner;
+
+    @BeforeEach
+    void setUp() {
+        configRegistry = new ConfigRegistry(tempDir.toFile());
+        repository = new PortalRepository(tempDir.toFile(), Logger.getLogger("MigrationRunnerTest"));
+        migrationRunner = new MigrationRunner(Logger.getLogger("MigrationRunnerTest"), configRegistry, repository);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (repository != null) {
+            repository.closeAsync().get();
+        }
+    }
+
     @Test
     void runConfigMigrationsAddsVersionMarker() throws IOException {
         File configFile = new File(tempDir.toFile(), "config.yml");
@@ -27,15 +47,11 @@ class MigrationRunnerTest {
         yaml.set("Language", "en");
         yaml.save(configFile);
 
-        ConfigRegistry configRegistry = new ConfigRegistry(tempDir.toFile());
-        PortalRepository repository = new PortalRepository(tempDir.toFile(), Logger.getLogger("MigrationRunnerTest"));
-        MigrationRunner migrationRunner = new MigrationRunner(Logger.getLogger("MigrationRunnerTest"), configRegistry, repository);
-
         migrationRunner.runConfigMigrations();
 
         YamlConfiguration migrated = YamlConfiguration.loadConfiguration(configFile);
         assertEquals(PluginVersionCatalog.CONFIG_VERSION, migrated.getInt("config-version"));
-        assertEquals(3000L, migrated.getLong("metrics.rtp.slow-request-threshold-ms"));
+        assertEquals(ConfigDefaults.SLOW_REQUEST_THRESHOLD_MS, migrated.getLong("metrics.rtp.slow-request-threshold-ms"));
     }
 
     @Test
@@ -52,36 +68,29 @@ class MigrationRunnerTest {
         yaml.set("teleport.metrics.slow-request-threshold-ms", 4500L);
         yaml.save(teleportFile);
 
-        ConfigRegistry configRegistry = new ConfigRegistry(tempDir.toFile());
-        PortalRepository repository = new PortalRepository(tempDir.toFile(), Logger.getLogger("MigrationRunnerTest"));
-        MigrationRunner migrationRunner = new MigrationRunner(Logger.getLogger("MigrationRunnerTest"), configRegistry, repository);
-
         migrationRunner.runConfigMigrations();
 
         YamlConfiguration migrated = YamlConfiguration.loadConfiguration(teleportFile);
         YamlConfiguration migratedConfig = YamlConfiguration.loadConfiguration(configFile);
         assertEquals(PluginVersionCatalog.CONFIG_VERSION, migrated.getInt("config-version"));
         assertFalse(migrated.getBoolean("teleport.prefer-generated-chunks.enabled"));
-        assertEquals(1000L, migrated.getLong("teleport.prefer-generated-chunks.window-ms"));
-        assertEquals(8, migrated.getInt("teleport.prefer-generated-chunks.max-attempts"));
+        assertEquals(ConfigDefaults.PREFER_GENERATED_CHUNKS_WINDOW_MS, migrated.getLong("teleport.prefer-generated-chunks.window-ms"));
+        assertEquals(ConfigDefaults.PREFER_GENERATED_CHUNKS_MAX_ATTEMPTS, migrated.getInt("teleport.prefer-generated-chunks.max-attempts"));
         assertFalse(migrated.getBoolean("teleport.parallel-search.enabled"));
-        assertEquals(2, migrated.getInt("teleport.parallel-search.candidates-per-batch"));
-        assertEquals(24, migrated.getInt("teleport.parallel-search.max-global-inflight"));
+        assertEquals(ConfigDefaults.PARALLEL_SEARCH_CANDIDATES_PER_BATCH, migrated.getInt("teleport.parallel-search.candidates-per-batch"));
+        assertEquals(ConfigDefaults.PARALLEL_SEARCH_MAX_GLOBAL_INFLIGHT, migrated.getInt("teleport.parallel-search.max-global-inflight"));
+        assertEquals(ConfigDefaults.DEFAULT_COORDINATE_GENERATION, migrated.getString("teleport.coordinate-generation"));
         assertEquals(4500L, migratedConfig.getLong("metrics.rtp.slow-request-threshold-ms"));
         assertFalse(migrated.contains("teleport.prefer-generated-chunks.invalid"));
     }
 
     @Test
     void runDatabaseMigrationsCreatesCurrentSchemaVersion() throws Exception {
-        ConfigRegistry configRegistry = new ConfigRegistry(tempDir.toFile());
-        PortalRepository repository = new PortalRepository(tempDir.toFile(), Logger.getLogger("MigrationRunnerTest"));
-        MigrationRunner migrationRunner = new MigrationRunner(Logger.getLogger("MigrationRunnerTest"), configRegistry, repository);
-
         migrationRunner.runDatabaseMigrations();
 
         Connection connection = repository.getConnection();
         assertEquals(PluginVersionCatalog.PORTAL_SCHEMA_VERSION, repository.getSchemaVersion(connection));
         assertTrue(connection.isValid(2));
-        repository.closeAsync().get();
+        // repository.closeAsync() is called in @AfterEach
     }
 }

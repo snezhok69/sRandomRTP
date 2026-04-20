@@ -7,10 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FindNearestPlayerNear {
-    public static Player findNearestPlayer(Player player, List<Player> allPlayers) {
-        return findRandomPlayer(player, allPlayers);
-    }
 
+    /**
+     * Returns a random online player other than {@code player}, or {@code null} if
+     * no other players are available. Named "Random" to reflect actual behaviour;
+     * the previous "findNearestPlayer" wrapper was a misnomer and has been removed.
+     */
     public static Player findRandomPlayer(Player player, List<Player> allPlayers) {
         List<Player> otherPlayers = new ArrayList<>();
         for (Player p : allPlayers) {

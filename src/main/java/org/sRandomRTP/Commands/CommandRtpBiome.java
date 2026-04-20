@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.BlockBiomes.BiomeBlockValidator;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Rtp.BiomeConfigurableRtpHandler;
 
@@ -25,7 +26,7 @@ public class CommandRtpBiome extends AbstractRtpCommand {
 
     public static void commandRtpBiome(CommandSender sender, String[] biomeArgs) {
         if (!(sender instanceof Player)) {
-            Variables.sendPlayersOnly(sender);
+            ChatUtils.sendPlayersOnly(sender);
             return;
         }
         List<Biome> requestedBiomes = parseBiomes(sender, biomeArgs);
@@ -51,7 +52,7 @@ public class CommandRtpBiome extends AbstractRtpCommand {
     static List<Biome> parseBiomes(CommandSender sender, String[] biomeArgs) {
         List<String> tokens = tokenizeBiomeArguments(biomeArgs);
         if (tokens.isEmpty()) {
-            sender.sendMessage(Variables.pluginName + " " + BIOME_USAGE);
+            sender.sendMessage(ChatUtils.PLUGIN_NAME + " " + BIOME_USAGE);
             return null;
         }
 
@@ -66,7 +67,7 @@ public class CommandRtpBiome extends AbstractRtpCommand {
             try {
                 biome = Biome.valueOf(normalized);
             } catch (IllegalArgumentException ex) {
-                sender.sendMessage(Variables.pluginName + " §cBiome '" + token + "' not found.");
+                sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cBiome '" + token + "' not found.");
                 return null;
             }
 
@@ -112,7 +113,7 @@ public class CommandRtpBiome extends AbstractRtpCommand {
     private static void sendBannedBiomeMessage(CommandSender sender, Biome biome) {
         List<String> formattedMessage = LoadMessages.bannedbiome;
         if (formattedMessage == null || formattedMessage.isEmpty()) {
-            sender.sendMessage(Variables.pluginName + " §cBiome " + biome.name() + " is banned.");
+            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cBiome " + biome.name() + " is banned.");
             return;
         }
         for (String line : formattedMessage) {

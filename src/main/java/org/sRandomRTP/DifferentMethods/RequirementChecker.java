@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,11 +48,18 @@ public final class RequirementChecker {
      * @return teleport money cost (>= 0) when all checks pass; -1 when any check fails
      */
     public static int checkRequirements(Player payer, Player teleported, boolean loggingEnabled) {
+        // Guard against player disconnecting between the command dispatch and this async check.
+        // getFoodLevel/getLevel/getHealth/getInventory would throw NPE on an offline player.
+        if (teleported == null || !teleported.isOnline()) return -1;
+
+        // Use the atomic ConfigCache snapshot instead of reading live YAML on every teleport —
+        // avoids file I/O on the hot path and is consistent with the reload-safe design.
+        final org.sRandomRTP.Services.ConfigCache cache = Variables.configCache;
         int teleportCost = 0;
 
         // ── Money (charged from payer) ──────────────────────────────────────
-        if (payer != null && Variables.economyfile.getBoolean("teleport.Money.enabled")) {
-            if (!Variables.isVaultAvailable) {
+        if (payer != null && cache.moneyEnabled) {
+            if (!Variables.getPluginContext().isVaultAvailable()) {
                 if (loggingEnabled) {
                     org.bukkit.Bukkit.getConsoleSender().sendMessage(
                             "Install the Vault plugin to make the economy function work. " +
@@ -62,13 +70,13 @@ public final class RequirementChecker {
                         "in the configuration (logs: true) and try teleportation again.");
                 return -1;
             }
-            if (Variables.econ == null) {
+            if (Variables.getPluginContext().getEconomy() == null) {
                 payer.sendMessage(ChatColor.RED +
                         "Economy service is not available. Contact the server administrator.");
                 return -1;
             }
-            teleportCost = Variables.economyfile.getInt("teleport.Money.money");
-            if (!Variables.econ.has(payer, teleportCost)) {
+            teleportCost = cache.moneyCost;
+            if (!Variables.getPluginContext().getEconomy().has(payer, teleportCost)) {
                 sendMessage(payer, LoadMessages.insufficient_funds,
                         "%money%", String.valueOf(teleportCost));
                 return -1;
@@ -76,41 +84,46 @@ public final class RequirementChecker {
         }
 
         // ── Hunger (checked against teleported) ────────────────────────────
-        if (Variables.economyfile.getBoolean("teleport.Hunger.enabled")) {
-            int requiredHunger = Variables.economyfile.getInt("teleport.Hunger.hunger");
-            if (teleported.getFoodLevel() < requiredHunger) {
+        if (cache.hungerEnabled) {
+            if (teleported.getFoodLevel() < cache.hungerAmount) {
                 sendMessage(teleported, LoadMessages.insufficient_hunger,
-                        "%hunger%", String.valueOf(requiredHunger));
+                        "%hunger%", String.valueOf(cache.hungerAmount));
                 return -1;
             }
         }
 
         // ── Experience levels (checked against teleported) ─────────────────
-        if (Variables.economyfile.getBoolean("teleport.Levels.enabled")) {
-            int requiredLevel = Variables.economyfile.getInt("teleport.Levels.level");
-            if (teleported.getLevel() < requiredLevel) {
+        if (cache.levelsEnabled) {
+            if (teleported.getLevel() < cache.levelsAmount) {
                 sendMessage(teleported, LoadMessages.insufficient_levels,
-                        "%level%", String.valueOf(requiredLevel));
+                        "%level%", String.valueOf(cache.levelsAmount));
                 return -1;
             }
         }
 
         // ── Health (checked against teleported) ────────────────────────────
-        if (Variables.economyfile.getBoolean("teleport.Health.enabled")) {
-            double requiredHealth = Variables.economyfile.getDouble("teleport.Health.health");
-            if (teleported.getHealth() < requiredHealth) {
+        if (cache.healthEnabled) {
+            if (teleported.getHealth() < cache.healthAmount) {
                 sendMessage(teleported, LoadMessages.insufficient_health,
-                        "%health%", String.valueOf(requiredHealth));
+                        "%health%", String.valueOf(cache.healthAmount));
                 return -1;
             }
         }
 
         // ── Items (checked against teleported) ─────────────────────────────
-        if (Variables.economyfile.getBoolean("teleport.Items.enabled")) {
+        if (cache.itemsEnabled) {
+            // Single-pass inventory scan: build a summary map once, then compare all
+            // required materials against it — O(N + M) instead of O(N×M).
+            EnumMap<Material, Integer> inventorySummary = new EnumMap<>(Material.class);
+            for (org.bukkit.inventory.ItemStack item : teleported.getInventory().getContents()) {
+                if (item != null) {
+                    inventorySummary.merge(item.getType(), item.getAmount(), Integer::sum);
+                }
+            }
             boolean hasAllItems = true;
             StringBuilder missingItems = new StringBuilder();
             for (Map.Entry<Material, Integer> entry : Variables.itemMap.entrySet()) {
-                int playerItemCount = countItems(teleported, entry.getKey());
+                int playerItemCount = inventorySummary.getOrDefault(entry.getKey(), 0);
                 if (playerItemCount < entry.getValue()) {
                     hasAllItems = false;
                     if (missingItems.length() > 0) missingItems.append(", ");
@@ -127,16 +140,6 @@ public final class RequirementChecker {
         }
 
         return teleportCost;
-    }
-
-    private static int countItems(Player player, org.bukkit.Material material) {
-        int count = 0;
-        for (org.bukkit.inventory.ItemStack item : player.getInventory()) {
-            if (item != null && item.getType() == material) {
-                count += item.getAmount();
-            }
-        }
-        return count;
     }
 
     private static void sendMessage(Player player, List<String> lines,

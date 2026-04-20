@@ -2,6 +2,9 @@ package org.sRandomRTP.DifferentMethods.Teleport;
 
 import org.bukkit.Bukkit;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.RngProvider;
+import org.sRandomRTP.Services.TeleportMetrics;
+import org.sRandomRTP.Utils.CoordinateUtils;
 
 import java.util.SplittableRandom;
 
@@ -25,6 +28,8 @@ public class GenerateCoordinates {
         int newX, newZ;
         String generationDetails = "";
         boolean loggingEnabled = Variables.isLoggingEnabled();
+        // Cache RNG provider reference — Variables.getRngProvider() is called 15+ times below
+        RngProvider rng = Variables.getRngProvider();
 
         if (generationMethod == null) {
             generationMethod = "CIRCLE";
@@ -41,8 +46,8 @@ public class GenerateCoordinates {
 
         boolean deterministic = attemptNumber > 0;
         long baseSeed = playerName != null ? playerName.hashCode() : 0L;
-        long combinedSeed = mixSeeds(baseSeed, sessionNonce);
-        SplittableRandom seedRandom = Variables.getRngProvider().deterministic(combinedSeed);
+        long combinedSeed = CoordinateUtils.mixSeeds(baseSeed, sessionNonce);
+        SplittableRandom seedRandom = rng.deterministic(combinedSeed);
         double angleSeed = seedRandom.nextDouble();
         double radialSeed = seedRandom.nextDouble();
 
@@ -94,83 +99,35 @@ public class GenerateCoordinates {
         } else if (useAbsoluteCoordinates) {
             double randomDistance = effectiveMinRadius;
             if (effectiveMaxRadius > effectiveMinRadius) {
-                randomDistance = Variables.getRngProvider().nextDouble(effectiveMinRadius, effectiveMaxRadius);
+                randomDistance = rng.nextDouble(effectiveMinRadius, effectiveMaxRadius);
             }
 
             if (generationMethod.equalsIgnoreCase("SQUARE")) {
-                int side = Variables.getRngProvider().nextInt(4);
-                String sideName;
-
-                switch (side) {
-                    case 0:
-                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        newZ = centerZ - (int) randomDistance;
-                        sideName = "top";
-                        break;
-                    case 1:
-                        newX = centerX + (int) randomDistance;
-                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        sideName = "right";
-                        break;
-                    case 2:
-                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        newZ = centerZ + (int) randomDistance;
-                        sideName = "bottom";
-                        break;
-                    default:
-                        newX = centerX - (int) randomDistance;
-                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        sideName = "left";
-                        break;
-                }
-                generationDetails = "SQUARE (absolute), side: " + sideName + ", distance: " + (int) randomDistance;
+                int[] sq = squareXZ(centerX, centerZ, rng.nextInt(4), (int) randomDistance, effectiveMaxRadius, rng);
+                newX = sq[0]; newZ = sq[1];
+                generationDetails = "SQUARE (absolute), side: " + sideName(sq[2]) + ", distance: " + (int) randomDistance;
             } else {
-                double angle = Variables.getRngProvider().nextDouble(0.0D, Math.PI * 2);
+                double angle = rng.nextDouble(0.0D, Math.PI * 2);
                 newX = centerX + (int) (randomDistance * Math.cos(angle));
                 newZ = centerZ + (int) (randomDistance * Math.sin(angle));
                 generationDetails = "CIRCLE (absolute), angle: " + Math.toDegrees(angle) + "°, distance: " + (int) randomDistance;
             }
 
         } else {
-            double maxRadiusD = effectiveMaxRadius;
             double minRadiusD = effectiveMinRadius;
             double minSquared = minRadiusD * minRadiusD;
-            double radiusDiff = Math.max(maxRadiusD * maxRadiusD - minSquared, 0);
+            double radiusDiff = Math.max((double) effectiveMaxRadius * effectiveMaxRadius - minSquared, 0);
 
             if (generationMethod.equalsIgnoreCase("SQUARE")) {
-                int side = Variables.getRngProvider().nextInt(4);
-                String sideName;
-
                 int randomValue = (effectiveMaxRadius <= effectiveMinRadius)
                         ? effectiveMinRadius
-                        : Variables.getRngProvider().nextInt(effectiveMinRadius, effectiveMaxRadius);
-
-                switch (side) {
-                    case 0:
-                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        newZ = centerZ - randomValue;
-                        sideName = "top";
-                        break;
-                    case 1:
-                        newX = centerX + randomValue;
-                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        sideName = "right";
-                        break;
-                    case 2:
-                        newX = centerX + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        newZ = centerZ + randomValue;
-                        sideName = "bottom";
-                        break;
-                    default:
-                        newX = centerX - randomValue;
-                        newZ = centerZ + (int) Math.round(Variables.getRngProvider().nextDouble(-effectiveMaxRadius, effectiveMaxRadius));
-                        sideName = "left";
-                        break;
-                }
-                generationDetails = "SQUARE (relative), side: " + sideName + ", random value: " + randomValue;
+                        : rng.nextInt(effectiveMinRadius, effectiveMaxRadius);
+                int[] sq = squareXZ(centerX, centerZ, rng.nextInt(4), randomValue, effectiveMaxRadius, rng);
+                newX = sq[0]; newZ = sq[1];
+                generationDetails = "SQUARE (relative), side: " + sideName(sq[2]) + ", random value: " + randomValue;
             } else {
-                double angle = Variables.getRngProvider().nextDouble(0.0D, Math.PI * 2);
-                double randomRadius = Math.sqrt(minSquared + Variables.getRngProvider().nextDouble() * radiusDiff);
+                double angle = rng.nextDouble(0.0D, Math.PI * 2);
+                double randomRadius = Math.sqrt(minSquared + rng.nextDouble() * radiusDiff);
                 newX = centerX + (int) (randomRadius * Math.cos(angle));
                 newZ = centerZ + (int) (randomRadius * Math.sin(angle));
                 generationDetails = "CIRCLE (relative), angle: " + Math.toDegrees(angle) + "°, random radius: " + (int) randomRadius;
@@ -185,8 +142,9 @@ public class GenerateCoordinates {
         if (loggingEnabled) {
             Bukkit.getConsoleSender().sendMessage("Coordinate generation details: " + generationDetails);
         }
-        if (Variables.getTeleportMetrics() != null) {
-            Variables.getTeleportMetrics().recordCoordinateGeneration(System.nanoTime() - startedAt);
+        TeleportMetrics metrics = Variables.getTeleportMetrics();
+        if (metrics != null) {
+            metrics.recordCoordinateGeneration(System.nanoTime() - startedAt);
         }
         return new int[]{newX, newZ};
     }
@@ -202,16 +160,6 @@ public class GenerateCoordinates {
         double maxSquared = (double) maxRadius * maxRadius;
         double radiusSquared = minSquared + radialFactor * (maxSquared - minSquared);
         return Math.sqrt(radiusSquared);
-    }
-
-    private static long mixSeeds(long baseSeed, long sessionNonce) {
-        long mixed = baseSeed ^ sessionNonce;
-        mixed ^= (mixed >>> 30);
-        mixed *= 0xbf58476d1ce4e5b9L;
-        mixed ^= (mixed >>> 27);
-        mixed *= 0x94d049bb133111ebL;
-        mixed ^= (mixed >>> 31);
-        return mixed;
     }
 
     private static int computeLinearDistanceRange(double factor, int minValue, int maxValue) {
@@ -238,5 +186,49 @@ public class GenerateCoordinates {
 
     private static double fractionalPart(double value) {
         return value - Math.floor(value);
+    }
+
+    /**
+     * Assigns X/Z coordinates for a single side of a square shape.
+     *
+     * <p>Returns a 3-element int array {@code [newX, newZ, sideIndex]} where {@code sideIndex}
+     * encodes the side name: 0=top, 1=right, 2=bottom, 3=left. Encoding as an int avoids a
+     * String allocation in the non-logging fast path (caller converts only when logging is on).
+     *
+     * @param side      0..3 selected randomly by the caller
+     * @param distValue radial distance along the main axis for this side
+     * @param maxRadius full extent used for the perpendicular (jitter) axis
+     */
+    private static int[] squareXZ(int centerX, int centerZ, int side, int distValue, int maxRadius, RngProvider rng) {
+        int newX, newZ;
+        switch (side) {
+            case 0:
+                newX = centerX + (int) Math.round(rng.nextDouble(-maxRadius, maxRadius));
+                newZ = centerZ - distValue;
+                break;
+            case 1:
+                newX = centerX + distValue;
+                newZ = centerZ + (int) Math.round(rng.nextDouble(-maxRadius, maxRadius));
+                break;
+            case 2:
+                newX = centerX + (int) Math.round(rng.nextDouble(-maxRadius, maxRadius));
+                newZ = centerZ + distValue;
+                break;
+            default:
+                newX = centerX - distValue;
+                newZ = centerZ + (int) Math.round(rng.nextDouble(-maxRadius, maxRadius));
+                break;
+        }
+        return new int[]{newX, newZ, side};
+    }
+
+    /** Returns a human-readable side name for logging purposes only. */
+    private static String sideName(int side) {
+        switch (side) {
+            case 0: return "top";
+            case 1: return "right";
+            case 2: return "bottom";
+            default: return "left";
+        }
     }
 }
