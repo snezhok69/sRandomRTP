@@ -10,7 +10,12 @@ import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.apache.logging.log4j.message.Message;
 
 public class ConsoleFilter extends AbstractFilter {
-    
+
+    // Strings to suppress — extracted as constants so all four filter() overrides
+    // share one definition and future updates are single-point.
+    private static final String MOVED_TOO_QUICKLY = "moved too quickly!";
+    private static final String FOLIA_LIB_ZERO_TICK = "tick based delay or timer was scheduled with a time span of 0 ticks";
+
     private static ConsoleFilter instance;
     private boolean enabled;
 
@@ -39,75 +44,42 @@ public class ConsoleFilter extends AbstractFilter {
             instance = null;
         }
     }
-    
+
+    /** Returns {@code true} if this message should be suppressed from the console. */
+    private boolean shouldSuppress(String message) {
+        if (message == null) return false;
+        return message.contains(MOVED_TOO_QUICKLY)
+                || (message.contains("FoliaLib") && message.contains(FOLIA_LIB_ZERO_TICK));
+    }
+
     @Override
     public Result filter(LogEvent event) {
-        if (!enabled) {
-            return Result.NEUTRAL;
+        if (!enabled) return Result.NEUTRAL;
+        if (event != null && event.getMessage() != null
+                && shouldSuppress(event.getMessage().getFormattedMessage())) {
+            return Result.DENY;
         }
-        
-        if (event != null && event.getMessage() != null) {
-            String message = event.getMessage().getFormattedMessage();
-            if (message != null) {
-                if (message.contains("moved too quickly!") || 
-                    (message.contains("FoliaLib") && message.contains("tick based delay or timer was scheduled with a time span of 0 ticks"))) {
-                    return Result.DENY;
-                }
-            }
-        }
-        
         return Result.NEUTRAL;
     }
-    
+
     @Override
     public Result filter(Logger logger, Level level, Marker marker, Message msg, Throwable t) {
-        if (!enabled) {
-            return Result.NEUTRAL;
-        }
-        
-        if (msg != null) {
-            String message = msg.getFormattedMessage();
-            if (message != null) {
-                if (message.contains("moved too quickly!") || 
-                    (message.contains("FoliaLib") && message.contains("tick based delay or timer was scheduled with a time span of 0 ticks"))) {
-                    return Result.DENY;
-                }
-            }
-        }
-        
+        if (!enabled) return Result.NEUTRAL;
+        if (msg != null && shouldSuppress(msg.getFormattedMessage())) return Result.DENY;
         return Result.NEUTRAL;
     }
-    
+
     @Override
     public Result filter(Logger logger, Level level, Marker marker, String msg, Object... params) {
-        if (!enabled) {
-            return Result.NEUTRAL;
-        }
-        
-        if (msg != null) {
-            if (msg.contains("moved too quickly!") || 
-                (msg.contains("FoliaLib") && msg.contains("tick based delay or timer was scheduled with a time span of 0 ticks"))) {
-                return Result.DENY;
-            }
-        }
-        
+        if (!enabled) return Result.NEUTRAL;
+        if (shouldSuppress(msg)) return Result.DENY;
         return Result.NEUTRAL;
     }
-    
+
     @Override
     public Result filter(Logger logger, Level level, Marker marker, Object msg, Throwable t) {
-        if (!enabled) {
-            return Result.NEUTRAL;
-        }
-        
-        if (msg != null) {
-            String message = msg.toString();
-            if (message.contains("moved too quickly!") || 
-                (message.contains("FoliaLib") && message.contains("tick based delay or timer was scheduled with a time span of 0 ticks"))) {
-                return Result.DENY;
-            }
-        }
-        
+        if (!enabled) return Result.NEUTRAL;
+        if (msg != null && shouldSuppress(msg.toString())) return Result.DENY;
         return Result.NEUTRAL;
     }
-} 
+}

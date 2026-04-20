@@ -10,7 +10,7 @@ import org.sRandomRTP.DifferentMethods.LoggerUtility;
 
 public class IsInProtectedRegion {
     public static boolean isInProtectedRegion(Location loc) {
-        // Быстрый guard — если WorldGuard не загружен, не пытаемся вызывать его API
+        // Fast guard — if WorldGuard is not loaded, skip its API entirely
         try {
             WorldGuard wg = WorldGuard.getInstance();
             if (wg == null) return false;
@@ -21,7 +21,7 @@ public class IsInProtectedRegion {
             ApplicableRegionSet set = regionManager.getApplicableRegions(pt);
             return set.size() > 0;
         } catch (NoClassDefFoundError ignored) {
-            // WorldGuard не установлен на сервере
+            // WorldGuard not installed on this server
             return false;
         } catch (RuntimeException e) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();

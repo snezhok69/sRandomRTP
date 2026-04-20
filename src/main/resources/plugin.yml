@@ -4,7 +4,6 @@ main: org.sRandomRTP.Main
 api-version: 1.16
 folia-supported: true
 softdepend:
-  - LuckPerms
   - WorldGuard
   - WorldEdit
   - Vault

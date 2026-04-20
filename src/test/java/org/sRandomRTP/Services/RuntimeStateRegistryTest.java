@@ -38,27 +38,27 @@ class RuntimeStateRegistryTest {
         registry.putParticleTask(player, particleTask);
         registry.getCooldowns().put(playerId, System.currentTimeMillis());
         registry.getBiomeCooldowns().put(playerId, System.currentTimeMillis());
-        registry.getPlayerSearchStatus().put(player.getName(), true);
-        registry.getPlayerConfirmStatus().put(player.getName(), true);
-        registry.getSenderSendMessage().put(player.getName(), sender);
-        registry.getCommandSenderMap().put(player.getName(), sender);
-        registry.getTargetWorlds().put(player.getName(), Mockito.mock(org.bukkit.World.class));
+        registry.getPlayerSearchStatus().put(playerId, RuntimeStateRegistry.SearchPhase.SEARCHING);
+        registry.getPlayerConfirmStatus().put(playerId, true);
+        registry.getSenderSendMessage().put(playerId, sender);
+        registry.getCommandSenderMap().put(playerId, sender);
+        registry.getTargetWorlds().put(playerId, Mockito.mock(org.bukkit.World.class));
         registry.rememberInitialPosition(player);
-        registry.getSuitableLocationFound().put(player.getName(), new java.util.concurrent.atomic.AtomicBoolean(true));
+        registry.getSuitableLocationFound().put(playerId, new java.util.concurrent.atomic.AtomicBoolean(true));
 
         registry.clearPlayerRuntimeState(player);
 
         assertFalse(registry.hasTeleportTask(player));
         assertNull(registry.getParticleTask(player));
         assertFalse(registry.isPlayerSearching(player));
-        assertFalse(registry.getPlayerConfirmStatus().containsKey(player.getName()));
-        assertFalse(registry.getSenderSendMessage().containsKey(player.getName()));
-        assertFalse(registry.getCommandSenderMap().containsKey(player.getName()));
-        assertFalse(registry.getTargetWorlds().containsKey(player.getName()));
+        assertFalse(registry.getPlayerConfirmStatus().containsKey(playerId));
+        assertFalse(registry.getSenderSendMessage().containsKey(playerId));
+        assertFalse(registry.getCommandSenderMap().containsKey(playerId));
+        assertFalse(registry.getTargetWorlds().containsKey(playerId));
         assertFalse(registry.getCooldowns().containsKey(playerId));
         assertFalse(registry.getBiomeCooldowns().containsKey(playerId));
         assertNull(registry.getInitialPosition(player));
-        assertFalse(registry.getSuitableLocationFound().containsKey(player.getName()));
+        assertFalse(registry.getSuitableLocationFound().containsKey(playerId));
     }
 
     @Test

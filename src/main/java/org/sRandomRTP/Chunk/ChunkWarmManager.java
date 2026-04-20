@@ -17,10 +17,7 @@ import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
-
-import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,16 +26,22 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class ChunkWarmManager implements Listener {
     private static ChunkWarmManager instance;
-    private static volatile Method isChunkGeneratedMethod;
-    private static volatile boolean reflectionResolved;
 
     private final JavaPlugin plugin;
-    private final Set<CompletableFuture<?>> inflightLoads = ConcurrentHashMap.newKeySet();
+    private final AtomicInteger inflightCount = new AtomicInteger();
     private final Map<UUID, long[]> lastWarmedPlayerChunk = new ConcurrentHashMap<>();
     // Long key: ((worldIndex & 0xFFFF) << 48) | ((chunkX & 0xFFFFFF) << 24) | (chunkZ & 0xFFFFFF)
     // Avoids String allocation in the hot warm loop.
     private final Map<Long, Long> recentlyScheduledChunks = new ConcurrentHashMap<>();
-    private final Map<String, Integer> worldIndices = new ConcurrentHashMap<>();
+    // Bounded to prevent unbounded growth when dynamic-world plugins create/delete many worlds.
+    // Access is guarded by Collections.synchronizedMap so reads and writes are thread-safe.
+    private final Map<String, Integer> worldIndices = java.util.Collections.synchronizedMap(
+            new java.util.LinkedHashMap<String, Integer>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(java.util.Map.Entry<String, Integer> eldest) {
+                    return size() > 64;
+                }
+            });
     private final AtomicLong worldIndexCounter = new AtomicLong();
 
     private WrappedTask warmTask;
@@ -76,22 +79,28 @@ public final class ChunkWarmManager implements Listener {
     }
 
     public synchronized void reload(FileConfiguration chunkfile) {
-        if (Variables.chunkfile == null) {
+        FileConfiguration cfg = chunkfile;
+        if (Variables.getPluginContext() != null
+                && Variables.getPluginContext().getConfigRegistry() != null
+                && Variables.getPluginContext().getConfigRegistry().getChunkFile() != null) {
+            cfg = Variables.getPluginContext().getConfigRegistry().getChunkFile();
+        }
+        if (cfg == null) {
             return;
         }
 
-        this.enabled = Variables.chunkfile.getBoolean("chunk-warming.enabled", false);
-        this.warmRadius = Math.max(0, Variables.chunkfile.getInt("chunk-warming.warm-radius", 1));
-        this.loadsPerTickBudget = Math.max(0, Variables.chunkfile.getInt("chunk-warming.loads-per-tick-budget", 24));
-        this.warmPeriodTicks = Math.max(1L, Variables.chunkfile.getLong("chunk-warming.warm-period-ticks", 20L));
-        this.maxInflightLoads = Math.max(1, Variables.chunkfile.getInt("chunk-warming.max-inflight-loads", 64));
-        this.tpsPauseThreshold = Variables.chunkfile.getDouble("chunk-warming.tps-pause-threshold", 18.5D);
+        this.enabled = cfg.getBoolean("chunk-warming.enabled", false);
+        this.warmRadius = Math.max(0, cfg.getInt("chunk-warming.warm-radius", 1));
+        this.loadsPerTickBudget = Math.max(0, cfg.getInt("chunk-warming.loads-per-tick-budget", 24));
+        this.warmPeriodTicks = Math.max(1L, cfg.getLong("chunk-warming.warm-period-ticks", 20L));
+        this.maxInflightLoads = Math.max(1, cfg.getInt("chunk-warming.max-inflight-loads", 64));
+        this.tpsPauseThreshold = cfg.getDouble("chunk-warming.tps-pause-threshold", 18.5D);
         this.cachedMaxAge = Math.max(5000L, this.warmPeriodTicks * 100L);
-        this.warmSpawns = Variables.chunkfile.getBoolean("chunk-warming.warm-spawn-locations", true);
-        this.warmPlayers = Variables.chunkfile.getBoolean("chunk-warming.warm-player-locations", true);
-        this.triggerOnWorldLoad = Variables.chunkfile.getBoolean("chunk-warming.trigger-on-world-load", true);
-        this.triggerOnJoin = Variables.chunkfile.getBoolean("chunk-warming.trigger-on-player-join", true);
-        this.triggerOnMove = Variables.chunkfile.getBoolean("chunk-warming.trigger-on-player-move", true);
+        this.warmSpawns = cfg.getBoolean("chunk-warming.warm-spawn-locations", true);
+        this.warmPlayers = cfg.getBoolean("chunk-warming.warm-player-locations", true);
+        this.triggerOnWorldLoad = cfg.getBoolean("chunk-warming.trigger-on-world-load", true);
+        this.triggerOnJoin = cfg.getBoolean("chunk-warming.trigger-on-player-join", true);
+        this.triggerOnMove = cfg.getBoolean("chunk-warming.trigger-on-player-move", true);
 
         if (!enabled || loadsPerTickBudget <= 0) {
             disableWarmth();
@@ -131,7 +140,7 @@ public final class ChunkWarmManager implements Listener {
         cancelWarmTask();
         lastWarmedPlayerChunk.clear();
         recentlyScheduledChunks.clear();
-        inflightLoads.clear();
+        inflightCount.set(0);
         if (listenerRegistered) {
             HandlerList.unregisterAll(this);
             listenerRegistered = false;
@@ -144,7 +153,10 @@ public final class ChunkWarmManager implements Listener {
             return;
         }
 
-        if (tpsPauseThreshold > 0 && tpsBelow(tpsPauseThreshold)) {
+        // Snapshot volatile fields once to avoid races with concurrent reload() and to
+        // prevent redundant TPS reads across the spawn/player loops below.
+        final boolean pauseForTps = tpsPauseThreshold > 0 && tpsBelow(tpsPauseThreshold);
+        if (pauseForTps) {
             return;
         }
 
@@ -164,15 +176,12 @@ public final class ChunkWarmManager implements Listener {
                 if (!enabled || budget.get() <= 0) {
                     return;
                 }
-                if (tpsPauseThreshold > 0 && tpsBelow(tpsPauseThreshold)) {
-                    return;
-                }
                 if (getInflight() >= maxInflightLoads) {
                     return;
                 }
 
                 Location spawn = world.getSpawnLocation();
-                warmArea(world, spawn.getBlockX() >> 4, spawn.getBlockZ() >> 4, warmRadius, budget);
+                warmArea(world, toChunkCoord(spawn.getBlockX()), toChunkCoord(spawn.getBlockZ()), warmRadius, budget);
             }
         }
 
@@ -184,16 +193,13 @@ public final class ChunkWarmManager implements Listener {
                 if (!enabled || budget.get() <= 0) {
                     return;
                 }
-                if (tpsPauseThreshold > 0 && tpsBelow(tpsPauseThreshold)) {
-                    return;
-                }
                 if (getInflight() >= maxInflightLoads) {
                     return;
                 }
 
                 Location location = player.getLocation();
-                int chunkX = location.getBlockX() >> 4;
-                int chunkZ = location.getBlockZ() >> 4;
+                int chunkX = toChunkCoord(location.getBlockX());
+                int chunkZ = toChunkCoord(location.getBlockZ());
                 long[] last = lastWarmedPlayerChunk.get(player.getUniqueId());
                 if (last != null && last[0] == chunkX && last[1] == chunkZ) {
                     continue;
@@ -209,21 +215,20 @@ public final class ChunkWarmManager implements Listener {
         if (world == null || budget.get() <= 0) {
             return;
         }
+        // Check TPS once before the loop — avoids repeated TPS reads per chunk
+        if (tpsPauseThreshold > 0 && tpsBelow(tpsPauseThreshold)) {
+            return;
+        }
 
+        outer:
         for (int ring = 0; ring <= radius; ring++) {
             for (int dx = -ring; dx <= ring; dx++) {
                 for (int dz = -ring; dz <= ring; dz++) {
                     if (Math.abs(dx) != ring && Math.abs(dz) != ring) {
                         continue;
                     }
-                    if (budget.get() <= 0) {
-                        return;
-                    }
-                    if (tpsPauseThreshold > 0 && tpsBelow(tpsPauseThreshold)) {
-                        return;
-                    }
-                    if (getInflight() >= maxInflightLoads) {
-                        return;
+                    if (budget.get() <= 0 || getInflight() >= maxInflightLoads) {
+                        break outer;
                     }
 
                     int chunkX = centerChunkX + dx;
@@ -245,47 +250,21 @@ public final class ChunkWarmManager implements Listener {
                     CompletableFuture<?> future = PaperLib.getChunkAtAsync(world, chunkX, chunkZ, false)
                             .exceptionally(throwable -> null);
                     recentlyScheduledChunks.put(chunkKeyLong(world, chunkX, chunkZ), System.currentTimeMillis());
-                    inflightLoads.add(future);
-                    future.whenComplete((chunk, throwable) -> inflightLoads.remove(future));
+                    inflightCount.incrementAndGet();
+                    future.whenComplete((chunk, throwable) -> inflightCount.updateAndGet(c -> c <= 0 ? 0 : c - 1));
                 }
             }
         }
     }
 
     private boolean isChunkGeneratedSafe(World world, int chunkX, int chunkZ) {
-        try {
-            resolveReflection(world);
-            if (isChunkGeneratedMethod == null) {
-                return world.isChunkLoaded(chunkX, chunkZ);
-            }
-            Object result = isChunkGeneratedMethod.invoke(world, chunkX, chunkZ);
-            if (result instanceof Boolean) {
-                return (Boolean) result;
-            }
-            return false;
-        } catch (ReflectiveOperationException | RuntimeException throwable) {
-            LoggerUtility.loggerUtility(ChunkWarmManager.class, throwable);
-            return false;
-        }
+        // PaperLib.isChunkGenerated() handles reflection/fallback internally and is kept
+        return PaperLib.isChunkGenerated(world, chunkX, chunkZ);
     }
 
     private boolean tpsBelow(double threshold) {
         double currentTps = Variables.getServerMetricsProvider().getPrimaryTps();
         return !Double.isNaN(currentTps) && currentTps < threshold;
-    }
-
-    private synchronized void resolveReflection(World world) {
-        if (reflectionResolved) {
-            return;
-        }
-        if (world != null) {
-            try {
-                isChunkGeneratedMethod = world.getClass().getMethod("isChunkGenerated", int.class, int.class);
-            } catch (NoSuchMethodException ignored) {
-                isChunkGeneratedMethod = null;
-            }
-        }
-        reflectionResolved = true;
     }
 
     private void evictExpiredScheduledChunks() {
@@ -321,9 +300,12 @@ public final class ChunkWarmManager implements Listener {
                 | ((chunkZ + 0x800000) & 0xFFFFFF);
     }
 
+    private static int toChunkCoord(int blockCoord) {
+        return blockCoord >> 4;
+    }
+
     private int getInflight() {
-        inflightLoads.removeIf(CompletableFuture::isDone);
-        return inflightLoads.size();
+        return inflightCount.get();
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -333,7 +315,7 @@ public final class ChunkWarmManager implements Listener {
         }
 
         Location spawn = event.getWorld().getSpawnLocation();
-        warmArea(event.getWorld(), spawn.getBlockX() >> 4, spawn.getBlockZ() >> 4, warmRadius,
+        warmArea(event.getWorld(), toChunkCoord(spawn.getBlockX()), toChunkCoord(spawn.getBlockZ()), warmRadius,
                 new AtomicInteger(loadsPerTickBudget));
     }
 
@@ -344,13 +326,15 @@ public final class ChunkWarmManager implements Listener {
         }
 
         Location location = event.getPlayer().getLocation();
-        warmArea(location.getWorld(), location.getBlockX() >> 4, location.getBlockZ() >> 4, warmRadius,
+        int joinChunkX = toChunkCoord(location.getBlockX());
+        int joinChunkZ = toChunkCoord(location.getBlockZ());
+        warmArea(location.getWorld(), joinChunkX, joinChunkZ, warmRadius,
                 new AtomicInteger(loadsPerTickBudget));
         lastWarmedPlayerChunk.put(event.getPlayer().getUniqueId(),
-                new long[]{location.getBlockX() >> 4, location.getBlockZ() >> 4});
+                new long[]{joinChunkX, joinChunkZ});
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         if (!enabled || !triggerOnMove) {
             return;
@@ -362,14 +346,16 @@ public final class ChunkWarmManager implements Listener {
             return;
         }
 
-        if ((from.getBlockX() >> 4) == (to.getBlockX() >> 4)
-                && (from.getBlockZ() >> 4) == (to.getBlockZ() >> 4)) {
+        int toChunkX = toChunkCoord(to.getBlockX());
+        int toChunkZ = toChunkCoord(to.getBlockZ());
+        if (toChunkCoord(from.getBlockX()) == toChunkX
+                && toChunkCoord(from.getBlockZ()) == toChunkZ) {
             return;
         }
 
-        warmArea(to.getWorld(), to.getBlockX() >> 4, to.getBlockZ() >> 4, warmRadius,
+        warmArea(to.getWorld(), toChunkX, toChunkZ, warmRadius,
                 new AtomicInteger(loadsPerTickBudget));
         lastWarmedPlayerChunk.put(event.getPlayer().getUniqueId(),
-                new long[]{to.getBlockX() >> 4, to.getBlockZ() >> 4});
+                new long[]{toChunkX, toChunkZ});
     }
 }

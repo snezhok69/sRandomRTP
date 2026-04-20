@@ -2,6 +2,7 @@ package org.sRandomRTP.Checkings;
 
 import org.bukkit.Bukkit;
 import org.popcraft.chunky.api.ChunkyAPI;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Variables;
 
 public class CheckingInstalledChunky {
@@ -14,12 +15,12 @@ public class CheckingInstalledChunky {
                 int minorVersion = Integer.parseInt(versionParts[1].split("-")[0]);
 
                 if (majorVersion == 1 && minorVersion < 13) {
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChunky API is not supported on version " + version);
-                    Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eSome functions will not be available!");
+                    Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §eChunky API is not supported on version " + version);
+                    Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §eSome functions will not be available!");
                     return false;
                 }
             } catch (NumberFormatException e) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cError in determining the server version!");
+                Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cError in determining the server version!");
                 return false;
             }
         }
@@ -27,18 +28,18 @@ public class CheckingInstalledChunky {
         try {
             Variables.chunkyAPI = Bukkit.getServicesManager().load(ChunkyAPI.class);
             if (Variables.chunkyAPI == null) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cFailed to load Chunky API!");
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cSome functions will not be available!");
+                Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cFailed to load Chunky API!");
+                Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cSome functions will not be available!");
                 return false;
             }
             if (Bukkit.getPluginManager().getPlugin("Chunky") == null) {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cSome functions will not be available!");
+                Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cSome functions will not be available!");
                 return false;
             }
             return true;
         } catch (NoClassDefFoundError | Exception e) {
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cError loading Chunky API!");
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cSome functions will not be available!");
+            Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cError loading Chunky API!");
+            Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cSome functions will not be available!");
             return false;
         }
     }

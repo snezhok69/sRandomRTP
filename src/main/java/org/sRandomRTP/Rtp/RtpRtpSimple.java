@@ -4,28 +4,29 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods;
+import org.sRandomRTP.Utils.ConfigUtils;
+import org.sRandomRTP.Utils.CoordinateUtils;
 
 import static org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods.clampRadiusToBorder;
-import static org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods.getWorldSpecificRadius;
 
 /**
- * Универсальный одномировой RTP-хендлер.
- * Заменяет дублирующиеся внутренние Handler-классы из RtpRtpPlayer и RtpRtpPortal.
+ * Universal single-world RTP handler.
+ * Replaces the duplicated inner Handler classes from RtpRtpPlayer and RtpRtpPortal.
  *
- * @param useWorldSpecificRadius {@code true} — читает per-world радиус из конфига,
- *                               {@code false} — использует глобальный teleport.radius.
+ * @param useWorldSpecificRadius {@code true} — reads per-world radius from config,
+ *                               {@code false} — uses global teleport.radius.
  */
 public final class RtpRtpSimple {
 
     private RtpRtpSimple() {}
 
     /**
-     * Запускает RTP-поиск для игрока в указанном мире.
+     * Starts an RTP search for the player in the given world.
      *
-     * @param player                 игрок для телепортации
-     * @param targetWorld            целевой мир
-     * @param useWorldSpecificRadius {@code true} — per-world радиус, {@code false} — глобальный
-     * @param logPrefix              префикс для сообщений об ошибках радиуса
+     * @param player                 player to teleport
+     * @param targetWorld            target world
+     * @param useWorldSpecificRadius {@code true} — per-world radius, {@code false} — global
+     * @param logPrefix              prefix for radius error messages
      */
     public static void launch(Player player, World targetWorld,
                               boolean useWorldSpecificRadius, String logPrefix) {
@@ -39,11 +40,15 @@ public final class RtpRtpSimple {
                 int minRadius;
                 if (useWorldSpecificRadius) {
                     String worldName = world.getName();
-                    radius    = getWorldSpecificRadius(worldName, "radius");
-                    minRadius = getWorldSpecificRadius(worldName, "minradius");
+                    org.bukkit.configuration.file.FileConfiguration teleportFile =
+                            Variables.getPluginContext().getConfigRegistry().getTeleportFile();
+                    // Inlined from the former DifferentRtpMethods.getWorldSpecificRadius wrapper
+                    radius    = ConfigUtils.getWorldSpecificInt(teleportFile, worldName, "radius",    0);
+                    minRadius = ConfigUtils.getWorldSpecificInt(teleportFile, worldName, "minradius", 0);
                 } else {
-                    radius    = Variables.teleportfile.getInt("teleport.radius");
-                    minRadius = Variables.teleportfile.getInt("teleport.minradius");
+                    // Use ConfigCache snapshot — avoids live YAML lookups on every RTP
+                    radius    = Variables.configCache.maxRadius;
+                    minRadius = Variables.configCache.minRadius;
                 }
 
                 DifferentRtpMethods.ClampedRadius clamped =
@@ -53,7 +58,7 @@ public final class RtpRtpSimple {
 
                 if (!validateRadius(minRadius, radius, p)) return null;
 
-                int maxAttempts = Math.max(1, Variables.teleportfile.getInt("teleport.maxtries"));
+                int maxAttempts = Variables.configCache.maxTries;
                 return new LaunchParams(centerX, centerZ, radius, minRadius, maxAttempts, true);
             }
         }.launchRtpForPlayer(player, targetWorld);

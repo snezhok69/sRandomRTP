@@ -10,8 +10,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.sRandomRTP.Commands.CommandSetPortal;
+import org.sRandomRTP.Commands.portal.PortalTriggerHandler;
 import org.sRandomRTP.Cooldowns.CooldownManager;
+import org.sRandomRTP.DifferentMethods.BossBars.RemoveAllBossBars;
+import org.sRandomRTP.DifferentMethods.EconomyPaymentManager;
 import org.sRandomRTP.DifferentMethods.Teleport.CleanupTasks;
 import org.sRandomRTP.DifferentMethods.Teleport.PerformTeleport;
 import org.sRandomRTP.DifferentMethods.Variables;
@@ -33,7 +35,7 @@ public class PortalAndEffectsListener implements Listener {
     public void onPortalBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
         if (block == null || block.getWorld() == null) return;
-        if (isPortalBlock(block) && CommandSetPortal.isPortalBlocksProtected()) {
+        if (isPortalBlock(block) && org.sRandomRTP.Services.PortalSettings.current().isPortalBlocksProtected()) {
             event.setCancelled(true);
             Variables.getMessageService().send(event.getPlayer(), LoadMessages.error_break_portal_block);
         }
@@ -59,23 +61,28 @@ public class PortalAndEffectsListener implements Listener {
             existing.cancel();
         }
         final AtomicInteger ticks = new AtomicInteger(0);
-        // Используем кешированные значения конфига вместо чтения с диска при каждом вызове
-        final int duration = Variables.cachedParticleDuration;
-        final boolean visibleToPlayerOnly = Variables.cachedParticleVisibleToPlayerOnly;
-        final int count = Variables.cachedParticleCount;
-        final double offsetX = Variables.cachedParticleOffsetX;
-        final double offsetY = Variables.cachedParticleOffsetY;
-        final double offsetZ = Variables.cachedParticleOffsetZ;
-        final double extra = Variables.cachedParticleExtra;
-        final List<Particle> particleTypes = Variables.cachedParticleTypes;
+        // Use cached config values instead of reading from disk on every call
+        final int duration = Variables.configCache.particleDuration;
+        final boolean visibleToPlayerOnly = Variables.configCache.particleVisibleToPlayerOnly;
+        final int count = Variables.configCache.particleCount;
+        final double offsetX = Variables.configCache.particleOffsetX;
+        final double offsetY = Variables.configCache.particleOffsetY;
+        final double offsetZ = Variables.configCache.particleOffsetZ;
+        final double extra = Variables.configCache.particleExtra;
+        final List<Particle> particleTypes = Variables.configCache.particleTypes;
+
+        // Use AtomicReference so the task lambda can cancel itself safely even if the
+        // scheduler fires before putParticleTask() stores the reference in the registry.
+        final java.util.concurrent.atomic.AtomicReference<WrappedTask> taskRef =
+                new java.util.concurrent.atomic.AtomicReference<>();
 
         WrappedTask task = Variables.getFoliaLib().getImpl().runAtEntityTimer(player, () -> {
             if (ticks.get() >= duration) {
-                WrappedTask particleTask = state.getParticleTask(player);
-                if (particleTask != null) {
-                    particleTask.cancel();
-                    state.removeParticleTask(player);
+                WrappedTask self = taskRef.get();
+                if (self != null) {
+                    self.cancel();
                 }
+                state.removeParticleTask(player);
                 return;
             }
             Location location = player.getLocation();
@@ -89,12 +96,13 @@ public class PortalAndEffectsListener implements Listener {
             ticks.incrementAndGet();
         }, 1L, 1L);
 
+        taskRef.set(task);
         state.putParticleTask(player, task);
     }
 
     // ── Player quit cleanup ─────────────────────────────────────────────────
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         RuntimeStateRegistry state = Variables.getRuntimeState();
@@ -104,14 +112,21 @@ public class PortalAndEffectsListener implements Listener {
             state.removeParticleTask(player);
         }
         Variables.getAdminBarService().cleanupPlayer(player);
+        // Dismiss any active countdown boss bar before clearing registry state —
+        // removeBossBar is idempotent (safe when no bar is active).
+        RemoveAllBossBars.removeBossBar(player);
         state.clearPlayerRuntimeState(player);
-        // Фикс утечки памяти: очищаем insidePlayers и teleportCooldown для вышедшего игрока
-        CommandSetPortal.handlePlayerQuit(player.getUniqueId());
-        // Инвалидируем кеш прав кулдауна, чтобы не накапливать записи оффлайн-игроков
-        CooldownManager.invalidateCache(player.getUniqueId());
-        // Очищаем in-progress guard телепортации и статус очистки задач,
-        // чтобы игрок, отключившийся в середине async-телепорта, не блокировал будущие телепорты.
+        // Clear insidePlayers and teleportCooldown for the disconnecting player to prevent memory leak
+        PortalTriggerHandler triggerHandler = Variables.getPortalTriggerHandler();
+        if (triggerHandler != null) triggerHandler.handlePlayerQuit(player.getUniqueId());
+        // Invalidate cooldown permission cache so offline-player entries don't accumulate
+        CooldownManager.instance().invalidatePermissionCache(player.getUniqueId());
+        // Clear teleport in-progress guard and cleanup flags so a player who disconnects
+        // mid async-teleport does not permanently block future teleports.
         PerformTeleport.clearInProgressForPlayer(player.getUniqueId());
         CleanupTasks.clearForPlayer(player.getUniqueId());
+        // Refund any pending economy charge if the player disconnects mid-search.
+        // refund(UUID) is idempotent — no-ops if no pending payment exists.
+        EconomyPaymentManager.refund(player.getUniqueId());
     }
 }

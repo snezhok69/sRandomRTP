@@ -1,13 +1,15 @@
 package org.sRandomRTP.Commands;
 
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DataPortals.PortalSQLRepository;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
+
+import java.util.concurrent.CompletableFuture;
 
 public class CommandDelPortal {
 
@@ -22,12 +24,21 @@ public class CommandDelPortal {
             return;
         }
 
-        state.removePlayerPortal(sender.getName(), portalName);
-        PortalSQLRepository.removePortalPlayerFromDatabaseSQL(sender.getName(), portalName).join();
-        PortalSQLRepository.removePortalBlocksPlayerToDatabaseSQL(portalName);
-        PortalSQLRepository.removePortalTasksFromDatabaseSQL(portalName);
-
-        Variables.getMessageService().send(sender, LoadMessages.portal_delete_success,
-                "%portal%", portalName);
+        // All three DB operations run concurrently; memory is only updated after all complete.
+        // This prevents an out-of-sync state if the server crashes between DB operations.
+        CompletableFuture.allOf(
+                PortalSQLRepository.removePortalPlayerFromDatabaseSQL(sender.getName(), portalName),
+                PortalSQLRepository.removePortalBlocksPlayerToDatabaseSQL(portalName),
+                PortalSQLRepository.removePortalTasksFromDatabaseSQL(portalName)
+        ).thenRun(() -> {
+            state.removePlayerPortal(sender.getName(), portalName);
+            Variables.getFoliaLib().getImpl().runAtEntity(
+                    (Player) sender,
+                    t -> Variables.getMessageService().send(sender, LoadMessages.portal_delete_success,
+                            "%portal%", portalName));
+        }).exceptionally(ex -> {
+            ChatUtils.logError("Portal deletion failed for '" + portalName + "': " + ex.getMessage());
+            return null;
+        });
     }
 }

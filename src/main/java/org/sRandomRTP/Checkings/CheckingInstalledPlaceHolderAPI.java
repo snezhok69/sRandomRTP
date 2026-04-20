@@ -3,6 +3,7 @@ package org.sRandomRTP.Checkings;
 import org.bukkit.Bukkit;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Placeholders;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Variables;
 
 public class CheckingInstalledPlaceHolderAPI {
@@ -13,7 +14,7 @@ public class CheckingInstalledPlaceHolderAPI {
                 new Placeholders().register();
                 return true;
             } else {
-                Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cPlaceHolderAPI is not installed, some features will be disabled!");
+                Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cPlaceHolderAPI is not installed, some features will be disabled!");
             }
             return false;
         } catch (RuntimeException e) {

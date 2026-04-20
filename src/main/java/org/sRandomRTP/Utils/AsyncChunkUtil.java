@@ -6,16 +6,26 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
-import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
 import org.sRandomRTP.DifferentMethods.Variables;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class AsyncChunkUtil {
-    private static volatile Method asyncChunkMethod;
-    private static volatile boolean paperMethodsResolved;
+    /**
+     * Cached once at class-load — avoids repeated Environment.isPaper() dispatch per chunk request.
+     * Guarded with try/catch so unit tests (no live Bukkit server) do not ExceptionInInitializerError.
+     */
+    private static final boolean IS_PAPER = resolvePaper();
+
+    private static boolean resolvePaper() {
+        try {
+            return PaperLib.isPaper();
+        } catch (RuntimeException | ExceptionInInitializerError e) {
+            return false;
+        }
+    }
+
     private static final AtomicInteger INFLIGHT_CHUNK_REQUESTS = new AtomicInteger();
 
     private AsyncChunkUtil() {}
@@ -68,39 +78,17 @@ public final class AsyncChunkUtil {
 
     private static CompletableFuture<Chunk> requestChunkDirect(World world, int chunkX, int chunkZ, boolean generate) {
         long startedAt = System.nanoTime();
-        if (PaperLib.isPaper()) {
-            resolvePaperMethods(world);
-            try {
-                if (asyncChunkMethod != null) {
-                    Object fallback = asyncChunkMethod.invoke(world, chunkX, chunkZ, generate, true);
-                    if (fallback instanceof CompletableFuture) {
-                        @SuppressWarnings("unchecked")
-                        CompletableFuture<Chunk> future = (CompletableFuture<Chunk>) fallback;
-                        return recordChunkTiming(future, startedAt);
-                    }
-                }
-            } catch (ReflectiveOperationException | IllegalArgumentException throwable) {
-                LoggerUtility.loggerUtility(AsyncChunkUtil.class, throwable);
-            }
-        }
         try {
+            // On Paper: use urgently when we are generating (RTP critical path) so the chunk
+            // worker prioritises this load over background pre-generation.
+            if (IS_PAPER && generate) {
+                return recordChunkTiming(PaperLib.getChunkAtAsyncUrgently(world, chunkX, chunkZ, true), startedAt);
+            }
             return recordChunkTiming(PaperLib.getChunkAtAsync(world, chunkX, chunkZ, generate), startedAt);
         } catch (RuntimeException throwable) {
             LoggerUtility.loggerUtility(AsyncChunkUtil.class, throwable);
             return requestChunkOnRegionThread(world, chunkX, chunkZ);
         }
-    }
-
-    private static synchronized void resolvePaperMethods(World world) {
-        if (paperMethodsResolved || world == null) {
-            return;
-        }
-        try {
-            asyncChunkMethod = world.getClass().getMethod("getChunkAtAsync", int.class, int.class, boolean.class, boolean.class);
-        } catch (NoSuchMethodException ignored) {
-            asyncChunkMethod = null;
-        }
-        paperMethodsResolved = true;
     }
 
     private static CompletableFuture<Chunk> recordChunkTiming(CompletableFuture<Chunk> future, long startedAt) {

@@ -2,28 +2,20 @@ package org.sRandomRTP.Commands;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
-
 import static org.sRandomRTP.DifferentMethods.Variables.chunkyAPI;
 
 public class ChunkyCommand {
 
     public static void chunkyCommand(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            Variables.sendPlayersOnly(sender);
-            return;
-        }
-
-        Player player = (Player) sender;
-
-        if (!player.hasPermission(Permissions.CHUNKY)) {
-            Variables.getMessageService().send(sender, LoadMessages.nopermissioncommand);
-            return;
-        }
+        Player player = CommandUtils.requirePlayer(sender).orElse(null);
+        if (player == null) return;
+        if (!CommandUtils.checkPermission(sender, Permissions.CHUNKY)) return;
 
         if (args.length < 2) {
-            player.sendMessage(Variables.pluginName + " §cUsage: /rtp chunky <radius>");
+            player.sendMessage(ChatUtils.PLUGIN_NAME + " §cUsage: /rtp chunky <radius>");
             return;
         }
 

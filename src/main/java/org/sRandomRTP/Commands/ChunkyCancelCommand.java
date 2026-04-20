@@ -10,17 +10,9 @@ import static org.sRandomRTP.DifferentMethods.Variables.chunkyAPI;
 public class ChunkyCancelCommand {
 
     public static void chunkyCancelCommand(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player)) {
-            Variables.sendPlayersOnly(sender);
-            return;
-        }
-
-        Player player = (Player) sender;
-
-        if (!player.hasPermission(Permissions.CHUNKY)) {
-            Variables.getMessageService().send(sender, LoadMessages.nopermissioncommand);
-            return;
-        }
+        Player player = CommandUtils.requirePlayer(sender).orElse(null);
+        if (player == null) return;
+        if (!CommandUtils.checkPermission(sender, Permissions.CHUNKY)) return;
 
         String worldName = player.getWorld().getName();
 

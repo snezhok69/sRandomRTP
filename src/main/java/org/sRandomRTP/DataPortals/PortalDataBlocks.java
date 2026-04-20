@@ -51,10 +51,6 @@ public class PortalDataBlocks {
         return portalName;
     }
 
-    public static Map<String, PortalDataBlocks> getPortalBlocksCache() {
-        return Variables.getRuntimeState().getPlayerPortalsBlocks();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -62,11 +58,12 @@ public class PortalDataBlocks {
         PortalDataBlocks that = (PortalDataBlocks) o;
         return x == that.x && y == that.y && z == that.z
                 && java.util.Objects.equals(world, that.world)
-                && java.util.Objects.equals(portalName, that.portalName);
+                && java.util.Objects.equals(portalName, that.portalName)
+                && java.util.Objects.equals(playerName, that.playerName);
     }
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(world, portalName, x, y, z);
+        return java.util.Objects.hash(world, portalName, playerName, x, y, z);
     }
 }

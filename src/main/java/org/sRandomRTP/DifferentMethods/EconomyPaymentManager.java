@@ -17,19 +17,26 @@ public final class EconomyPaymentManager {
     }
 
     public static boolean chargePlayer(Player payer, Player teleportedPlayer, double amount) {
-        if (payer == null || teleportedPlayer == null || amount <= 0) {
+        if (payer == null || teleportedPlayer == null) {
             return false;
         }
-        if (Variables.econ == null) {
+        // Zero-cost teleport: treat as success without touching Vault or creating a payment entry.
+        if (amount <= 0) {
+            return true;
+        }
+        if (Variables.getPluginContext().getEconomy() == null) {
             return false;
         }
 
-        EconomyResponse response = Variables.econ.withdrawPlayer(payer, amount);
+        // Guard against double-charge: refuse if a pending payment already exists for this player
+        if (pendingPayments.containsKey(teleportedPlayer.getUniqueId())) {
+            return false;
+        }
+
+        EconomyResponse response = Variables.getPluginContext().getEconomy().withdrawPlayer(payer, amount);
         if (!response.transactionSuccess()) {
             return false;
         }
-
-        refund(teleportedPlayer.getUniqueId());
 
         pendingPayments.put(
                 teleportedPlayer.getUniqueId(),
@@ -53,7 +60,7 @@ public final class EconomyPaymentManager {
     }
 
     public static void refund(UUID teleportedPlayerId) {
-        if (teleportedPlayerId == null || Variables.econ == null) {
+        if (teleportedPlayerId == null || Variables.getPluginContext() == null || Variables.getPluginContext().getEconomy() == null) {
             return;
         }
 
@@ -63,27 +70,11 @@ public final class EconomyPaymentManager {
         }
 
         OfflinePlayer payer = Bukkit.getOfflinePlayer(payment.payerId());
-        Variables.econ.depositPlayer(payer, payment.amount());
+        Variables.getPluginContext().getEconomy().depositPlayer(payer, payment.amount());
         if (Variables.getTeleportMetrics() != null) {
             Variables.getTeleportMetrics().recordRefund();
         }
     }
 
-    private static final class Payment {
-        private final UUID payerId;
-        private final double amount;
-
-        private Payment(UUID payerId, double amount) {
-            this.payerId = payerId;
-            this.amount = amount;
-        }
-
-        public UUID payerId() {
-            return payerId;
-        }
-
-        public double amount() {
-            return amount;
-        }
-    }
+    private record Payment(UUID payerId, double amount) {}
 }

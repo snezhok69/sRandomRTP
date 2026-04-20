@@ -50,25 +50,7 @@ public final class BannedWorldResolver {
      * </ul>
      */
     public static Result resolve(Player player, World world) {
-        if (Variables.teleportfile == null) return Result.allow(world);
-        if (!Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-            return Result.allow(world);
-        }
-        List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
-        if (!bannedWorlds.contains(world.getName())) {
-            return Result.allow(world);
-        }
-        if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
-            String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
-            World redirectWorld = Bukkit.getWorld(redirectWorldName);
-            if (redirectWorld != null && !bannedWorlds.contains(redirectWorldName)) {
-                Variables.getMessageService().send(player, LoadMessages.redirect_world,
-                        "%from_world%", world.getName(), "%to_world%", redirectWorld.getName());
-                return Result.allow(redirectWorld);
-            }
-        }
-        Variables.getMessageService().send(player, LoadMessages.banned_world, "%world%", world.getName());
-        return Result.blocked();
+        return resolveInternal(player, world, false);
     }
 
     /**
@@ -79,25 +61,35 @@ public final class BannedWorldResolver {
      * {@code rederictworldnear_error} message and returns {@code blocked()}.
      */
     public static Result resolveForNear(Player player, World world) {
-        if (Variables.teleportfile == null) return Result.allow(world);
-        if (!Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
+        return resolveInternal(player, world, true);
+    }
+
+    /**
+     * Shared implementation for {@link #resolve} and {@link #resolveForNear}.
+     *
+     * @param requirePlayersInRedirect when {@code true}, the redirect world must
+     *                                 have at least one online player (near variant)
+     */
+    private static Result resolveInternal(Player player, World world, boolean requirePlayersInRedirect) {
+        org.sRandomRTP.Services.ConfigCache cache = Variables.configCache;
+        if (!cache.bannedWorldEnabled) {
             return Result.allow(world);
         }
-        List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+        List<String> bannedWorlds = cache.bannedWorlds;
         if (!bannedWorlds.contains(world.getName())) {
             return Result.allow(world);
         }
-        if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
-            String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
+        if (cache.bannedWorldRedirectEnabled) {
+            String redirectWorldName = cache.bannedWorldRedirectWorld;
             World redirectWorld = Bukkit.getWorld(redirectWorldName);
             if (redirectWorld != null && !bannedWorlds.contains(redirectWorldName)) {
                 Variables.getMessageService().send(player, LoadMessages.redirect_world,
                         "%from_world%", world.getName(), "%to_world%", redirectWorld.getName());
-                if (!redirectWorld.getPlayers().isEmpty()) {
-                    return Result.allow(redirectWorld);
+                if (requirePlayersInRedirect && redirectWorld.getPlayers().isEmpty()) {
+                    Variables.getMessageService().send(player, LoadMessages.rederictworldnear_error);
+                    return Result.blocked();
                 }
-                Variables.getMessageService().send(player, LoadMessages.rederictworldnear_error);
-                return Result.blocked();
+                return Result.allow(redirectWorld);
             }
         }
         Variables.getMessageService().send(player, LoadMessages.banned_world, "%world%", world.getName());

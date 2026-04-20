@@ -4,7 +4,9 @@ import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadMessages;
 
 import java.io.BufferedReader;
@@ -62,8 +64,10 @@ public class ReleaseCheckService {
             return;
         }
 
-        boolean playersEnabled = Variables.getInstance().getConfig().getBoolean("Auto-Checking-New-Version-Players-Enabled");
-        boolean consoleEnabled = Variables.getInstance().getConfig().getBoolean("Auto-Checking-New-Version-Console-Enabled");
+        // Read config values once on the main thread (FileConfiguration is not thread-safe).
+        // The lambda captures these as effectively-final so the async timer never touches YAML.
+        final boolean playersEnabled = Variables.getInstance().getConfig().getBoolean("Auto-Checking-New-Version-Players-Enabled");
+        final boolean consoleEnabled = Variables.getInstance().getConfig().getBoolean("Auto-Checking-New-Version-Console-Enabled");
         if (!playersEnabled && !consoleEnabled) {
             return;
         }
@@ -86,12 +90,12 @@ public class ReleaseCheckService {
                 }
 
                 if (result.isUpdateAvailable()) {
-                    if (Variables.getInstance().getConfig().getBoolean("Auto-Checking-New-Version-Console-Enabled")) {
+                    if (consoleEnabled) {
                         sendLines(Bukkit.getConsoleSender(), LoadMessages.newVersionMessage,
                                 "%new-CommandVersion%", result.getLatestVersion(),
                                 "%old-CommandVersion%", result.getCurrentVersion());
                     }
-                    if (Variables.getInstance().getConfig().getBoolean("Auto-Checking-New-Version-Players-Enabled")) {
+                    if (playersEnabled) {
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             if (player != null && player.isOnline()) {
                                 sendLines(player, LoadMessages.newVersionMessage,
@@ -223,14 +227,14 @@ public class ReleaseCheckService {
         }
 
         Bukkit.getConsoleSender().sendMessage("");
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c> WARNING ========================================== WARNING <");
+        Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §c> WARNING ========================================== WARNING <");
         Bukkit.getConsoleSender().sendMessage("");
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cYour plugin is behind by §6" + versionGap
+        Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cYour plugin is behind by §6" + versionGap
                 + " §cversions! The latest version: §6" + result.getLatestVersion()
                 + "§c. Your version: §6" + result.getCurrentVersion() + "§c.");
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cPlease update the plugin!");
+        Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cPlease update the plugin!");
         Bukkit.getConsoleSender().sendMessage("");
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c> WARNING ========================================== WARNING <");
+        Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §c> WARNING ========================================== WARNING <");
         Bukkit.getConsoleSender().sendMessage("");
 
         if (severeOutdatedWarningCount.incrementAndGet() >= 10 && Variables.getInstance() != null) {
@@ -302,8 +306,8 @@ public class ReleaseCheckService {
         }
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            Variables.getFoliaLib().getImpl().runAtEntity(player, ignored ->
-                    messageService.send(player, lines, replacements));
+            FoliaSchedulerFacade.runAtEntity(player,
+                    () -> messageService.send(player, lines, replacements));
             return;
         }
         messageService.send(sender, lines, replacements);

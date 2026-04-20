@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.sRandomRTP.Main;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.PluginContext;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -64,8 +65,11 @@ public class TeleportMetrics {
         if (plugin.getConfig() != null) {
             thresholdMs = plugin.getConfig().getLong("metrics.rtp.slow-request-threshold-ms",
                     plugin.getConfig().getLong("teleport.metrics.slow-request-threshold-ms", 3000L));
-        } else if (Variables.teleportfile != null) {
-            thresholdMs = Variables.teleportfile.getLong("teleport.metrics.slow-request-threshold-ms", 3000L);
+        } else {
+            PluginContext ctx = Variables.getPluginContext();
+            if (ctx != null && ctx.getConfigRegistry().getTeleportFile() != null) {
+                thresholdMs = ctx.getConfigRegistry().getTeleportFile().getLong("teleport.metrics.slow-request-threshold-ms", 3000L);
+            }
         }
 
         long totalMs = context.getElapsedMillis();
@@ -123,6 +127,9 @@ public class TeleportMetrics {
     }
 
     private void appendSlowRequestReport(String message) {
+        if (!org.sRandomRTP.DifferentMethods.Variables.isLoggingEnabled()) {
+            return;
+        }
         File folder = new File(plugin.getDataFolder(), "Diagnostics");
         if (!folder.exists() && !folder.mkdirs()) {
             return;

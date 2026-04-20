@@ -7,10 +7,11 @@ import org.bukkit.WorldBorder;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ConfigUtils;
 
 import java.util.concurrent.CompletableFuture;
 
-import static org.sRandomRTP.DifferentMethods.Variables.pluginName;
+import org.sRandomRTP.Utils.ChatUtils;
 
 public class DifferentRtpMethods {
 
@@ -23,7 +24,7 @@ public class DifferentRtpMethods {
     }
 
     public static void handleTimedOutSearch(Player player, boolean loggingEnabled) {
-        player.sendMessage(pluginName + " §8- §cTeleportation request timed out. Please try again.");
+        player.sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cTeleportation request timed out. Please try again.");
         if (loggingEnabled) {
             Bukkit.getLogger().warning("Teleportation search timed out for player " + player.getName());
         }
@@ -60,12 +61,4 @@ public class DifferentRtpMethods {
         return new ClampedRadius(radius, minRadius);
     }
 
-    public static int getWorldSpecificRadius(String worldName, String setting) {
-        String worldPath = "teleport.per-world." + worldName + "." + setting;
-        if (Variables.teleportfile.contains(worldPath)) {
-            return Variables.teleportfile.getInt(worldPath);
-        }
-
-        return Variables.teleportfile.getInt("teleport." + setting);
-    }
 }

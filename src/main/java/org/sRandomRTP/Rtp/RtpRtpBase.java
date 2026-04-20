@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.bukkit.ChatColor.translateAlternateColorCodes;
-import static org.sRandomRTP.DifferentMethods.Variables.pluginName;
+import org.sRandomRTP.Utils.ChatUtils;
 
 public class RtpRtpBase {
     public static void rtpRtpbase(CommandSender sender, World targetWorld) {
@@ -33,7 +33,7 @@ public class RtpRtpBase {
 
         @Override
         protected LaunchParams buildLaunchParams(Player player, World world, boolean loggingEnabled) {
-            int maxAttempts = Math.max(1, Variables.teleportfile.getInt("teleport.maxtries"));
+            int maxAttempts = Math.max(1, Variables.getPluginContext().getConfigRegistry().getTeleportFile().getInt("teleport.maxtries"));
             // Region-based RTP ignores radius entirely; pass distinct dummy values so
             // the radius==minRadius guard in AbstractRtpHandler.attemptCoordinate() never fires.
             return new LaunchParams(0, 0, 100, 0, maxAttempts, false);
@@ -49,7 +49,7 @@ public class RtpRtpBase {
                 if (loggingEnabled) {
                     Bukkit.getConsoleSender().sendMessage("RegionManager is null for world: " + world.getName());
                 }
-                player.sendMessage(pluginName + " §8- §cError getting regions. Please check logs.");
+                player.sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cError getting regions. Please check logs.");
                 TeleportRequestManager.cancelRequest(player.getUniqueId(), loggingEnabled, "no region manager");
                 Variables.getRuntimeState().setPlayerSearching(player, false);
                 return false;
@@ -80,7 +80,7 @@ public class RtpRtpBase {
 
             BlockVector3 min = region.getMinimumPoint();
             BlockVector3 max = region.getMaximumPoint();
-            int regionRadius = Variables.teleportfile.getInt("teleport.regionradius");
+            int regionRadius = Variables.getPluginContext().getConfigRegistry().getTeleportFile().getInt("teleport.regionradius");
 
             int centerX = worldCenterX(world);
             int centerZ = worldCenterZ(world);

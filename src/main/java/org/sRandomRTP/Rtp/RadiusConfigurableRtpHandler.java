@@ -8,82 +8,81 @@ import org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods;
 
 import org.bukkit.command.CommandSender;
 
+import java.util.function.Supplier;
+
 import static org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods.clampRadiusToBorder;
 
 /**
- * Shared base for Far and Middle RTP handlers.
- * Subclasses provide config file, key prefix, and log prefix — all logic is shared.
- * <p>
- * Use the static factory methods {@link #rtpFar} and {@link #rtpMiddle} as entry points
- * instead of the former standalone {@code RtpRtpFar} / {@code RtpRtpMiddle} classes.
+ * Shared handler for Far and Middle RTP — all data flows through {@link HandlerConfig}.
+ * Replaces two near-identical inner classes with one parameterized implementation.
  */
-public abstract class RadiusConfigurableRtpHandler extends AbstractRtpHandler {
+public final class RadiusConfigurableRtpHandler extends AbstractRtpHandler {
 
-    /** Entry point for /rtp far — replaces the former RtpRtpFar class. */
+    /**
+     * Configuration for a specific mode (far / middle).
+     * All fields are immutable — safe to pass between threads.
+     */
+    record HandlerConfig(
+            String coordKey,
+            String absoluteKey,
+            String radiusKey,
+            String minRadiusKey,
+            String perWorldBase,
+            String configPrefix,
+            String logPrefix,
+            Supplier<FileConfiguration> configSupplier
+    ) {}
+
+    private static final HandlerConfig FAR_CONFIG = new HandlerConfig(
+            "teleport-far.coordinate-generation-far",
+            "teleport-far.use-absolute-coordinates-far",
+            "teleport-far.radius-far",
+            "teleport-far.minradius-far",
+            "teleport-far.per-world-far.",
+            "teleport-far",
+            "[sRandomRTP-Far]",
+            () -> Variables.getPluginContext().getConfigRegistry().getFarFile()
+    );
+
+    private static final HandlerConfig MIDDLE_CONFIG = new HandlerConfig(
+            "teleport-middle.coordinate-generation-middle",
+            "teleport-middle.use-absolute-coordinates-middle",
+            "teleport-middle.radius-middle",
+            "teleport-middle.minradius-middle",
+            "teleport-middle.per-world-middle.",
+            "teleport-middle",
+            "[sRandomRTP-Middle]",
+            () -> Variables.getPluginContext().getConfigRegistry().getMiddleFile()
+    );
+
+    /** Entry point for /rtp far */
     public static void rtpFar(CommandSender sender, World targetWorld) {
-        new FarHandler().launchRtp(sender, targetWorld);
+        new RadiusConfigurableRtpHandler(FAR_CONFIG).launchRtp(sender, targetWorld);
     }
 
-    /** Entry point for /rtp middle — replaces the former RtpRtpMiddle class. */
+    /** Entry point for /rtp middle */
     public static void rtpMiddle(CommandSender sender, World targetWorld) {
-        new MiddleHandler().launchRtp(sender, targetWorld);
+        new RadiusConfigurableRtpHandler(MIDDLE_CONFIG).launchRtp(sender, targetWorld);
     }
 
-    private static final class FarHandler extends RadiusConfigurableRtpHandler {
-        private static final String COORD_KEY     = "teleport-far.coordinate-generation-far";
-        private static final String ABSOLUTE_KEY  = "teleport-far.use-absolute-coordinates-far";
-        private static final String RADIUS_KEY    = "teleport-far.radius-far";
-        private static final String MIN_RADIUS_KEY = "teleport-far.minradius-far";
-        private static final String PER_WORLD_BASE = "teleport-far.per-world-far.";
+    private final HandlerConfig cfg;
 
-        @Override protected FileConfiguration getConfigFile()   { return Variables.farfile; }
-        @Override protected String getConfigPrefix()            { return "teleport-far"; }
-        @Override protected String getRadiusKeyFull()           { return RADIUS_KEY; }
-        @Override protected String getMinRadiusKeyFull()        { return MIN_RADIUS_KEY; }
-        @Override protected String getPerWorldBase()            { return PER_WORLD_BASE; }
-        @Override protected String getLogPrefix()               { return "[sRandomRTP-Far]"; }
-        @Override protected String getCoordinateGenerationMethod() { return getConfigFile().getString(COORD_KEY); }
-        @Override protected boolean getUseAbsoluteCoordinates() { return getConfigFile().getBoolean(ABSOLUTE_KEY); }
+    private RadiusConfigurableRtpHandler(HandlerConfig cfg) {
+        this.cfg = cfg;
     }
 
-    private static final class MiddleHandler extends RadiusConfigurableRtpHandler {
-        private static final String COORD_KEY     = "teleport-middle.coordinate-generation-middle";
-        private static final String ABSOLUTE_KEY  = "teleport-middle.use-absolute-coordinates-middle";
-        private static final String RADIUS_KEY    = "teleport-middle.radius-middle";
-        private static final String MIN_RADIUS_KEY = "teleport-middle.minradius-middle";
-        private static final String PER_WORLD_BASE = "teleport-middle.per-world-middle.";
-
-        @Override protected FileConfiguration getConfigFile()   { return Variables.middlefile; }
-        @Override protected String getConfigPrefix()            { return "teleport-middle"; }
-        @Override protected String getRadiusKeyFull()           { return RADIUS_KEY; }
-        @Override protected String getMinRadiusKeyFull()        { return MIN_RADIUS_KEY; }
-        @Override protected String getPerWorldBase()            { return PER_WORLD_BASE; }
-        @Override protected String getLogPrefix()               { return "[sRandomRTP-Middle]"; }
-        @Override protected String getCoordinateGenerationMethod() { return getConfigFile().getString(COORD_KEY); }
-        @Override protected boolean getUseAbsoluteCoordinates() { return getConfigFile().getBoolean(ABSOLUTE_KEY); }
-    }
-
-
-    protected abstract FileConfiguration getConfigFile();
-
-    /** e.g. "teleport-far" or "teleport-middle" */
-    protected abstract String getConfigPrefix();
-
-    /** Full config key for the radius, e.g. "teleport-far.radius-far" */
-    protected abstract String getRadiusKeyFull();
-
-    /** Full config key for the min radius, e.g. "teleport-far.minradius-far" */
-    protected abstract String getMinRadiusKeyFull();
-
-    /** Per-world config key base, e.g. "teleport-far.per-world-far." */
-    protected abstract String getPerWorldBase();
-
-    /** e.g. "[sRandomRTP-Far]" or "[sRandomRTP-Middle]" */
-    protected abstract String getLogPrefix();
+    private FileConfiguration getConfigFile()          { return cfg.configSupplier().get(); }
+    protected String getConfigPrefix()                 { return cfg.configPrefix(); }
+    protected String getRadiusKeyFull()                { return cfg.radiusKey(); }
+    protected String getMinRadiusKeyFull()             { return cfg.minRadiusKey(); }
+    protected String getPerWorldBase()                 { return cfg.perWorldBase(); }
+    protected String getLogPrefix()                    { return cfg.logPrefix(); }
+    protected String getCoordinateGenerationMethod()   { return getConfigFile().getString(cfg.coordKey()); }
+    protected boolean getUseAbsoluteCoordinates()      { return getConfigFile().getBoolean(cfg.absoluteKey()); }
 
     private int resolveRadius(World world, boolean isRadius) {
         return resolveRadiusFromConfig(getConfigFile(), getPerWorldBase(), world.getName(),
-                getRadiusKeyFull(), getMinRadiusKeyFull(), isRadius, 0);
+                getRadiusKeyFull(), getMinRadiusKeyFull(), isRadius, isRadius ? 30000 : 10000);
     }
 
     @Override
@@ -97,7 +96,7 @@ public abstract class RadiusConfigurableRtpHandler extends AbstractRtpHandler {
         radius    = clamped.radius;
         minRadius = clamped.minRadius;
         if (!validateRadius(minRadius, radius, player)) return null;
-        return new LaunchParams(centerX, centerZ, radius, minRadius, Variables.cachedMaxTries, true);
+        return new LaunchParams(centerX, centerZ, radius, minRadius, Variables.configCache.maxTries, true);
     }
 
 }

@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
+import org.sRandomRTP.Utils.ChatUtils;
 
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public final class CommandUtils {
         if (sender instanceof Player) {
             return Optional.of((Player) sender);
         }
-        Variables.sendPlayersOnly(sender);
+        ChatUtils.sendPlayersOnly(sender);
         return Optional.empty();
     }
 
@@ -45,9 +46,10 @@ public final class CommandUtils {
      * Sends an error message to the sender and returns {@code false} if WG is absent.
      */
     public static boolean checkWorldGuard(CommandSender sender, boolean loggingEnabled) {
-        if (Variables.teleportfile != null
-                && Variables.teleportfile.getBoolean("teleport.checking-in-regions")
-                && !Variables.isWorldGuardAvailable) {
+        org.bukkit.configuration.file.FileConfiguration teleportfile = Variables.getPluginContext().getConfigRegistry().getTeleportFile();
+        if (teleportfile != null
+                && teleportfile.getBoolean("teleport.checking-in-regions")
+                && !Variables.getPluginContext().isWorldGuardAvailable()) {
             if (loggingEnabled) {
                 org.bukkit.Bukkit.getConsoleSender().sendMessage(
                         "Install the WorldGuard plugin or disable checking regions "

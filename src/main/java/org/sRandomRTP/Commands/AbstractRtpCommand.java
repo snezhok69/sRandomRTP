@@ -4,12 +4,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.RequirementChecker;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
+import org.sRandomRTP.Utils.ChatUtils;
 
 
 /**
@@ -87,7 +87,7 @@ public abstract class AbstractRtpCommand {
     public final void execute(CommandSender sender) {
         try {
             if (!(sender instanceof Player)) {
-                Variables.sendPlayersOnly(sender);
+                ChatUtils.sendPlayersOnly(sender);
                 return;
             }
             Player player = (Player) sender;
@@ -97,11 +97,10 @@ public abstract class AbstractRtpCommand {
             }
 
             World world = initialWorld(player);
-            FileConfiguration config = Variables.getInstance().getConfig();
-            boolean loggingEnabled = config.getBoolean("logs", false);
+            boolean loggingEnabled = Variables.isLoggingEnabled();
 
             // WorldGuard unconditional (CommandBase): before permission check
-            if (requiresWorldGuardUnconditionally() && !Variables.isWorldGuardAvailable) {
+            if (requiresWorldGuardUnconditionally() && !Variables.getPluginContext().isWorldGuardAvailable()) {
                 reportMissingWorldGuard(player, loggingEnabled);
                 return;
             }
@@ -114,8 +113,8 @@ public abstract class AbstractRtpCommand {
 
             // WorldGuard conditional (all commands except CommandBase)
             if (!requiresWorldGuardUnconditionally()
-                    && Variables.teleportfile.getBoolean("teleport.checking-in-regions")
-                    && !Variables.isWorldGuardAvailable) {
+                    && Variables.configCache.checkingInRegions
+                    && !Variables.getPluginContext().isWorldGuardAvailable()) {
                 reportMissingWorldGuard(player, loggingEnabled);
                 return;
             }

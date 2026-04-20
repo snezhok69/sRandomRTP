@@ -3,9 +3,7 @@ package org.sRandomRTP.DataPortals;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Location;
 
-public class PortalDataTasks {
-    private String playerName;
-    private String portalName;
+public class PortalDataTasks extends PortalReference {
     private String taskType;
     private long delay;
     private long period;
@@ -21,8 +19,7 @@ public class PortalDataTasks {
     }
 
     public PortalDataTasks(String playerName, String portalName, String taskType, long delay, long period, Location center, int radius, String taskIds, WrappedTask particlesTask, WrappedTask triggerTask, String shape) {
-        this.playerName = playerName;
-        this.portalName = portalName;
+        super(playerName, portalName);
         this.taskType = taskType;
         this.delay = delay;
         this.period = period;
@@ -32,14 +29,6 @@ public class PortalDataTasks {
         this.particlesTask = particlesTask;
         this.triggerTask = triggerTask;
         this.shape = shape != null ? shape : "circle";
-    }
-
-    public String getPlayerName() {
-        return playerName;
-    }
-
-    public String getPortalName() {
-        return portalName;
     }
 
     public String getTaskType() {
@@ -90,17 +79,4 @@ public class PortalDataTasks {
         this.triggerTask = triggerTask;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PortalDataTasks)) return false;
-        PortalDataTasks that = (PortalDataTasks) o;
-        return java.util.Objects.equals(playerName, that.playerName)
-                && java.util.Objects.equals(portalName, that.portalName);
-    }
-
-    @Override
-    public int hashCode() {
-        return java.util.Objects.hash(playerName, portalName);
-    }
 }

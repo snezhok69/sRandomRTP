@@ -53,7 +53,7 @@ public final class ChunkAcquireService {
         List<CompletableFuture<Chunk>> futures = new ArrayList<>(capacity);
         for (int dx = -effectiveRadius; dx <= effectiveRadius; dx++) {
             for (int dz = -effectiveRadius; dz <= effectiveRadius; dz++) {
-                if (dx == 0 && dz == 0) continue; // центральный чанк уже загружен acquireTargetChunk
+                if (dx == 0 && dz == 0) continue; // center chunk already loaded by acquireTargetChunk
                 futures.add(AsyncChunkUtil.requestChunk(world, centerChunkX + dx, centerChunkZ + dz, false));
             }
         }

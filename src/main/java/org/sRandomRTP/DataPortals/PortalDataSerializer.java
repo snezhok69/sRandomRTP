@@ -13,8 +13,8 @@ package org.sRandomRTP.DataPortals;
  */
 public final class PortalDataSerializer {
 
-    static final String NAME_DELIMITER  = ", ";
-    static final String DATA_DELIMITER  = " | ";
+    public static final String NAME_DELIMITER  = ", ";
+    public static final String DATA_DELIMITER  = " | ";
     static final String DATA_DELIMITER_REGEX = " \\| ";
 
     private PortalDataSerializer() {}

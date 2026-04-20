@@ -1,6 +1,5 @@
 package org.sRandomRTP.Services;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Cooldowns.BossBarCountdownEngine;
@@ -32,8 +31,7 @@ public class TeleportService {
             return false;
         }
 
-        boolean moneyEnabled = Variables.economyfile.getBoolean("teleport.Money.enabled");
-        if (moneyEnabled && !EconomyPaymentManager.chargePlayer(player, player, teleportCost)) {
+        if (Variables.configCache.moneyEnabled && !EconomyPaymentManager.chargePlayer(player, player, teleportCost)) {
             messageService.send(player, LoadMessages.error_withdrawing);
             return false;
         }
@@ -53,8 +51,8 @@ public class TeleportService {
             return false;
         }
 
-        boolean moneyEnabled = Variables.economyfile.getBoolean("teleport.Money.enabled") && payer != null;
-        if (moneyEnabled && !EconomyPaymentManager.chargePlayer(payer, teleportedPlayer, teleportCost)) {
+        if (Variables.configCache.moneyEnabled && payer != null
+                && !EconomyPaymentManager.chargePlayer(payer, teleportedPlayer, teleportCost)) {
             messageService.send(payer, LoadMessages.error_withdrawing);
             return false;
         }
@@ -66,8 +64,8 @@ public class TeleportService {
     private static boolean isAlreadySearching(Player player, CommandSender sender) {
         if (Variables.getRuntimeState().isPlayerSearching(player)) {
             for (String line : LoadMessages.teleportationinprogress) {
-                sender.sendMessage(TranslateRGBColors.translateRGBColors(
-                        ChatColor.translateAlternateColorCodes('&', line)));
+                // translateRGBColors already calls ChatColor.translateAlternateColorCodes internally
+                sender.sendMessage(TranslateRGBColors.translateRGBColors(line));
             }
             return true;
         }

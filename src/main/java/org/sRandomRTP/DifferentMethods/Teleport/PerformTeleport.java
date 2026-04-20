@@ -14,13 +14,18 @@ import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestManager;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PerformTeleport {
-    private static final java.util.Map<UUID, AtomicBoolean> teleportInProgress = new java.util.concurrent.ConcurrentHashMap<>();
+    /**
+     * Tracks players with an active teleport in progress.
+     * {@link Set#add} is atomic on ConcurrentHashMap-backed sets and replaces the old
+     * {@code putIfAbsent + AtomicBoolean.compareAndSet} pattern with a single lock-free call.
+     */
+    private static final Set<UUID> teleportInProgress = ConcurrentHashMap.newKeySet();
 
     public static void performTeleport(Player player, RtpCandidateResolution resolution, boolean loggingEnabled) {
         if (resolution == null) {
@@ -44,10 +49,8 @@ public class PerformTeleport {
         }
 
         UUID playerId = player.getUniqueId();
-        AtomicBoolean guard = new AtomicBoolean(false);
-        AtomicBoolean existing = teleportInProgress.putIfAbsent(playerId, guard);
-        AtomicBoolean inProgress = (existing != null) ? existing : guard;
-        if (!inProgress.compareAndSet(false, true)) {
+        // Set.add() is atomic — returns false if the UUID was already present (duplicate teleport guard)
+        if (!teleportInProgress.add(playerId)) {
             if (loggingEnabled) {
                 Bukkit.getLogger().info("[PerformTeleport] Teleportation already in progress for player " + player.getName() + ", skipping duplicate teleport");
             }
@@ -76,32 +79,33 @@ public class PerformTeleport {
         try {
             final long startedAt = System.nanoTime();
             selectTeleportPath(player, resolution, teleportLocation, loggingEnabled)
-                    .thenAccept(success -> {
+                    .handle((success, ex) -> {
                         FoliaSchedulerFacade.runAtEntity(player, () -> {
-                            // Record metric on the entity thread so timing includes scheduler latency
-                            // and the measurement is safe on Folia's region-threaded model.
-                            if (ctx != null) {
-                                ctx.recordFinalTeleport(System.nanoTime() - startedAt);
-                            }
-                            if (success) {
-                                handleSuccessfulTeleport(player, finalNewX, finalNewZ, newY, loggingEnabled, ctx, playerId);
-                            } else {
-                                if (loggingEnabled) {
-                                    Bukkit.getLogger().warning("[PerformTeleport] Async teleport failed, trying again");
+                            try {
+                                // Record metric on the entity thread so timing includes scheduler latency
+                                // and the measurement is safe on Folia's region-threaded model.
+                                if (ctx != null) {
+                                    ctx.recordFinalTeleport(System.nanoTime() - startedAt);
                                 }
-                                retryTeleport(player, teleportLocation, loggingEnabled, finalNewX, finalNewZ, newY, ctx, playerId);
+                                if (ex != null) {
+                                    if (loggingEnabled) {
+                                        Bukkit.getLogger().severe("[PerformTeleport] Error during teleport: " + ex.getMessage());
+                                    }
+                                    cleanupAfterFailure(player, loggingEnabled, playerId);
+                                } else if (Boolean.TRUE.equals(success)) {
+                                    handleSuccessfulTeleport(player, finalNewX, finalNewZ, newY, loggingEnabled, ctx, playerId);
+                                } else {
+                                    if (loggingEnabled) {
+                                        Bukkit.getLogger().warning("[PerformTeleport] Async teleport failed, trying again");
+                                    }
+                                    retryTeleport(player, teleportLocation, loggingEnabled, finalNewX, finalNewZ, newY, ctx, playerId);
+                                }
+                            } catch (RuntimeException runEx) {
+                                if (loggingEnabled) {
+                                    Bukkit.getLogger().severe("[PerformTeleport] Unhandled error in entity callback: " + runEx.getMessage());
+                                }
+                                cleanupAfterFailure(player, loggingEnabled, playerId);
                             }
-                        });
-                    })
-                    .exceptionally(ex -> {
-                        FoliaSchedulerFacade.runAtEntity(player, () -> {
-                            if (ctx != null) {
-                                ctx.recordFinalTeleport(System.nanoTime() - startedAt);
-                            }
-                            if (loggingEnabled) {
-                                Bukkit.getLogger().severe("[PerformTeleport] Error during teleport: " + ex.getMessage());
-                            }
-                            cleanupAfterFailure(player, loggingEnabled, playerId);
                         });
                         return null;
                     });
@@ -119,33 +123,26 @@ public class PerformTeleport {
         final long retryStartedAt = System.nanoTime();
         CompatibleTeleport.teleport(player, teleportLocation, PlayerTeleportEvent.TeleportCause.PLUGIN,
                         loggingEnabled, "rtp teleport retry")
-                .thenAccept(retrySuccess -> {
+                .handle((retrySuccess, e) -> {
                     if (ctx != null) {
                         ctx.recordFinalTeleport(System.nanoTime() - retryStartedAt);
                     }
                     FoliaSchedulerFacade.runAtEntity(player, () -> {
-                        if (retrySuccess) {
+                        if (e != null || !Boolean.TRUE.equals(retrySuccess)) {
+                            if (loggingEnabled) {
+                                if (e != null) {
+                                    Bukkit.getLogger().severe("[PerformTeleport] Error during second teleport attempt: " + e.getMessage());
+                                } else {
+                                    Bukkit.getLogger().warning("[PerformTeleport] Second teleport attempt also failed");
+                                }
+                            }
+                            cleanupAfterFailure(player, loggingEnabled, playerId);
+                        } else {
                             if (loggingEnabled) {
                                 Bukkit.getLogger().info("[PerformTeleport] Second teleport attempt successful");
                             }
                             handleSuccessfulTeleport(player, finalNewX, finalNewZ, newY, loggingEnabled, ctx, playerId);
-                        } else {
-                            if (loggingEnabled) {
-                                Bukkit.getLogger().warning("[PerformTeleport] Second teleport attempt also failed");
-                            }
-                            cleanupAfterFailure(player, loggingEnabled, playerId);
                         }
-                    });
-                })
-                .exceptionally(e -> {
-                    if (ctx != null) {
-                        ctx.recordFinalTeleport(System.nanoTime() - retryStartedAt);
-                    }
-                    FoliaSchedulerFacade.runAtEntity(player, () -> {
-                        if (loggingEnabled) {
-                            Bukkit.getLogger().severe("[PerformTeleport] Error during second teleport attempt: " + e.getMessage());
-                        }
-                        cleanupAfterFailure(player, loggingEnabled, playerId);
                     });
                     return null;
                 });
@@ -186,8 +183,9 @@ public class PerformTeleport {
     private static void cleanupAfterFailure(Player player, boolean loggingEnabled, UUID playerId) {
         CleanupTasks.cleanupTasks(player, loggingEnabled);
         CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
-        // Телепорт не состоялся — позиция /back не нужна, очищаем чтобы не копилась в памяти
-        Variables.getRuntimeState().removeInitialPosition(player);
+        // Teleport did not occur — clear /back position so it doesn't accumulate in memory
+        org.sRandomRTP.Services.RuntimeStateRegistry state = Variables.getRuntimeState();
+        if (state != null) state.removeInitialPosition(player);
         TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "teleport failure");
         teleportInProgress.remove(playerId);
     }
@@ -206,18 +204,26 @@ public class PerformTeleport {
         teleportInProgress.clear();
     }
 
+    /**
+     * Replaces the {@code %x%}, {@code %y%}, {@code %z%} coordinate placeholders in a message
+     * template in a single pass through the string, avoiding two intermediate String allocations.
+     */
+    private static String replaceCoordsPlaceholders(String template, int x, int y, int z) {
+        return template
+                .replace("%x%", String.valueOf(x))
+                .replace("%y%", String.valueOf(y))
+                .replace("%z%", String.valueOf(z));
+    }
+
     public static void showSuccessMessage(Player player, int finalNewX, int finalNewZ, int newY, boolean loggingEnabled) {
         if (loggingEnabled) {
             Bukkit.getLogger().info("[PerformTeleport] Showing success message to " + player.getName());
         }
 
-        List<String> formattedMessage = LoadMessages.teleportyes;
-        for (String line : formattedMessage) {
-            String formattedLine = line.replace("%x%", String.valueOf(finalNewX))
-                    .replace("%y%", String.valueOf(newY))
-                    .replace("%z%", String.valueOf(finalNewZ));
-
-            formattedLine = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedLine));
+        for (String line : LoadMessages.teleportyes) {
+            String formattedLine = replaceCoordsPlaceholders(line, finalNewX, newY, finalNewZ);
+            // TranslateRGBColors.translateRGBColors() already calls ChatColor.translateAlternateColorCodes internally
+            formattedLine = TranslateRGBColors.translateRGBColors(formattedLine);
             player.sendMessage(formattedLine);
         }
     }
@@ -227,75 +233,77 @@ public class PerformTeleport {
             Bukkit.getLogger().info("[PerformTeleport] Showing titles and applying effects to " + player.getName());
         }
 
-        if (Variables.cachedTitleEnabled
-                && (!LoadMessages.titleMessage.isEmpty()
-                    || (Variables.cachedSubtitleEnabled && !LoadMessages.subtitleMessage.isEmpty()))) {
-            String formattedTitle = LoadMessages.titleMessage
-                    .replace("%x%", String.valueOf(finalNewX))
-                    .replace("%y%", String.valueOf(newY))
-                    .replace("%z%", String.valueOf(finalNewZ));
-            formattedTitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedTitle));
+        // Single volatile read — all subsequent accesses use the local snapshot so the JIT can
+        // optimise freely and we avoid 8+ repeated memory-barrier crossings in this hot path.
+        final org.sRandomRTP.Services.ConfigCache cfg = Variables.configCache;
 
-            if (Variables.cachedSubtitleEnabled) {
-                String formattedSubtitle = LoadMessages.subtitleMessage
-                        .replace("%x%", String.valueOf(finalNewX))
-                        .replace("%y%", String.valueOf(newY))
-                        .replace("%z%", String.valueOf(finalNewZ));
-                formattedSubtitle = TranslateRGBColors.translateRGBColors(ChatColor.translateAlternateColorCodes('&', formattedSubtitle));
-                player.sendTitle(formattedTitle, formattedSubtitle,
-                        Variables.cachedTitleFadeIn, Variables.cachedTitleStay, Variables.cachedTitleFadeOut);
-            } else {
-                player.sendTitle(formattedTitle, null,
-                        Variables.cachedTitleFadeIn, Variables.cachedTitleStay, Variables.cachedTitleFadeOut);
-            }
-        }
-
+        showTitle(player, cfg, finalNewX, finalNewZ, newY);
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
+        FoliaSchedulerFacade.runAtEntity(player,
+                () -> org.sRandomRTP.DifferentMethods.Player.CommandRun.commandrun(player));
+        applyFreeze(player, cfg, loggingEnabled);
+        applySound(player, cfg);
+        applyResourceCosts(player, cfg);
 
-        Variables.getFoliaLib().getImpl().runAtEntity(
-                player,
-                (ignored) -> org.sRandomRTP.DifferentMethods.Player.CommandRun.commandrun(player)
-        );
-
-        if (Variables.cachedFreezeEnabled) {
-            if (Variables.cachedServerMajorVersion >= 17) {
-                player.setFreezeTicks(Variables.cachedFreezeTime * 40);
-            } else if (loggingEnabled) {
-                Bukkit.getConsoleSender().sendMessage("The freeze teleportation feature does not work on versions below 1.17.");
-            }
-        }
-
-        if (Variables.cachedTeleportSoundEnabled && !Variables.cachedTeleportSoundName.isEmpty()) {
-            try {
-                org.bukkit.Sound sound = org.bukkit.Sound.valueOf(Variables.cachedTeleportSoundName.toUpperCase());
-                player.playSound(player.getLocation(), sound, Variables.cachedTeleportSoundVolume, Variables.cachedTeleportSoundPitch);
-            } catch (IllegalArgumentException ex) {
-                Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + Variables.cachedTeleportSoundName);
-            }
-        }
-
-        if (Variables.cachedHungerEnabled) {
-            player.setFoodLevel(Math.max(player.getFoodLevel() - Variables.cachedHungerAmount, 0));
-        }
-
-        if (Variables.cachedHealthEnabled) {
-            player.setHealth(Math.max(player.getHealth() - Variables.cachedHealthAmount, 0.0));
-        }
-
-        if (Variables.cachedLevelsEnabled) {
-            player.setLevel(Math.max(player.getLevel() - Variables.cachedLevelsAmount, 0));
-        }
-
-        if (Variables.cachedItemsEnabled) {
-            for (java.util.Map.Entry<org.bukkit.Material, Integer> entry : Variables.itemMap.entrySet()) {
-                org.sRandomRTP.DifferentMethods.Player.RemovePlayerItems.removePlayerItems(player, entry.getKey(), entry.getValue());
-            }
-        }
-
-        if (Variables.cachedParticlesEnabled) {
-            Variables.getFoliaLib().getImpl().runAtEntity(player, (e) -> org.sRandomRTP.Events.PortalAndEffectsListener.startParticleEffect(player));
+        if (cfg.particlesEnabled) {
+            FoliaSchedulerFacade.runAtEntity(player,
+                    () -> org.sRandomRTP.Events.PortalAndEffectsListener.startParticleEffect(player));
         }
 
         org.sRandomRTP.DifferentMethods.Player.EffectGivePlayer.effectGivePlayer(player);
+    }
+
+    private static void showTitle(Player player, org.sRandomRTP.Services.ConfigCache cfg,
+                                   int x, int z, int y) {
+        if (!cfg.titleEnabled) return;
+        if (LoadMessages.titleMessage.isEmpty()
+                && (!cfg.subtitleEnabled || LoadMessages.subtitleMessage.isEmpty())) {
+            return;
+        }
+        // TranslateRGBColors.translateRGBColors() already calls ChatColor.translateAlternateColorCodes internally
+        String formattedTitle = TranslateRGBColors.translateRGBColors(
+                replaceCoordsPlaceholders(LoadMessages.titleMessage, x, y, z));
+        String formattedSubtitle = cfg.subtitleEnabled
+                ? TranslateRGBColors.translateRGBColors(
+                        replaceCoordsPlaceholders(LoadMessages.subtitleMessage, x, y, z))
+                : null;
+        player.sendTitle(formattedTitle, formattedSubtitle,
+                cfg.titleFadeIn, cfg.titleStay, cfg.titleFadeOut);
+    }
+
+    private static void applyFreeze(Player player, org.sRandomRTP.Services.ConfigCache cfg,
+                                     boolean loggingEnabled) {
+        if (!cfg.freezeEnabled) return;
+        if (Variables.cachedServerMajorVersion >= 17) {
+            player.setFreezeTicks(cfg.freezeTime * 40);
+        } else if (loggingEnabled) {
+            Bukkit.getConsoleSender().sendMessage("The freeze teleportation feature does not work on versions below 1.17.");
+        }
+    }
+
+    private static void applySound(Player player, org.sRandomRTP.Services.ConfigCache cfg) {
+        if (cfg.teleportSoundEnabled && cfg.teleportSound != null) {
+            // teleportSound is pre-parsed at config-load time — no try/catch needed in hot-path
+            player.playSound(player.getLocation(), cfg.teleportSound,
+                    cfg.teleportSoundVolume, cfg.teleportSoundPitch);
+        }
+    }
+
+    private static void applyResourceCosts(Player player, org.sRandomRTP.Services.ConfigCache cfg) {
+        if (cfg.hungerEnabled) {
+            player.setFoodLevel(Math.max(player.getFoodLevel() - cfg.hungerAmount, 0));
+        }
+        if (cfg.healthEnabled) {
+            player.setHealth(Math.max(player.getHealth() - cfg.healthAmount, 0.0));
+        }
+        if (cfg.levelsEnabled) {
+            player.setLevel(Math.max(player.getLevel() - cfg.levelsAmount, 0));
+        }
+        if (cfg.itemsEnabled && !Variables.itemMap.isEmpty()) {
+            for (java.util.Map.Entry<org.bukkit.Material, Integer> entry : Variables.itemMap.entrySet()) {
+                org.sRandomRTP.DifferentMethods.Player.RemovePlayerItems.removePlayerItems(
+                        player, entry.getKey(), entry.getValue());
+            }
+        }
     }
 }

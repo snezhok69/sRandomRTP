@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.BlockBiomes.BiomeBlockValidator;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.DifferentMethods.IsIn.IsInProtectedRegion;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Teleport.ChunkAcquireService;
 import org.sRandomRTP.DifferentMethods.Teleport.GenerateCoordinates;
 import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
@@ -21,6 +22,7 @@ import org.sRandomRTP.DifferentMethods.Teleport.TeleportExecutionService;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.GetYGet.*;
+import org.sRandomRTP.GetYGet.NetherEndSafeYResolver;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,9 +35,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods;
+import org.sRandomRTP.Utils.ConfigUtils;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
+import org.sRandomRTP.Utils.WorldUtils;
 
-import static org.sRandomRTP.DifferentMethods.Variables.pluginName;
 import static org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods.*;
 import static org.sRandomRTP.DifferentMethods.rtprtps.HandleFailedAttempt.handleFailedAttempt;
 import static org.sRandomRTP.DifferentMethods.rtprtps.ResolveTargetWorld.resolveTargetWorld;
@@ -50,22 +53,6 @@ import static org.sRandomRTP.DifferentMethods.rtprtps.SendLoadingFeedback.sendLo
  * One instance is created per teleport request.
  */
 public abstract class AbstractRtpHandler {
-
-    // ── Shared inner data classes ────────────────────────────────────────────
-
-    static final class CandidateSearchTask {
-        final int x;
-        final int z;
-        final String searchStage;
-        final CompletableFuture<RtpCandidateResolution> future;
-
-        CandidateSearchTask(int x, int z, String searchStage, CompletableFuture<RtpCandidateResolution> future) {
-            this.x = x;
-            this.z = z;
-            this.searchStage = searchStage;
-            this.future = future;
-        }
-    }
 
     // ── Abstract method ──────────────────────────────────────────────────────
 
@@ -102,15 +89,15 @@ public abstract class AbstractRtpHandler {
     }
 
     protected String getCoordinateGenerationMethod() {
-        return Variables.cachedCoordinateGenerationMethod;
+        return Variables.configCache.coordinateGenerationMethod;
     }
 
     protected boolean getUseAbsoluteCoordinates() {
-        return Variables.cachedUseAbsoluteCoordinates;
+        return Variables.configCache.useAbsoluteCoordinates;
     }
 
     protected int resolveMaxAttempts(World world) {
-        return Variables.cachedMaxTries;
+        return Variables.configCache.maxTries;
     }
 
     protected String resolveSearchStage(TeleportRequestContext context, int attemptNumber) {
@@ -140,11 +127,9 @@ public abstract class AbstractRtpHandler {
      */
     protected static int resolveRadiusFromConfig(FileConfiguration cfg, String perWorldBase,
             String worldName, String radiusKey, String minRadiusKey, boolean isRadius, int fallback) {
-        String perWorldPath = perWorldBase + worldName + "." + (isRadius ? "radius" : "minradius");
-        if (cfg.contains(perWorldPath)) {
-            return cfg.getInt(perWorldPath);
-        }
-        return cfg.getInt(isRadius ? radiusKey : minRadiusKey, fallback);
+        // Delegate to the shared utility — keeps the per-world lookup logic in one place.
+        String key = isRadius ? "radius" : "minradius";
+        return ConfigUtils.getWorldSpecificInt(cfg, worldName, key, cfg.getInt(isRadius ? radiusKey : minRadiusKey, fallback));
     }
 
     /**
@@ -153,48 +138,26 @@ public abstract class AbstractRtpHandler {
      */
     protected static boolean validateRadius(int minRadius, int radius, Player player) {
         if (minRadius >= radius) {
-            player.sendMessage(pluginName + " §8- §cThe minimum radius cannot be greater than or equal to the maximum radius.");
+            player.sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cThe minimum radius cannot be greater than or equal to the maximum radius.");
             return false;
         }
         if (radius - minRadius < 50) {
-            player.sendMessage(pluginName + " §8- §cThe difference between the minimum and maximum radius must be at least 50 blocks.");
+            player.sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cThe difference between the minimum and maximum radius must be at least 50 blocks.");
             return false;
         }
         return true;
     }
 
-    /**
-     * Null-safe world border center X.
-     * Returns 0 if the world border or its center is null (e.g. on some modded servers).
-     */
+    /** Null-safe world border center X. Delegates to {@link WorldUtils#worldCenterX}. */
     protected static int worldCenterX(World world) {
-        WorldBorder b = world.getWorldBorder();
-        return b != null && b.getCenter() != null ? (int) b.getCenter().getX() : 0;
+        return WorldUtils.worldCenterX(world);
     }
 
-    /**
-     * Null-safe world border center Z.
-     * Returns 0 if the world border or its center is null.
-     */
+    /** Null-safe world border center Z. Delegates to {@link WorldUtils#worldCenterZ}. */
     protected static int worldCenterZ(World world) {
-        WorldBorder b = world.getWorldBorder();
-        return b != null && b.getCenter() != null ? (int) b.getCenter().getZ() : 0;
+        return WorldUtils.worldCenterZ(world);
     }
 
-    protected static final class LaunchParams {
-        final int centerX, centerZ, radius, minRadius, maxAttempts;
-        final boolean useSessionNonce;
-
-        public LaunchParams(int centerX, int centerZ, int radius, int minRadius,
-                            int maxAttempts, boolean useSessionNonce) {
-            this.centerX     = centerX;
-            this.centerZ     = centerZ;
-            this.radius      = radius;
-            this.minRadius   = minRadius;
-            this.maxAttempts = maxAttempts;
-            this.useSessionNonce = useSessionNonce;
-        }
-    }
 
     /**
      * Returns the launch parameters for this handler.
@@ -210,8 +173,10 @@ public abstract class AbstractRtpHandler {
         int centerX = worldCenterX(world);
         int centerZ = worldCenterZ(world);
         String worldName = world.getName();
-        int radius    = getWorldSpecificRadius(worldName, "radius");
-        int minRadius = getWorldSpecificRadius(worldName, "minradius");
+        FileConfiguration teleportFile = Variables.getPluginContext().getConfigRegistry().getTeleportFile();
+        // Inlined from the former DifferentRtpMethods.getWorldSpecificRadius wrapper
+        int radius    = ConfigUtils.getWorldSpecificInt(teleportFile, worldName, "radius",    0);
+        int minRadius = ConfigUtils.getWorldSpecificInt(teleportFile, worldName, "minradius", 0);
         DifferentRtpMethods.ClampedRadius clamped =
                 clampRadiusToBorder(world, radius, minRadius, "[sRandomRTP]", loggingEnabled);
         radius    = clamped.radius;
@@ -235,7 +200,7 @@ public abstract class AbstractRtpHandler {
      */
     protected final void launchRtp(CommandSender sender, World targetWorld) {
         if (!(sender instanceof Player)) {
-            Variables.sendPlayersOnly(sender);
+            ChatUtils.sendPlayersOnly(sender);
             return;
         }
         Player player = (Player) sender;
@@ -258,15 +223,13 @@ public abstract class AbstractRtpHandler {
 
     /** Entry point for standard /rtp — no handler customisation. */
     public static void launch(CommandSender sender, World targetWorld) {
-        new DefaultHandler().launchRtp(sender, targetWorld);
+        new StandardRtpHandler().launchRtp(sender, targetWorld);
     }
 
     /** Entry point for player-targeted teleport (e.g. /rtp world). */
     public static void launchForPlayer(Player player, World targetWorld) {
-        new DefaultHandler().launchRtpForPlayer(player, targetWorld);
+        new StandardRtpHandler().launchRtpForPlayer(player, targetWorld);
     }
-
-    private static final class DefaultHandler extends AbstractRtpHandler {}
 
     /**
      * Common launch body shared by {@link #launchRtp} and {@link #launchRtpForPlayer}.
@@ -279,7 +242,7 @@ public abstract class AbstractRtpHandler {
 
             World world = resolveTargetWorld(player, targetWorld, loggingEnabled);
             if (world == null) {
-                player.sendMessage(pluginName + " §8- §cUnable to determine a valid world for teleportation.");
+                player.sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cUnable to determine a valid world for teleportation.");
                 return;
             }
 
@@ -296,7 +259,7 @@ public abstract class AbstractRtpHandler {
 
             this.scheduleNextAttempt(player, world, params.centerX, params.centerZ,
                     params.radius, params.minRadius, params.maxAttempts,
-                    loggingEnabled, Variables.getInstance().getConfig(), context, sessionNonce, 0L);
+                    loggingEnabled, context, sessionNonce, 0L);
         } catch (RuntimeException e) {
             LoggerUtility.loggerUtility(AbstractRtpHandler.class, e);
         } finally {
@@ -312,7 +275,7 @@ public abstract class AbstractRtpHandler {
      */
     final void scheduleNextAttempt(Player player, World world, int centerX, int centerZ,
                                    int radius, int minRadius, int maxAttempts,
-                                   boolean loggingEnabled, FileConfiguration config,
+                                   boolean loggingEnabled,
                                    TeleportRequestContext context, long sessionNonce,
                                    long delayTicks) {
         if (!player.isOnline()) {
@@ -338,13 +301,8 @@ public abstract class AbstractRtpHandler {
         WrappedTask task = FoliaSchedulerFacade.runLaterEntityAware(
                 player,
                 Math.max(delayTicks, 0L),
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        attemptCoordinate(player, world, centerX, centerZ, radius, minRadius,
-                                maxAttempts, loggingEnabled, config, context, sessionNonce);
-                    }
-                });
+                () -> attemptCoordinate(player, world, centerX, centerZ, radius, minRadius,
+                        maxAttempts, loggingEnabled, context, sessionNonce));
         TeleportRequestManager.registerTask(player, task);
     }
 
@@ -352,7 +310,7 @@ public abstract class AbstractRtpHandler {
 
     private void attemptCoordinate(Player player, World world, int centerX, int centerZ,
                                    int radius, int minRadius, int maxAttempts,
-                                   boolean loggingEnabled, FileConfiguration config,
+                                   boolean loggingEnabled,
                                    TeleportRequestContext context, long sessionNonce) {
         if (!player.isOnline()) {
             TeleportRequestManager.cancelRequest(player.getUniqueId(), loggingEnabled, "player offline");
@@ -379,14 +337,16 @@ public abstract class AbstractRtpHandler {
         }
 
         int attemptNumber = context.incrementAttempt();
+        // Compute once: shouldLogAttempt is called 17+ times in this method.
+        boolean log = loggingEnabled && shouldLogAttempt(attemptNumber);
 
-        if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+        if (log) {
             Bukkit.getConsoleSender().sendMessage("Starting teleport attempt #" + attemptNumber
                     + " for player " + player.getName());
         }
 
         Runnable retryCallback = () -> scheduleNextAttempt(player, world, centerX, centerZ, radius,
-                minRadius, maxAttempts, loggingEnabled, config, context, sessionNonce, 1L);
+                minRadius, maxAttempts, loggingEnabled, context, sessionNonce, 1L);
 
         if (attemptNumber > maxAttempts) {
             handleFailedAttempt(player, loggingEnabled, attemptNumber, maxAttempts, retryCallback, context);
@@ -446,7 +406,7 @@ public abstract class AbstractRtpHandler {
                 }
                 // Unexpected future failure — treat as a failed attempt if no winner yet
                 if (winnerChosen.compareAndSet(false, true)) {
-                    if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+                    if (log) {
                         Bukkit.getLogger().warning("Teleport attempt #" + attemptNumber
                                 + " timed out for player " + player.getName());
                     }
@@ -483,15 +443,14 @@ public abstract class AbstractRtpHandler {
                                 Math.max(candidate.getY(), world.getMinHeight()), task.z);
                         FoliaSchedulerFacade.runAtLocation(processingLocation, () -> {
                             processCandidateLocation(player, world, centerX, centerZ,
-                                    candidate, task.searchStage, loggingEnabled, config, attemptNumber, maxAttempts,
+                                    candidate, task.searchStage, loggingEnabled, attemptNumber, maxAttempts,
                                     retryCallback, context, biomeTargets);
                         });
                     }
                     return;
                 }
 
-                if (throwable == null && candidate != null && candidate.getY() == -1
-                        && loggingEnabled && shouldLogAttempt(attemptNumber)) {
+                if (throwable == null && candidate != null && candidate.getY() == -1 && log) {
                     Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + attemptNumber
                             + " failed due to unsafe location.");
                 }
@@ -516,6 +475,7 @@ public abstract class AbstractRtpHandler {
                                                           int generationIndex, int candidateNumber,
                                                           int batchSize, TeleportRequestContext context,
                                                           List<Biome> biomeTargets) {
+        boolean log = loggingEnabled && shouldLogAttempt(attemptNumber);
         String searchStage = resolveSearchStage(context, attemptNumber);
         if (context.isCancelled() || context.isCompleted()) {
             return new CandidateSearchTask(centerX, centerZ, searchStage, CompletableFuture.completedFuture(null));
@@ -532,7 +492,7 @@ public abstract class AbstractRtpHandler {
         int finalNewX = coords[0];
         int finalNewZ = coords[1];
 
-        if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+        if (log) {
             double distance = Math.hypot(finalNewX - centerX, finalNewZ - centerZ);
             StringBuilder sb = new StringBuilder("Generated coordinates [").append(searchStage).append(']');
             if (batchSize > 1) {
@@ -547,7 +507,7 @@ public abstract class AbstractRtpHandler {
         int candidateChunkX = finalNewX >> 4;
         int candidateChunkZ = finalNewZ >> 4;
         if (TeleportRequestManager.isLocationRecentlyUsed(playerId, candidateChunkX, candidateChunkZ)) {
-            if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+            if (log) {
                 Bukkit.getConsoleSender().sendMessage("Skipping recently used chunk at X=" + finalNewX + ", Z=" + finalNewZ);
             }
             return new CandidateSearchTask(finalNewX, finalNewZ, searchStage, CompletableFuture.completedFuture(null));
@@ -555,7 +515,7 @@ public abstract class AbstractRtpHandler {
 
         if (border != null && !border.isInside(new Location(world, finalNewX + 0.5,
                 world.getMinHeight(), finalNewZ + 0.5))) {
-            if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+            if (log) {
                 Bukkit.getConsoleSender().sendMessage("Generated coordinates outside world border: X=" + finalNewX + ", Z=" + finalNewZ);
             }
             return new CandidateSearchTask(finalNewX, finalNewZ, searchStage, CompletableFuture.completedFuture(null));
@@ -596,7 +556,7 @@ public abstract class AbstractRtpHandler {
 
     private void processCandidateLocation(Player player, World world, int centerX, int centerZ,
                                           RtpCandidateResolution resolution, String searchStage, boolean loggingEnabled,
-                                          FileConfiguration config, int attemptNumber,
+                                          int attemptNumber,
                                           int maxAttempts, Runnable retryCallback,
                                           TeleportRequestContext context, List<Biome> biomeTargets) {
         int finalNewX = resolution.getX();
@@ -606,8 +566,9 @@ public abstract class AbstractRtpHandler {
         Material targetBlockType = resolution.getSurfaceBlockType();
         Material blockAboveType = resolution.getFeetBlockType();
         Material blockTwoAboveType = resolution.getHeadBlockType();
+        boolean log = loggingEnabled && shouldLogAttempt(attemptNumber);
 
-        if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+        if (log) {
             Bukkit.getConsoleSender().sendMessage(new StringBuilder("Trying teleport to: X=").append(finalNewX)
                     .append(", Y=").append(newY).append(", Z=").append(finalNewZ)
                     .append(" | surface=").append(targetBlockType)
@@ -620,7 +581,7 @@ public abstract class AbstractRtpHandler {
         // Biome filter (only active when getBiomeTargets() returns non-empty list)
         if (!biomeTargets.isEmpty()) {
             if (targetBiome == null || !biomeTargets.contains(targetBiome)) {
-                if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+                if (log) {
                     String biomeName = targetBiome == null ? "UNKNOWN" : targetBiome.name();
                     Bukkit.getConsoleSender().sendMessage("Rejected location due to biome mismatch: " + biomeName);
                 }
@@ -632,7 +593,7 @@ public abstract class AbstractRtpHandler {
         WorldBorder border = world.getWorldBorder();
         Location targetLocation = new Location(world, finalNewX + 0.5, newY, finalNewZ + 0.5);
         if (border != null && !border.isInside(targetLocation)) {
-            if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+            if (log) {
                 Bukkit.getConsoleSender().sendMessage("Attempted to teleport outside world border to coordinates: "
                         + targetLocation.getBlockX() + ", " + targetLocation.getBlockY() + ", "
                         + targetLocation.getBlockZ());
@@ -644,8 +605,10 @@ public abstract class AbstractRtpHandler {
             return;
         }
 
-        boolean checkingInRegions = Variables.teleportfile.getBoolean("teleport.checking-in-regions");
-        if (checkingInRegions && !Variables.isWorldGuardAvailable) {
+        // Use configCache to avoid a hot-path YAML map lookup per candidate
+        boolean checkingInRegions = Variables.configCache.checkingInRegions;
+        org.sRandomRTP.Services.PluginContext pCtx = Variables.getPluginContext();
+        if (checkingInRegions && (pCtx == null || !pCtx.isWorldGuardAvailable())) {
             if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage("Install the WorldGuard plugin or disable checking regions in the configuration (checkinginregions: false).");
             }
@@ -655,8 +618,8 @@ public abstract class AbstractRtpHandler {
             return;
         }
 
-        if (checkingInRegions && IsInProtectedRegion.isInProtectedRegion(targetLocation)) {
-            if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+        if (checkingInRegions && pCtx != null && IsInProtectedRegion.isInProtectedRegion(targetLocation)) {
+            if (log) {
                 String regionName = GetProtectedRegionName.getProtectedRegionName(targetLocation);
                 Bukkit.getConsoleSender().sendMessage("Attempted to teleport into protected region: " + regionName);
             }
@@ -685,7 +648,7 @@ public abstract class AbstractRtpHandler {
             int worldMinY = world.getMinHeight();
 
             if (teleportY > worldMaxY || headY > worldMaxY || belowY < worldMinY) {
-                if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+                if (log) {
                     Bukkit.getConsoleSender().sendMessage("Rejected teleport location for "
                             + player.getName() + " due to invalid height range.");
                 }
@@ -696,7 +659,7 @@ public abstract class AbstractRtpHandler {
             if (isHazardousFluid(targetBlockType)
                     || isHazardousFluid(blockAboveType)
                     || isHazardousFluid(blockTwoAboveType)) {
-                if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+                if (log) {
                     Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + attemptNumber
                             + " failed due to hazardous fluid near player position.");
                 }
@@ -704,7 +667,7 @@ public abstract class AbstractRtpHandler {
                 return;
             }
 
-            if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+            if (log) {
                 int chunkX = teleportLocation.getBlockX() >> 4;
                 int chunkZ = teleportLocation.getBlockZ() >> 4;
                 Bukkit.getLogger().info("Starting asynchronous chunk loading for blocks: "
@@ -716,7 +679,7 @@ public abstract class AbstractRtpHandler {
             return;
         }
 
-        if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+        if (log) {
             Bukkit.getConsoleSender().sendMessage("Teleportation attempt #" + attemptNumber
                     + " failed due to banned block, biome, or unsafe block above.");
         }
@@ -729,6 +692,7 @@ public abstract class AbstractRtpHandler {
                                              boolean useAbsoluteCoordinates, boolean loggingEnabled,
                                              int attemptNumber, TeleportRequestContext context,
                                              List<Biome> biomeTargets) {
+        boolean log = loggingEnabled && shouldLogAttempt(attemptNumber);
         String searchStage = resolveSearchStage(context, attemptNumber);
         int probeSamples = Math.max(1, resolveBiomeProbeSamples(context, attemptNumber));
         if (probeSamples <= 1 || biomeTargets == null || biomeTargets.isEmpty()) {
@@ -745,7 +709,7 @@ public abstract class AbstractRtpHandler {
             }
             Biome probeBiome = resolveProbeBiome(world, coords[0], coords[1]);
             if (probeBiome != null && biomeTargets.contains(probeBiome)) {
-                if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+                if (log) {
                     Bukkit.getConsoleSender().sendMessage("Biome probe [" + searchStage + "] matched "
                             + probeBiome.name() + " at X=" + coords[0] + ", Z=" + coords[1]);
                 }
@@ -753,7 +717,7 @@ public abstract class AbstractRtpHandler {
             }
         }
 
-        if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+        if (log) {
             Bukkit.getConsoleSender().sendMessage("Biome probe [" + searchStage + "] found no matching biome in "
                     + probeSamples + " sampled candidates.");
         }
@@ -770,8 +734,9 @@ public abstract class AbstractRtpHandler {
                                                                  int attemptNumber) {
         long safeSearchStartedAt = System.nanoTime();
         Chunk chunk = acquireResult.getChunk();
+        boolean log = loggingEnabled && shouldLogAttempt(attemptNumber);
         if (shouldRejectByBiomeBeforeSafeSearch(world, chunk, x, z, biomeTargets)) {
-            if (loggingEnabled && shouldLogAttempt(attemptNumber)) {
+            if (log) {
                 Biome probeBiome = resolveProbeBiome(world, x, z);
                 Bukkit.getConsoleSender().sendMessage("Rejected location before safe-Y due to biome mismatch: "
                         + (probeBiome == null ? "UNKNOWN" : probeBiome.name()));
@@ -782,43 +747,11 @@ public abstract class AbstractRtpHandler {
         Biome biome = null;
 
         if (world.getEnvironment() == World.Environment.NETHER) {
-            y = VerticalSafeYSearchSupport.getSafeYCoordinateOnLoadedChunk(
-                    AbstractRtpHandler.class, "[Nether]", world, x, z, context,
-                    Variables.cachedMinYNether,
-                    (w, cx, cy, cz, minY) -> {
-                        if (cy < minY) return false;
-                        Block feet = w.getBlockAt(cx, cy, cz);
-                        Block head = feet.getRelative(org.bukkit.block.BlockFace.UP);
-                        if (!GetSafeYCoordinate.isSafeTeleportOccupantMaterial(feet.getType())
-                                || !GetSafeYCoordinate.isSafeTeleportOccupantMaterial(head.getType())) return false;
-                        Block below = feet.getRelative(org.bukkit.block.BlockFace.DOWN);
-                        Block twoBelow = below.getRelative(org.bukkit.block.BlockFace.DOWN);
-                        return GetSafeYCoordinate.isSafeTeleportSupportMaterial(below.getType())
-                                && !below.getType().name().contains("BEDROCK")
-                                && GetSafeYCoordinate.isSafeTeleportSupportMaterial(twoBelow.getType())
-                                && !twoBelow.getType().name().contains("BEDROCK");
-                    });
-            if (y != -1) {
-                biome = world.getBiome(x, y, z);
-            }
+            y = NetherEndSafeYResolver.netherSafeY(world, x, z, context);
+            if (y != -1) biome = world.getBiome(x, y, z);
         } else if (world.getEnvironment() == World.Environment.THE_END) {
-            y = VerticalSafeYSearchSupport.getSafeYCoordinateOnLoadedChunk(
-                    AbstractRtpHandler.class, "[End]", world, x, z, context,
-                    Variables.cachedMinYEnd,
-                    (w, cx, cy, cz, minY) -> {
-                        if (cy < minY) return false;
-                        Block feet = w.getBlockAt(cx, cy, cz);
-                        Block head = feet.getRelative(org.bukkit.block.BlockFace.UP);
-                        if (!GetSafeYCoordinate.isSafeTeleportOccupantMaterial(feet.getType())
-                                || !GetSafeYCoordinate.isSafeTeleportOccupantMaterial(head.getType())) return false;
-                        Block below = feet.getRelative(org.bukkit.block.BlockFace.DOWN);
-                        Block twoBelow = below.getRelative(org.bukkit.block.BlockFace.DOWN);
-                        return GetSafeYCoordinate.isSafeTeleportSupportMaterial(below.getType())
-                                && GetSafeYCoordinate.isSafeTeleportSupportMaterial(twoBelow.getType());
-                    });
-            if (y != -1) {
-                biome = world.getBiome(x, y, z);
-            }
+            y = NetherEndSafeYResolver.endSafeY(world, x, z, context);
+            if (y != -1) biome = world.getBiome(x, y, z);
         } else {
             GetSafeYCoordinate.CoordinateWithBiome coordinate =
                     GetSafeYCoordinate.findSafeYOnLoadedChunk(world, chunk, x, z, context);

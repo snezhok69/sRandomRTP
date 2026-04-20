@@ -6,14 +6,18 @@ import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
-import org.sRandomRTP.DifferentMethods.Teleport.RegionTaskExecutor;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
 
 public final class VerticalSafeYSearchSupport {
+
+    /** Class-level logger — never null even during plugin reload/disable race. */
+    private static final Logger LOG = Logger.getLogger(VerticalSafeYSearchSupport.class.getName());
 
     public interface PositionSafetyChecker {
         boolean isSafe(World world, int x, int y, int z, int minAllowedY);
@@ -39,7 +43,7 @@ public final class VerticalSafeYSearchSupport {
 
         if (Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()) {
             Location location = new Location(world, x, world.getMinHeight(), z);
-            RegionTaskExecutor.runAtLocation(location, () -> completeSearch(sourceClass, logPrefix, future, world, x, z, context, minAllowedY, checker, true));
+            FoliaSchedulerFacade.runAtLocation(location, () -> completeSearch(sourceClass, logPrefix, future, world, x, z, context, minAllowedY, checker, true));
             return future;
         }
 
@@ -54,7 +58,7 @@ public final class VerticalSafeYSearchSupport {
                 return;
             }
             Location location = new Location(world, x, world.getMinHeight(), z);
-            RegionTaskExecutor.runAtLocation(location, () -> completeSearch(sourceClass, logPrefix, future, world, x, z, context, minAllowedY, checker, false));
+            FoliaSchedulerFacade.runAtLocation(location, () -> completeSearch(sourceClass, logPrefix, future, world, x, z, context, minAllowedY, checker, false));
         });
 
         return future;
@@ -132,7 +136,7 @@ public final class VerticalSafeYSearchSupport {
                               int minAllowedY, String logPrefix, PositionSafetyChecker checker) {
         if (checker.isSafe(world, x, maxY, z, minAllowedY)) {
             if (loggingEnabled) {
-                Variables.instance.getLogger().info(logPrefix + " Safe Y-coordinate found at top: " + maxY);
+                LOG.info(logPrefix + " Safe Y-coordinate found at top: " + maxY);
             }
             return maxY;
         }
@@ -148,7 +152,7 @@ public final class VerticalSafeYSearchSupport {
             int mid = low + (high - low) / 2;
             if (checker.isSafe(world, x, mid, z, minAllowedY)) {
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info(logPrefix + " Safe Y-coordinate found: " + mid);
+                    LOG.info(logPrefix + " Safe Y-coordinate found: " + mid);
                 }
                 return mid;
             }
@@ -174,14 +178,14 @@ public final class VerticalSafeYSearchSupport {
 
             if (checker.isSafe(world, x, y, z, minAllowedY)) {
                 if (loggingEnabled) {
-                    Variables.instance.getLogger().info(logPrefix + " Safe Y-coordinate found with linear search: " + y);
+                    LOG.info(logPrefix + " Safe Y-coordinate found with linear search: " + y);
                 }
                 return y;
             }
         }
 
         if (loggingEnabled) {
-            Variables.instance.getLogger().warning(logPrefix + " Failed to find a safe Y-coordinate at the point X:" + x + ", Z:" + z);
+            LOG.warning(logPrefix + " Failed to find a safe Y-coordinate at the point X:" + x + ", Z:" + z);
         }
         return -1;
     }
@@ -189,7 +193,7 @@ public final class VerticalSafeYSearchSupport {
     private static boolean shouldAbort(TeleportRequestContext context, boolean loggingEnabled, String logPrefix) {
         if (context != null && context.isInactive()) {
             if (loggingEnabled) {
-                Variables.instance.getLogger().fine(logPrefix + " Aborting height search due to request cancellation");
+                LOG.fine(logPrefix + " Aborting height search due to request cancellation");
             }
             return true;
         }

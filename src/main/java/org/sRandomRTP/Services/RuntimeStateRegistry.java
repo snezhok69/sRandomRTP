@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DataPortals.PortalDataBlocks;
 import org.sRandomRTP.DataPortals.PortalDataTasks;
+import org.sRandomRTP.DataPortals.PortalStateStore;
 import org.sRandomRTP.Utils.PlayerResourceMap;
 
 import java.util.Collections;
@@ -17,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,56 +31,55 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class RuntimeStateRegistry {
 
-    private final PlayerResourceMap<BossBar> bossBars = new PlayerResourceMap<>();
-    private final PlayerResourceMap<Map<AdminBarType, BossBar>> adminBossBars = new PlayerResourceMap<>();
+    /**
+     * Three-way search phase for a player.
+     *
+     * <ul>
+     *   <li>{@link #IDLE} — not searching; no tasks scheduled.</li>
+     *   <li>{@link #SEARCHING} — search is in progress; tasks are running.</li>
+     *   <li>{@link #TASKS_CLEANED} — search was cancelled and tasks were cancelled,
+     *       but the final {@code finalizeTeleportStatus} has not fired yet.
+     *       A second {@code cleanupTasks} call must be ignored in this state.</li>
+     * </ul>
+     *
+     * Replaces the previous two-field pattern of
+     * {@code Map<UUID,Boolean> playerSearchStatus} +
+     * {@code Set<UUID> tasksCleanedButStatusActive}.
+     */
+    public enum SearchPhase { IDLE, SEARCHING, TASKS_CLEANED }
+
+    /** Boss-bar and admin-bar state, owned by AdminBarService. */
+    private final PlayerBarStateStore playerBarState = new PlayerBarStateStore();
     private final PlayerResourceMap<WrappedTask> teleportTasks = new PlayerResourceMap<>();
-    private final PlayerResourceMap<WrappedTask> adminBarTasks = new PlayerResourceMap<>();
-    private final PlayerResourceMap<Set<AdminBarType>> adminBarTypes = new PlayerResourceMap<>();
     private final PlayerResourceMap<WrappedTask> particleTasks = new PlayerResourceMap<>();
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> biomeCooldowns = new ConcurrentHashMap<>();
-    private final Map<String, Boolean> playerSearchStatus = new ConcurrentHashMap<>();
-    private final Map<String, CommandSender> senderSendMessage = new ConcurrentHashMap<>();
-    private final Map<String, CommandSender> commandSenderMap = new ConcurrentHashMap<>();
-    private final Map<String, Boolean> playerConfirmStatus = new ConcurrentHashMap<>();
+    private final Map<UUID, SearchPhase> playerSearchPhase = new ConcurrentHashMap<>();
+    /** Tracks who issued /rtp player — populated by CommandArgs, read by the teleport result dispatcher. */
+    private final Map<UUID, CommandSender> senderSendMessage = new ConcurrentHashMap<>();
+    /** Tracks the original sender for admin cooldown-bypass boss-bar flows (CooldownBypassBossBarPlayer). */
+    private final Map<UUID, CommandSender> commandSenderMap = new ConcurrentHashMap<>();
+    private final Map<UUID, Boolean> playerConfirmStatus = new ConcurrentHashMap<>();
     private final PlayerResourceMap<Location> initialPositions = new PlayerResourceMap<>();
-    private final Map<String, AtomicBoolean> suitableLocationFound = new ConcurrentHashMap<>();
-    private final Map<Location, Material> placedBlocks = new ConcurrentHashMap<>();
-    private final Map<String, Map<String, PortalData>> playerPortals = new ConcurrentHashMap<>();
-    private final Map<String, PortalDataBlocks> playerPortalsBlocks = new ConcurrentHashMap<>();
-    // Spatial index: "world,x,y,z" → true for O(1) portal-block lookups in block-break events
-    private final Map<String, Boolean> portalBlockLocationIndex = new ConcurrentHashMap<>();
-    // Reverse index: portalName → set of block keys, for O(1) portal removal
-    private final Map<String, Set<String>> portalNameToBlockKeys = new ConcurrentHashMap<>();
-    // Lock for compound operations that must update both maps atomically
-    private final Object portalBlockLock = new Object();
-    private final Map<String, PortalDataTasks> playerPortalsTasks = new ConcurrentHashMap<>();
-    private final Map<String, World> targetWorlds = new ConcurrentHashMap<>();
+    private final Map<UUID, AtomicBoolean> suitableLocationFound = new ConcurrentHashMap<>();
+    /** Coherent portal-state sub-store (portals + blocks + tasks). */
+    private final PortalStateStore portalState = new PortalStateStore();
+    private final Map<UUID, World> targetWorlds = new ConcurrentHashMap<>();
     private final java.util.concurrent.atomic.AtomicInteger rtpCount = new java.util.concurrent.atomic.AtomicInteger(0);
 
-    public PlayerResourceMap<BossBar> getBossBars() {
-        return bossBars;
+    /** Returns the bar state sub-store (boss bars + admin bars). */
+    public PlayerBarStateStore getPlayerBarState() {
+        return playerBarState;
     }
 
-    public PlayerResourceMap<Map<AdminBarType, BossBar>> getAdminBossBars() {
-        return adminBossBars;
-    }
+    // ── Bar delegate methods (kept for backward compatibility) ───────────────
+    public PlayerResourceMap<BossBar> getBossBars()                             { return playerBarState.getBossBars(); }
+    public PlayerResourceMap<Map<AdminBarType, BossBar>> getAdminBossBars()     { return playerBarState.getAdminBossBars(); }
+    public PlayerResourceMap<WrappedTask> getAdminBarTasks()                    { return playerBarState.getAdminBarTasks(); }
+    public PlayerResourceMap<Set<AdminBarType>> getAdminBarTypes()              { return playerBarState.getAdminBarTypes(); }
 
-    public PlayerResourceMap<WrappedTask> getTeleportTasks() {
-        return teleportTasks;
-    }
-
-    public PlayerResourceMap<WrappedTask> getAdminBarTasks() {
-        return adminBarTasks;
-    }
-
-    public PlayerResourceMap<Set<AdminBarType>> getAdminBarTypes() {
-        return adminBarTypes;
-    }
-
-    public PlayerResourceMap<WrappedTask> getParticleTasks() {
-        return particleTasks;
-    }
+    public PlayerResourceMap<WrappedTask> getTeleportTasks()  { return teleportTasks; }
+    public PlayerResourceMap<WrappedTask> getParticleTasks()  { return particleTasks; }
 
     public Map<UUID, Long> getCooldowns() {
         return cooldowns;
@@ -90,19 +89,20 @@ public final class RuntimeStateRegistry {
         return biomeCooldowns;
     }
 
-    public Map<String, Boolean> getPlayerSearchStatus() {
-        return playerSearchStatus;
+    /** Returns the search-phase map for logging/diagnostics. */
+    public Map<UUID, SearchPhase> getPlayerSearchStatus() {
+        return playerSearchPhase;
     }
 
-    public Map<String, CommandSender> getSenderSendMessage() {
+    public Map<UUID, CommandSender> getSenderSendMessage() {
         return senderSendMessage;
     }
 
-    public Map<String, CommandSender> getCommandSenderMap() {
+    public Map<UUID, CommandSender> getCommandSenderMap() {
         return commandSenderMap;
     }
 
-    public Map<String, Boolean> getPlayerConfirmStatus() {
+    public Map<UUID, Boolean> getPlayerConfirmStatus() {
         return playerConfirmStatus;
     }
 
@@ -110,168 +110,37 @@ public final class RuntimeStateRegistry {
         return initialPositions;
     }
 
-    public Map<String, AtomicBoolean> getSuitableLocationFound() {
+    public Map<UUID, AtomicBoolean> getSuitableLocationFound() {
         return suitableLocationFound;
     }
 
-    public Map<Location, Material> getPlacedBlocks() {
-        return placedBlocks;
+    /** Returns the portal state sub-store (portals, blocks, tasks). */
+    public PortalStateStore getPortalState() {
+        return portalState;
     }
 
-    public Map<String, Map<String, PortalData>> getPlayerPortals() {
-        return playerPortals;
-    }
+    // ── Portal delegate methods (kept for backward compatibility) ────────────
 
-    public Map<String, PortalData> getPlayerPortals(String playerName) {
-        if (playerName == null) {
-            return Collections.<String, PortalData>emptyMap();
-        }
-        Map<String, PortalData> portals = playerPortals.get(playerName);
-        return portals != null ? portals : Collections.<String, PortalData>emptyMap();
-    }
+    public Map<Location, Material> getPlacedBlocks()                          { return portalState.getPlacedBlocks(); }
+    public Map<String, Map<String, PortalData>> getPlayerPortals()            { return portalState.getAllPlayerPortals(); }
+    public Map<String, PortalData> getPlayerPortals(String playerName)        { return portalState.getPlayerPortals(playerName); }
+    public Map<String, PortalData> ensurePlayerPortals(String playerName)     { return portalState.ensurePlayerPortals(playerName); }
+    public PortalData getPlayerPortal(String playerName, String portalName)   { return portalState.getPlayerPortal(playerName, portalName); }
+    public boolean hasPlayerPortal(String playerName, String portalName)      { return portalState.hasPlayerPortal(playerName, portalName); }
+    public void putPlayerPortal(String p, String n, PortalData d)             { portalState.putPlayerPortal(p, n, d); }
+    public PortalData removePlayerPortal(String playerName, String portalName){ return portalState.removePlayerPortal(playerName, portalName); }
+    public List<String> getMatchingPortalNames(String p, String prefix, int l){ return portalState.getMatchingPortalNames(p, prefix, l); }
+    public Map<String, PortalDataBlocks> getPlayerPortalsBlocks()             { return portalState.getPlayerPortalsBlocks(); }
+    public void putPortalBlock(String key, PortalDataBlocks bd)               { portalState.putPortalBlock(key, bd); }
+    public boolean isPortalBlockAtLocation(String w, int x, int y, int z)    { return portalState.isPortalBlockAtLocation(w, x, y, z); }
+    public void clearPortalBlocks()                                           { portalState.clearPortalBlocks(); }
+    public List<PortalDataBlocks> removePortalBlocksForPortal(String name)    { return portalState.removePortalBlocksForPortal(name); }
+    public Map<String, PortalDataTasks> getPlayerPortalsTasks()               { return portalState.getPlayerPortalsTasks(); }
+    public PortalDataTasks getPortalTask(String portalName)                   { return portalState.getPortalTask(portalName); }
+    public void putPortalTask(String portalName, PortalDataTasks taskData)    { portalState.putPortalTask(portalName, taskData); }
+    public PortalDataTasks removePortalTask(String portalName)                { return portalState.removePortalTask(portalName); }
 
-    public Map<String, PortalData> ensurePlayerPortals(String playerName) {
-        if (playerName == null) {
-            return Collections.emptyMap();
-        }
-        return playerPortals.computeIfAbsent(playerName, key -> new ConcurrentHashMap<String, PortalData>());
-    }
-
-    public PortalData getPlayerPortal(String playerName, String portalName) {
-        if (playerName == null || portalName == null) {
-            return null;
-        }
-        return getPlayerPortals(playerName).get(portalName);
-    }
-
-    public boolean hasPlayerPortal(String playerName, String portalName) {
-        return getPlayerPortal(playerName, portalName) != null;
-    }
-
-    public void putPlayerPortal(String playerName, String portalName, PortalData portalData) {
-        if (playerName == null || portalName == null || portalData == null) {
-            return;
-        }
-        ensurePlayerPortals(playerName).put(portalName, portalData);
-    }
-
-    public PortalData removePlayerPortal(String playerName, String portalName) {
-        if (playerName == null || portalName == null) {
-            return null;
-        }
-        final PortalData[] holder = {null};
-        playerPortals.computeIfPresent(playerName, (k, portals) -> {
-            holder[0] = portals.remove(portalName);
-            return portals.isEmpty() ? null : portals;
-        });
-        return holder[0];
-    }
-
-    public List<String> getMatchingPortalNames(String playerName, String prefix, int limit) {
-        List<String> names = new ArrayList<String>();
-        if (playerName == null) {
-            return names;
-        }
-        String normalizedPrefix = prefix == null ? "" : prefix.toLowerCase();
-        for (String portalName : getPlayerPortals(playerName).keySet()) {
-            if (portalName != null && portalName.toLowerCase().startsWith(normalizedPrefix)) {
-                names.add(portalName);
-                if (limit > 0 && names.size() >= limit) {
-                    break;
-                }
-            }
-        }
-        return names;
-    }
-
-    public Map<String, PortalDataBlocks> getPlayerPortalsBlocks() {
-        return playerPortalsBlocks;
-    }
-
-    public void putPortalBlock(String key, PortalDataBlocks blockData) {
-        if (key != null && blockData != null) {
-            synchronized (portalBlockLock) {
-                playerPortalsBlocks.put(key, blockData);
-                String locKey = portalLocationKey(blockData.getWorld(), blockData.getX(), blockData.getY(), blockData.getZ());
-                portalBlockLocationIndex.put(locKey, Boolean.TRUE);
-                if (blockData.getPortalName() != null) {
-                    portalNameToBlockKeys.computeIfAbsent(blockData.getPortalName(), k -> ConcurrentHashMap.newKeySet()).add(key);
-                }
-            }
-        }
-    }
-
-    /** O(1) check — replaces the O(n) iteration over playerPortalsBlocks.values(). */
-    public boolean isPortalBlockAtLocation(String world, int x, int y, int z) {
-        return portalBlockLocationIndex.containsKey(portalLocationKey(world, x, y, z));
-    }
-
-    /** Clears both the block map and the spatial index together. */
-    public void clearPortalBlocks() {
-        synchronized (portalBlockLock) {
-            playerPortalsBlocks.clear();
-            portalBlockLocationIndex.clear();
-            portalNameToBlockKeys.clear();
-        }
-    }
-
-    /**
-     * Removes all blocks belonging to {@code portalName} from both maps.
-     * Returns the removed blocks so callers can perform world-side cleanup.
-     */
-    public List<PortalDataBlocks> removePortalBlocksForPortal(String portalName) {
-        List<PortalDataBlocks> removed = new ArrayList<>();
-        if (portalName == null) return removed;
-        synchronized (portalBlockLock) {
-            Set<String> keys = portalNameToBlockKeys.remove(portalName);
-            if (keys == null) return removed;
-            for (String key : keys) {
-                PortalDataBlocks bd = playerPortalsBlocks.remove(key);
-                if (bd != null) {
-                    portalBlockLocationIndex.remove(portalLocationKey(bd.getWorld(), bd.getX(), bd.getY(), bd.getZ()));
-                    removed.add(bd);
-                }
-            }
-        }
-        return removed;
-    }
-
-    private static String portalLocationKey(String world, int x, int y, int z) {
-        return world + "," + x + "," + y + "," + z;
-    }
-
-    public Map<String, PortalDataTasks> getPlayerPortalsTasks() {
-        return playerPortalsTasks;
-    }
-
-    public PortalDataTasks getPortalTask(String portalName) {
-        return portalName == null ? null : playerPortalsTasks.get(portalName);
-    }
-
-    public void putPortalTask(String portalName, PortalDataTasks taskData) {
-        if (portalName != null && taskData != null) {
-            playerPortalsTasks.put(portalName, taskData);
-        }
-    }
-
-    public PortalDataTasks removePortalTask(String portalName) {
-        if (portalName == null) return null;
-        PortalDataTasks tasks = playerPortalsTasks.remove(portalName);
-        if (tasks != null) {
-            // Cancel the running Bukkit tasks so they don't fire after the portal is deleted.
-            WrappedTask particles = tasks.getParticlesTask();
-            if (particles != null && !particles.isCancelled()) {
-                try { particles.cancel(); } catch (RuntimeException ignored) {}
-            }
-            WrappedTask trigger = tasks.getTriggerTask();
-            if (trigger != null && !trigger.isCancelled()) {
-                try { trigger.cancel(); } catch (RuntimeException ignored) {}
-            }
-        }
-        return tasks;
-    }
-
-    public Map<String, World> getTargetWorlds() {
+    public Map<UUID, World> getTargetWorlds() {
         return targetWorlds;
     }
 
@@ -279,24 +148,39 @@ public final class RuntimeStateRegistry {
         return rtpCount;
     }
 
+    /** Returns {@code true} if the player is in the {@link SearchPhase#SEARCHING} or
+     *  {@link SearchPhase#TASKS_CLEANED} phase (i.e., a search is active or was just cleaned). */
     public boolean isPlayerSearching(Player player) {
-        return player != null && isPlayerSearching(player.getName());
-    }
-
-    public boolean isPlayerSearching(String playerName) {
-        return playerName != null && playerSearchStatus.getOrDefault(playerName, false);
+        if (player == null) return false;
+        SearchPhase phase = playerSearchPhase.get(player.getUniqueId());
+        return phase == SearchPhase.SEARCHING || phase == SearchPhase.TASKS_CLEANED;
     }
 
     public void setPlayerSearching(Player player, boolean searching) {
         if (player != null) {
-            setPlayerSearching(player.getName(), searching);
+            if (searching) {
+                playerSearchPhase.put(player.getUniqueId(), SearchPhase.SEARCHING);
+            } else {
+                playerSearchPhase.remove(player.getUniqueId());
+            }
         }
     }
 
-    public void setPlayerSearching(String playerName, boolean searching) {
-        if (playerName != null) {
-            playerSearchStatus.put(playerName, searching);
+    /** Sets the search phase directly; used by {@link org.sRandomRTP.DifferentMethods.Teleport.CleanupTasks}. */
+    public void setSearchPhase(Player player, SearchPhase phase) {
+        if (player != null) {
+            if (phase == SearchPhase.IDLE) {
+                playerSearchPhase.remove(player.getUniqueId());
+            } else {
+                playerSearchPhase.put(player.getUniqueId(), phase);
+            }
         }
+    }
+
+    /** Returns the current search phase (never null; defaults to {@link SearchPhase#IDLE}). */
+    public SearchPhase getSearchPhase(Player player) {
+        if (player == null) return SearchPhase.IDLE;
+        return playerSearchPhase.getOrDefault(player.getUniqueId(), SearchPhase.IDLE);
     }
 
     public void rememberInitialPosition(Player player) {
@@ -361,7 +245,7 @@ public final class RuntimeStateRegistry {
 
     public void clearTeleportFlags(Player player) {
         if (player != null) {
-            suitableLocationFound.remove(player.getName());
+            suitableLocationFound.remove(player.getUniqueId());
         }
     }
 
@@ -371,39 +255,43 @@ public final class RuntimeStateRegistry {
         biomeCooldowns.entrySet().removeIf(e -> now - e.getValue() > maxCooldownMs);
     }
 
-    public void clearPendingPlayerRouting(String playerName) {
-        if (playerName == null) {
+    public void clearPendingPlayerRouting(UUID playerId) {
+        if (playerId == null) {
             return;
         }
-        playerConfirmStatus.remove(playerName);
-        senderSendMessage.remove(playerName);
-        commandSenderMap.remove(playerName);
-        targetWorlds.remove(playerName);
+        playerConfirmStatus.remove(playerId);
+        senderSendMessage.remove(playerId);
+        commandSenderMap.remove(playerId);
+        targetWorlds.remove(playerId);
     }
 
+    /**
+     * Clears all runtime state for a player (disconnect, /rtp cancel, etc.).
+     *
+     * <p>The operation is intentionally non-atomic: each ConcurrentHashMap entry is removed
+     * independently. A brief window of partial visibility between removals is acceptable —
+     * cleanup only happens on player quit or explicit cancel, where racing on stale entries
+     * is harmless.
+     */
     public void clearPlayerRuntimeState(Player player) {
         if (player == null) {
             return;
         }
-        String playerName = player.getName();
         UUID playerId = player.getUniqueId();
-        clearPendingPlayerRouting(playerName);
+        clearPendingPlayerRouting(playerId);
         cooldowns.remove(playerId);
         biomeCooldowns.remove(playerId);
-        playerSearchStatus.remove(playerName);
-        suitableLocationFound.remove(playerName);
+        playerSearchPhase.remove(playerId);
+        suitableLocationFound.remove(playerId);
         initialPositions.remove(player);
         teleportTasks.remove(player);
         particleTasks.remove(player);
-        WrappedTask adminTask = adminBarTasks.remove(player);
-        if (adminTask != null) adminTask.cancel();
-        adminBarTypes.remove(player);
-        adminBossBars.remove(player);
-        org.sRandomRTP.Cooldowns.CooldownManager.invalidateCache(playerId);
+        playerBarState.clearPlayer(player);
+        org.sRandomRTP.Cooldowns.CooldownManager.instance().invalidatePermissionCache(playerId);
     }
 
     public Set<AdminBarType> getActiveAdminBarTypes(Player player) {
-        Set<AdminBarType> activeTypes = player == null ? null : adminBarTypes.get(player);
+        Set<AdminBarType> activeTypes = player == null ? null : playerBarState.getAdminBarTypes().get(player);
         return activeTypes == null ? Collections.<AdminBarType>emptySet() : activeTypes;
     }
 }

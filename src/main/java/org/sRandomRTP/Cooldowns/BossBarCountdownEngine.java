@@ -1,6 +1,7 @@
 package org.sRandomRTP.Cooldowns;
 
 import com.tcoded.folialib.wrapper.task.WrappedTask;
+import java.util.concurrent.atomic.AtomicReference;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -51,21 +52,20 @@ public final class BossBarCountdownEngine {
      */
     public static void startCountdown(Player player, CommandSender sender, Runnable onComplete) {
         RuntimeStateRegistry state = Variables.getRuntimeState();
-        // Читаем конфиг один раз при старте countdown, а не на каждом тике
-        final int countdownTime = Variables.cachedBossBarTime;
+        // Read config once at countdown start, not on every tick
+        final int countdownTime = Variables.configCache.bossBarTime;
         final double[] timeLeft = {countdownTime};
         final long[] lastSoundTime = {System.currentTimeMillis()};
-        // Delay of 1 tick ensures progressTaskRef[0] is assigned before the lambda first executes.
-        // A delay of 0 could cause a null read inside the lambda on Folia's entity scheduler.
-        final WrappedTask[] progressTaskRef = {null};
+        // AtomicReference allows the task to safely cancel itself from within its own body,
+        // even on Folia where the scheduler may invoke the lambda before returning the task handle.
+        final AtomicReference<WrappedTask> progressTaskRef = new AtomicReference<>();
 
         playSound(player);
 
-        progressTaskRef[0] = Variables.getFoliaLib().getImpl().runAtEntityTimer(player, () -> {
+        WrappedTask task = Variables.getFoliaLib().getImpl().runAtEntityTimer(player, () -> {
             Player onlinePlayer = player.getPlayer();
             if (onlinePlayer == null) {
-                // Игрок вышел — отменяем задачу напрямую по захваченной ссылке
-                WrappedTask self = progressTaskRef[0];
+                WrappedTask self = progressTaskRef.get();
                 if (self != null) self.cancel();
                 state.removeTeleportTask(player);
                 return;
@@ -80,30 +80,32 @@ public final class BossBarCountdownEngine {
             }
 
             if (timeLeft[0] <= 0) {
-                WrappedTask self = progressTaskRef[0];
+                WrappedTask self = progressTaskRef.get();
                 if (self != null) self.cancel();
                 state.removeTeleportTask(player);
                 RemoveAllBossBars.removeBossBar(player);
                 state.setPlayerSearching(player, false);
                 onComplete.run();
-                Variables.getRuntimeState().getRtpCount().incrementAndGet();
+                RuntimeStateRegistry freshState = Variables.getRuntimeState();
+                if (freshState != null) freshState.getRtpCount().incrementAndGet();
                 RtpCountDataStore.save();
             } else {
                 updateBossBarAndActionBar(sender, player, onlinePlayer, timeLeft[0], countdownTime);
             }
         }, TASK_DELAY_TICKS, TASK_PERIOD_TICKS);
 
-        state.putTeleportTask(player, progressTaskRef[0]);
+        progressTaskRef.set(task);
+        state.putTeleportTask(player, task);
         state.setPlayerSearching(player, true);
     }
 
     private static void playSound(Player player) {
-        if (!Variables.cachedBossBarSoundEnabled) return;
+        if (!Variables.configCache.bossBarSoundEnabled) return;
         try {
-            Sound sound = Sound.valueOf(Variables.cachedBossBarSoundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, Variables.cachedBossBarSoundVolume, Variables.cachedBossBarSoundPitch);
+            Sound sound = Sound.valueOf(Variables.configCache.bossBarSoundName.toUpperCase());
+            player.playSound(player.getLocation(), sound, Variables.configCache.bossBarSoundVolume, Variables.configCache.bossBarSoundPitch);
         } catch (IllegalArgumentException e) {
-            Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + Variables.cachedBossBarSoundName);
+            Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + Variables.configCache.bossBarSoundName);
         }
     }
 
@@ -115,11 +117,11 @@ public final class BossBarCountdownEngine {
             bossbarmessage = bossbarmessage.replace("%time%", String.valueOf((int) Math.ceil(timeLeft)));
             bossbarmessage = TranslateRGBColors.translateRGBColors(
                     ChatColor.translateAlternateColorCodes('&', bossbarmessage));
-            if (Variables.cachedBossBarEnabled) {
+            if (Variables.configCache.bossBarEnabled) {
                 SetBossBarProgress.setBossBarProgress(sender, player, progress, bossbarmessage);
             }
         }
-        if (Variables.cachedActionBarEnabled
+        if (Variables.configCache.actionBarEnabled
                 && LoadMessages.actionBarMessage != null
                 && !LoadMessages.actionBarMessage.isEmpty()) {
             String formattedLine = String.format(LoadMessages.actionBarMessage, (int) Math.ceil(timeLeft));

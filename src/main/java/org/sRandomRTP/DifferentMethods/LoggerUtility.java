@@ -1,5 +1,6 @@
 package org.sRandomRTP.DifferentMethods;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -43,12 +44,12 @@ public class LoggerUtility {
         }
         File logFile = new File(logFolder, logFileName);
         File latestLogFile = new File(logFolder, "latest-error.log");
-        try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(logFile, true)))) {
             appendThrowable(writer, sourceClass, throwable);
         } catch (IOException e) {
             fallbackLogger.log(Level.SEVERE, "Failed to write class-specific error log", e);
         }
-        try (PrintWriter writer = new PrintWriter(new FileWriter(latestLogFile, false))) {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(latestLogFile, false)))) {
             appendThrowable(writer, sourceClass, throwable);
             Variables.getInstance().getLogger().severe("Error in class: " + sourceClass.getName()
                     + ". Error logged to file: " + logFile.getAbsolutePath());

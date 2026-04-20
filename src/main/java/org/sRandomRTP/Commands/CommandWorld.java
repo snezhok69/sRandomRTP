@@ -8,6 +8,7 @@ import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Rtp.AbstractRtpHandler;
 
@@ -25,7 +26,7 @@ public class CommandWorld extends AbstractRtpCommand {
     public static void commandWorld(CommandSender sender, String worldName) {
         World targetWorld = Bukkit.getWorld(worldName);
         if (targetWorld == null) {
-            Variables.sendError(sender, "World §4'" + worldName + "' §cdoes not exist!");
+            ChatUtils.sendError(sender, "World §4'" + worldName + "' §cdoes not exist!");
             return;
         }
         new CommandWorld(targetWorld).execute(sender);
@@ -57,10 +58,9 @@ public class CommandWorld extends AbstractRtpCommand {
     }
 
     private boolean hasAdvancement(Player player, String key, java.util.List<String> denialMessage) {
-        if (Variables.teleportfile == null) return true;
         boolean enabled = key.contains("nether")
-                ? Variables.teleportfile.getBoolean("teleport.achievement.nether-enabled")
-                : Variables.teleportfile.getBoolean("teleport.achievement.the-end-enabled");
+                ? Variables.configCache.netherAchievementEnabled
+                : Variables.configCache.endAchievementEnabled;
         if (!enabled) {
             return true;
         }

@@ -23,18 +23,18 @@ public class CooldownBypassBossBarPlayer {
                 return true;
             }
 
-            if (state.getPlayerConfirmStatus().getOrDefault(targetPlayer.getName(), false)) {
+            if (state.getPlayerConfirmStatus().getOrDefault(targetPlayer.getUniqueId(), false)) {
                 Variables.getMessageService().send(sender, LoadMessages.rtpplayeralreadyrequested);
                 return false;
             }
 
-            state.getPlayerConfirmStatus().put(targetPlayer.getName(), true);
+            state.getPlayerConfirmStatus().put(targetPlayer.getUniqueId(), true);
 
             Variables.getMessageService().send(sender, LoadMessages.rtpplayerteleportrequestsent,
                     "%player%", targetPlayer.getName());
 
-            if (Variables.cachedRtpPlayerMessages) {
-                state.getCommandSenderMap().put(targetPlayer.getName(), sender);
+            if (Variables.configCache.rtpPlayerMessages) {
+                state.getCommandSenderMap().put(targetPlayer.getUniqueId(), sender);
                 sendInitialMessage(sender, targetPlayer, state);
             } else {
                 startBossBarCountdown(sender, targetPlayer, world);
@@ -52,25 +52,25 @@ public class CooldownBypassBossBarPlayer {
                 "%initiator%", sender.getName());
 
         Variables.getFoliaLib().getImpl().runLaterAsync(() -> {
-            if (state.getPlayerConfirmStatus().getOrDefault(targetPlayer.getName(), false)) {
+            if (state.getPlayerConfirmStatus().getOrDefault(targetPlayer.getUniqueId(), false)) {
                 Variables.getMessageService().send(targetPlayer, LoadMessages.rtpplayertimeout);
-                state.clearPendingPlayerRouting(targetPlayer.getName());
+                state.clearPendingPlayerRouting(targetPlayer.getUniqueId());
             }
-            state.getPlayerConfirmStatus().put(targetPlayer.getName(), false);
+            state.getPlayerConfirmStatus().put(targetPlayer.getUniqueId(), false);
         }, CONFIRM_TIMEOUT_TICKS);
     }
 
     public static void denyTeleport(CommandSender sender, Player targetPlayer) {
         RuntimeStateRegistry state = Variables.getRuntimeState();
-        String playerName = targetPlayer.getName();
-        if (state.getPlayerConfirmStatus().getOrDefault(playerName, false)) {
-            state.getPlayerConfirmStatus().put(playerName, false);
+        java.util.UUID playerId = targetPlayer.getUniqueId();
+        if (state.getPlayerConfirmStatus().getOrDefault(playerId, false)) {
+            state.getPlayerConfirmStatus().put(playerId, false);
             Variables.getMessageService().send(targetPlayer, LoadMessages.rtpplayercanceled);
-            CommandSender originalSender = state.getCommandSenderMap().get(playerName);
+            CommandSender originalSender = state.getCommandSenderMap().get(playerId);
             if (originalSender != null) {
                 Variables.getMessageService().send(originalSender, LoadMessages.rtpplayersendernotified,
                         "%target-player%", targetPlayer.getName());
-                state.getCommandSenderMap().remove(playerName);
+                state.getCommandSenderMap().remove(playerId);
             }
         } else {
             Variables.getMessageService().send(targetPlayer, LoadMessages.rtpplayernoactiveteleport);

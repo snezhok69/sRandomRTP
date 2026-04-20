@@ -4,6 +4,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
+import org.sRandomRTP.Utils.ChatUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,12 +20,12 @@ final class PortalCommandSupport {
 
     static boolean handle(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
-            Variables.sendPlayersOnly(sender);
+            ChatUtils.sendPlayersOnly(sender);
             return true;
         }
 
         if (args.length < 2) {
-            sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal <set|del|list> [parameters]");
+            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cUsage: /rtp portal <set|del|list> [parameters]");
             return true;
         }
 
@@ -36,7 +37,7 @@ final class PortalCommandSupport {
             if (args.length == 3) {
                 CommandDelPortal.commandDelPortal(sender, args[2]);
             } else {
-                sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal del <name>");
+                sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cUsage: /rtp portal del <name>");
             }
             return true;
         }
@@ -48,7 +49,7 @@ final class PortalCommandSupport {
             return true;
         }
 
-        sender.sendMessage(Variables.pluginName + " §cInvalid portal command! Use: set, del or list");
+        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cInvalid portal command! Use: set, del or list");
         return true;
     }
 
@@ -90,8 +91,8 @@ final class PortalCommandSupport {
             return true;
         }
 
-        sender.sendMessage(Variables.pluginName + " §cUsage: /rtp portal set <name> <radius> [shape]");
-        sender.sendMessage(Variables.pluginName + " §7shape: circle (by default) or square");
+        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cUsage: /rtp portal set <name> <radius> [shape]");
+        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §7shape: circle (by default) or square");
         return true;
     }
 

@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.sRandomRTP.Main;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.FilesCreate;
 import org.sRandomRTP.Files.FilesUpdate;
 
@@ -48,7 +49,7 @@ public class BootstrapCoordinator {
         try {
             pluginContext.getPortalRepository().closeAsync().get(3, TimeUnit.SECONDS);
         } catch (Exception ex) {
-            Bukkit.getLogger().warning(Variables.pluginName + " Failed to close portal repository cleanly: " + ex.getMessage());
+            Bukkit.getLogger().warning(ChatUtils.PLUGIN_NAME + " Failed to close portal repository cleanly: " + ex.getMessage());
         }
     }
 

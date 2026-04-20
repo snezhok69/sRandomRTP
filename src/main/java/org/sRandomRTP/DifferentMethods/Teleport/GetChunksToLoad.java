@@ -4,6 +4,7 @@ import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
 
@@ -13,25 +14,24 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GetChunksToLoad {
+
+    /**
+     * Maximum supported preload radius.
+     *
+     * <p>Currently capped at 1 to keep async chunk-load pressure low.
+     * Raising this would load (2r+1)² chunks per teleport, which can stall
+     * the server under high concurrent RTP demand.</p>
+     */
+    private static final int MAX_PRELOAD_RADIUS = 1;
+
     public static List<CompletableFuture<Chunk>> getChunksToLoad(Location location) {
         if (location == null || location.getWorld() == null) {
             return Collections.emptyList();
         }
-
-        int configuredRadius = Variables.chunkfile.getInt("chunk-loading.preload-radius", 0);
-        boolean chunkDebugLogs = Variables.chunkfile.getBoolean("chunk-loading.debug_logs",
-                Variables.chunkfile.getBoolean("chunk-loading.debug-logs", false));
-
-        if (configuredRadius > 0 && chunkDebugLogs) {
-            Bukkit.getLogger().warning("[ChunkPreloader] Ignoring preload-radius=" + configuredRadius
-                    + " and loading only the destination chunk");
-        }
-
         CompletableFuture<Chunk> destinationChunk = AsyncChunkUtil.requestChunk(location);
         if (destinationChunk == null) {
             return Collections.emptyList();
         }
-
         return Collections.singletonList(destinationChunk);
     }
 
@@ -45,8 +45,9 @@ public class GetChunksToLoad {
             return Collections.emptyList();
         }
 
-        int configuredRadius = Variables.chunkfile.getInt("chunk-loading.preload-radius", 0);
-        int effectiveRadius = Math.min(1, Math.max(0, configuredRadius));
+        FileConfiguration chunkFile = Variables.getPluginContext().getConfigRegistry().getChunkFile();
+        int configuredRadius = chunkFile != null ? chunkFile.getInt("chunk-loading.preload-radius", 0) : 0;
+        int effectiveRadius  = Math.min(MAX_PRELOAD_RADIUS, Math.max(0, configuredRadius));
         if (effectiveRadius <= 0) {
             return Collections.emptyList();
         }
@@ -55,16 +56,13 @@ public class GetChunksToLoad {
             return Collections.emptyList();
         }
 
-        boolean chunkDebugLogs = Variables.chunkfile.getBoolean("chunk-loading.debug_logs",
-                Variables.chunkfile.getBoolean("chunk-loading.debug-logs", false));
-        if (configuredRadius > effectiveRadius && chunkDebugLogs) {
+        if (configuredRadius > effectiveRadius && isChunkDebugLogsEnabled()) {
             Bukkit.getLogger().warning("[ChunkPreloader] Limiting preload-radius=" + configuredRadius
                     + " to supported value " + effectiveRadius);
         }
 
         return ChunkAcquireService.preloadChunksAround(targetLocation, effectiveRadius);
     }
-
 
     @SuppressWarnings("deprecation")
     public static CompletableFuture<Boolean> waitForChunkLoads(List<CompletableFuture<Chunk>> chunkFutures,
@@ -76,25 +74,15 @@ public class GetChunksToLoad {
 
         CompletableFuture<Void> allChunksFuture = CompletableFuture.allOf(chunkFutures.toArray(new CompletableFuture[0]));
 
-        long timeoutSeconds = 5L;
-        if (Variables.chunkfile != null) {
-            timeoutSeconds = Variables.chunkfile.getLong("chunk-loading.timeout-seconds", 5L);
-        }
+        FileConfiguration chunkFile = Variables.getPluginContext().getConfigRegistry().getChunkFile();
+        long timeoutSeconds = chunkFile != null ? Math.max(1L, chunkFile.getLong("chunk-loading.timeout-seconds", 5L)) : 5L;
+        long timeoutTicks   = timeoutSeconds * 20L;
 
-        if (timeoutSeconds < 1L) {
-            timeoutSeconds = 1L;
-        }
-
-        long timeoutTicks = timeoutSeconds * 20L;
         AtomicBoolean timedOut = new AtomicBoolean(false);
         CompletableFuture<Void> timeoutFuture = new CompletableFuture<>();
 
         Object timeoutHandle = Variables.getFoliaLib().getImpl().runAtLocationLater(location, task -> {
-            if (allChunksFuture.isDone() || timeoutFuture.isDone()) {
-                return;
-            }
-
-            if (!timeoutFuture.isDone()) {
+            if (!allChunksFuture.isDone() && !timeoutFuture.isDone()) {
                 timedOut.set(true);
                 timeoutFuture.complete(null);
             }
@@ -103,9 +91,7 @@ public class GetChunksToLoad {
         WrappedTask timeoutTask = timeoutHandle instanceof WrappedTask ? (WrappedTask) timeoutHandle : null;
         CompletableFuture<?> timeoutScheduledFuture = timeoutHandle instanceof CompletableFuture<?> ? (CompletableFuture<?>) timeoutHandle : null;
 
-        boolean chunkDebugLogsEnabled = Variables.chunkfile.getBoolean("chunk-loading.debug_logs",
-                Variables.chunkfile.getBoolean("chunk-loading.debug-logs", false));
-        boolean effectiveLogging = loggingEnabled || chunkDebugLogsEnabled;
+        boolean effectiveLogging = loggingEnabled || isChunkDebugLogsEnabled();
 
         return CompletableFuture.anyOf(allChunksFuture, timeoutFuture)
                 .handle((ignored, ex) -> {
@@ -130,5 +116,18 @@ public class GetChunksToLoad {
 
                     return timedOut.get();
                 });
+    }
+
+    /**
+     * Returns {@code true} if chunk-loading debug logs are enabled in the config.
+     * Supports both the current key ({@code debug_logs}) and the legacy key ({@code debug-logs}).
+     */
+    private static boolean isChunkDebugLogsEnabled() {
+        FileConfiguration chunkFile = Variables.getPluginContext().getConfigRegistry().getChunkFile();
+        if (chunkFile == null) return false;
+        if (chunkFile.contains("chunk-loading.debug_logs")) {
+            return chunkFile.getBoolean("chunk-loading.debug_logs", false);
+        }
+        return chunkFile.getBoolean("chunk-loading.debug-logs", false);
     }
 }

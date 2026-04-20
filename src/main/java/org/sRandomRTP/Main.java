@@ -27,10 +27,11 @@ import org.sRandomRTP.Events.TeleportCancellationListener;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Metrics.Metrics;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
+import io.papermc.lib.PaperLib;
 import org.sRandomRTP.Services.BootstrapCoordinator;
 import org.sRandomRTP.Services.DiagnosticsService;
+import org.sRandomRTP.Utils.ChatUtils;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,20 +39,21 @@ import java.util.Map;
 
 public class Main extends JavaPlugin {
 
-    private WrappedTask cooldownCleanupTask;
-
     @Override
     public void onEnable() {
         DiagnosticsService.Report startupReport = null;
         try {
             Variables.initializePlugin(this);
+            // Inform Spigot server owners that Paper provides better async chunk
+            // loading, lower latency teleports, and improved thread safety for this plugin.
+            PaperLib.suggestPaper(this);
             startupReport = Variables.getPluginContext().getDiagnosticsService().startReport("latest-startup-report");
             long startTime = System.currentTimeMillis();
             Bukkit.getConsoleSender().sendMessage("");
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c>==========================================<");
+            ChatUtils.logError(">==========================================<");
             Bukkit.getConsoleSender().sendMessage("");
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §ePlugin initialization started...");
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eVersion check...");
+            ChatUtils.logInfo("Plugin initialization started...");
+            ChatUtils.logInfo("Version check...");
             if (CheckingServerVersion.checkingServerVersion()) {
                 if (startupReport != null) {
                     startupReport.stepWarn("server-version-check", "plugin disabled due to unsupported server version");
@@ -88,21 +90,19 @@ public class Main extends JavaPlugin {
             if (startupReport != null) {
                 startupReport.stepOk("integration-scan", "optional plugins checked");
             }
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eLoading data...");
+            ChatUtils.logInfo("Loading data...");
             RtpCountDataStore.load();
             if (startupReport != null) {
                 startupReport.stepOk("data-load", "runtime data loaded");
             }
+            LoadKeys.loadKeys(Variables.getPluginContext().getConfigRegistry().getMainConfig());
+            setupIntegrations();
+            if (startupReport != null) {
+                startupReport.stepOk("integration-setup", "economy, worldguard and console filters prepared");
+            }
             registerEvents();
             if (startupReport != null) {
                 startupReport.stepOk("event-registration", "listeners registered");
-            }
-
-            FileConfiguration config = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
-            LoadKeys.loadKeys(config);
-            setupIntegrations(config);
-            if (startupReport != null) {
-                startupReport.stepOk("integration-setup", "economy, worldguard and console filters prepared");
             }
             compareLanguageFiles();
             if (startupReport != null) {
@@ -121,7 +121,7 @@ public class Main extends JavaPlugin {
                 startupReport.stepOk("background-tasks", "async background tasks started");
             }
             printStartupMessage(startTime);
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §c>==========================================<");
+            ChatUtils.logError(">==========================================<");
             Bukkit.getConsoleSender().sendMessage("");
             if (startupReport != null) {
                 startupReport.finishSuccess();
@@ -140,66 +140,67 @@ public class Main extends JavaPlugin {
 
     private void loadFilesAndMetrics(Metrics metrics) {
         if (Bukkit.getServer().getName().equalsIgnoreCase("Folia")) {
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cUsed Folia there may be errors or bugs!...");
+            ChatUtils.logError("Used Folia there may be errors or bugs!...");
             metrics.addCustomChart(new Metrics.SimplePie("using_folia", () -> "Yes"));
         } else {
             metrics.addCustomChart(new Metrics.SimplePie("using_folia", () -> "No"));
         }
-        LoadFiles.loadFiles();
+        if (Variables.getPluginContext() != null) {
+            Variables.getPluginContext().getConfigRegistry().reload();
+        }
     }
 
     private void checkOptionalPlugins() {
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking installed PlaceHolderAPI...");
+        ChatUtils.logInfo("Checking installed PlaceHolderAPI...");
         CheckingInstalledPlaceHolderAPI.checkingInstalledPlaceHolderAPI();
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking installed Chunky...");
+        ChatUtils.logInfo("Checking installed Chunky...");
         CheckingInstalledChunky.checkingInstalledChunky();
     }
 
     private void registerEvents() {
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eLoading events...");
+        ChatUtils.logInfo("Loading events...");
         getServer().getPluginManager().registerEvents(new TeleportCancellationListener(), this);
         getServer().getPluginManager().registerEvents(new PortalAndEffectsListener(), this);
     }
 
     private BootstrapCoordinator.FileChangeSummary createAndUpdateFiles() {
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eCreating and synchronizing files...");
+        ChatUtils.logInfo("Creating and synchronizing files...");
         BootstrapCoordinator.FileChangeSummary summary =
                 Variables.getPluginContext().getBootstrapCoordinator().synchronizeFiles();
         if (!summary.isSuccessful()) {
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName
-                    + " §8- §cFailed to synchronize plugin files. Check LogsErrors/latest-error.log and Diagnostics/latest-startup-report.txt");
+            ChatUtils.logError("Failed to synchronize plugin files. Check LogsErrors/latest-error.log and Diagnostics/latest-startup-report.txt");
             return summary;
         }
         long createTime = System.currentTimeMillis();
         for (String message : summary.getCreatedFiles()) {
             if (message != null) {
                 long elapsedTime = System.currentTimeMillis() - createTime;
-                Bukkit.getConsoleSender().sendMessage(String.format(
-                        Variables.pluginName + " §8- §aFile %s successfully created §6(%d ms)", message, elapsedTime));
+                ChatUtils.logSuccess(String.format("File %s successfully created §6(%d ms)", message, elapsedTime));
             }
         }
-        FilesUpdate filesUpdate = new FilesUpdate();
         long updateTime = System.currentTimeMillis();
         for (String message : summary.getUpdatedFiles()) {
             long elapsedTime = System.currentTimeMillis() - updateTime;
-            Bukkit.getConsoleSender().sendMessage(String.format(
-                    Variables.pluginName + " §8- §aFile %s successfully updated §6(%d ms)", message, elapsedTime));
+            ChatUtils.logSuccess(String.format("File %s successfully updated §6(%d ms)", message, elapsedTime));
         }
         return summary;
     }
 
-    private void setupIntegrations(FileConfiguration config) {
-        Variables.setupEconomy();
-        Variables.isVaultAvailable = Bukkit.getPluginManager().getPlugin("Vault") != null;
-        try {
-            Class.forName("com.sk89q.worldguard.bukkit.WorldGuardPlugin");
-            Variables.isWorldGuardAvailable = true;
-        } catch (ClassNotFoundException ignored) {}
-        boolean disableMovedTooQuicklyMessages = config.getBoolean("Disable-Moved-Too-Quickly-Messages", true);
+    private void setupIntegrations() {
+        boolean vaultPresent = Bukkit.getPluginManager().getPlugin("Vault") != null;
+        Variables.getPluginContext().setVaultAvailable(vaultPresent);
+        Variables.getPluginContext().setupEconomy();
+        // Use plugin manager instead of Class.forName() for consistent detection
+        // and compatibility with dynamic WorldGuard installation patterns.
+        boolean wgPresent = Bukkit.getPluginManager().getPlugin("WorldGuard") != null;
+        Variables.getPluginContext().setWorldGuardAvailable(wgPresent);
+        FileConfiguration config = Variables.getPluginContext().getConfigRegistry().getMainConfig();
+        boolean disableMovedTooQuicklyMessages = config != null
+                && config.getBoolean("Disable-Moved-Too-Quickly-Messages", true);
         if (disableMovedTooQuicklyMessages) {
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eInitializing a console filter to block fast move messages...");
+            ChatUtils.logInfo("Initializing a console filter to block fast move messages...");
             ConsoleFilter.registerFilter(true);
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §aThe console filter has been successfully initialized");
+            ChatUtils.logSuccess("The console filter has been successfully initialized");
         }
     }
 
@@ -224,20 +225,41 @@ public class Main extends JavaPlugin {
         YamlConfiguration langFile = loadLanguageFile.getLangFile();
         LoadMessages.loadMessages(langFile);
         FilesAutoReload.startFilesAutoReload();
-        PortalSQLRepository.loadPortalTasksFromDatabaseSQL();
-        PortalSQLRepository.loadPortalsPlayerFromDatabaseSQL();
-        PortalSQLRepository.loadPortalBlocksPlayerToDatabaseSQL();
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eUploading lists of banned blocks and biomes...");
+        ChatUtils.logInfo("Loading portal data from database...");
+        java.util.concurrent.CompletableFuture<Void> portalFutures = java.util.concurrent.CompletableFuture.allOf(
+                PortalSQLRepository.loadPortalTasksFromDatabaseSQL(),
+                PortalSQLRepository.loadPortalsPlayerFromDatabaseSQL(),
+                PortalSQLRepository.loadPortalBlocksPlayerToDatabaseSQL()
+        );
+        // Non-blocking: portal data becomes available shortly after startup.
+        // Do NOT call portalFutures.join() — blocking the main thread during startup
+        // is illegal on Folia and causes a TPS spike on Paper.
+        portalFutures
+                .thenRun(() -> ChatUtils.logInfo("Portal data loaded."))
+                .exceptionally(ex -> {
+                    ChatUtils.logError("Failed to load portal data: " + ex.getMessage());
+                    getLogger().severe("sRandomRTP: portal data load failure");
+                    if (ex.getCause() != null) {
+                        getLogger().severe("Cause: " + ex.getCause().toString());
+                    }
+                    return null;
+                });
+        ChatUtils.logInfo("Uploading lists of banned blocks and biomes...");
         LoadBlockList.loadBlockListAsync(this).thenRun(() ->
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eThe lists of banned blocks and biomes have been successfully uploaded")
+            ChatUtils.logInfo("The lists of banned blocks and biomes have been successfully uploaded")
         ).exceptionally(ex -> {
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §cError when loading lists: " + ex.getMessage());
+            ChatUtils.logError("Failed to load banned block/biome lists — RTP safety filters are empty: " + ex.getMessage());
+            // Log the full stack trace so the server owner can diagnose the root cause
+            getLogger().severe("sRandomRTP: block/biome list load failure");
+            if (ex.getCause() != null) {
+                getLogger().severe("Cause: " + ex.getCause().toString());
+            }
             return null;
         });
     }
 
     private void registerCommands() {
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eLoading commands...");
+        ChatUtils.logInfo("Loading commands...");
         Map<String, Map<String, Object>> commands = getDescription().getCommands();
         if (commands != null) {
             for (String commandName : commands.keySet()) {
@@ -253,21 +275,22 @@ public class Main extends JavaPlugin {
     }
 
     private void startBackgroundTasks(Metrics metrics) {
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eRunning tasks...");
+        ChatUtils.logInfo("Running tasks...");
         Variables.getReleaseCheckService().triggerStartupConsoleCheck();
         Variables.getReleaseCheckService().startAutoChecks();
-        if (cooldownCleanupTask != null) {
-            cooldownCleanupTask.cancel();
-        }
-        cooldownCleanupTask = Variables.getFoliaLib().getImpl().runTimerAsync(
+        Variables.getPluginContext().cancelBackgroundTasks();
+        WrappedTask cleanupTask = Variables.getFoliaLib().getImpl().runTimerAsync(
                 () -> {
                     Variables.cleanExpiredCooldowns(org.sRandomRTP.Utils.PluginConstants.COOLDOWN_CLEANUP_MAX_AGE_MS);
-                    org.sRandomRTP.Cooldowns.CooldownManager.evictExpiredCacheEntries();
-                    org.sRandomRTP.Commands.CommandSetPortal.cleanExpiredPortalCooldowns();
+                    org.sRandomRTP.Cooldowns.CooldownManager.instance().evictExpiredCache();
+                    org.sRandomRTP.Commands.portal.PortalTeleportCooldownManager mgr =
+                            Variables.getPortalTeleportCooldownManager();
+                    if (mgr != null) mgr.cleanExpired();
                 },
                 org.sRandomRTP.Utils.PluginConstants.BACKGROUND_TASK_PERIOD_TICKS,
                 org.sRandomRTP.Utils.PluginConstants.BACKGROUND_TASK_PERIOD_TICKS);
-        Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eSending anonymous statistics...");
+        Variables.getPluginContext().setCooldownCleanupTask(cleanupTask);
+        ChatUtils.logInfo("Sending anonymous statistics...");
         try {
             metrics.addCustomChart(new Metrics.SimplePie("lang", this::resolveMetricsLanguage));
         } catch (RuntimeException e) {
@@ -300,13 +323,13 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (cooldownCleanupTask != null) cooldownCleanupTask.cancel();
+        Variables.getPluginContext().cancelBackgroundTasks();
         org.bukkit.event.HandlerList.unregisterAll(this);
         TeleportRequestContext.shutdownTimeoutScheduler();
         PerformTeleport.clearAll();
         CleanupTasks.clearAll();
         ChunkWarmManager.shutdown();
-        if (!Variables.pluginToggle) {
+        if (!Variables.getPluginContext().isPluginToggle()) {
             long startTime = System.currentTimeMillis();
             try {
                 ConsoleFilter.removeFilter();
@@ -319,7 +342,7 @@ public class Main extends JavaPlugin {
                 FilesAutoReload.stopFilesAutoReload();
                 Variables.getPluginContext().getBootstrapCoordinator().shutdown();
             } catch (RuntimeException e) {
-                Variables.getInstance().getLogger().severe("An error occurred while disabling the plugin: " + e.getMessage());
+                getLogger().severe("An error occurred while disabling the plugin: " + e.getMessage());
             }
         }
     }

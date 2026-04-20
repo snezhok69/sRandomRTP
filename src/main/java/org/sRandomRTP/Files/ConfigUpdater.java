@@ -39,7 +39,11 @@ public class ConfigUpdater {
         try (InputStream rs = resourceStream) {
             defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(rs, StandardCharsets.UTF_8));
         }
-        FileConfiguration currentConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(new FileInputStream(toUpdate), StandardCharsets.UTF_8));
+        FileConfiguration currentConfig;
+        try (FileInputStream fis = new FileInputStream(toUpdate);
+             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+            currentConfig = YamlConfiguration.loadConfiguration(isr);
+        }
         Map<String, String> comments = parseComments(plugin, resourceName, defaultConfig);
         Map<String, String> ignoredSectionsValues = parseIgnoredSections(toUpdate, comments, ignoredSections == null ? Collections.emptyList() : ignoredSections);
         StringWriter writer = new StringWriter();

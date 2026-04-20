@@ -7,9 +7,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 import org.sRandomRTP.DifferentMethods.*;
+import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Text.LoadLanguageFile;
 import org.sRandomRTP.Files.*;
+import org.sRandomRTP.Commands.portal.PortalParticleManager;
 import org.sRandomRTP.DataPortals.PortalDataTasks;
+import org.sRandomRTP.DifferentMethods.Teleport.SearchPhasePolicy;
 import org.sRandomRTP.Services.BootstrapCoordinator;
 import org.sRandomRTP.Services.DiagnosticsService;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
@@ -17,6 +20,7 @@ import org.sRandomRTP.Services.RuntimeStateRegistry;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandReload {
     private static final AtomicBoolean isReloading = new AtomicBoolean(false);
@@ -53,39 +57,21 @@ public class CommandReload {
             }
             reloadReport.stepOk("files-sync", "created=" + summary.getCreatedFiles().size()
                     + ", updated=" + summary.getUpdatedFiles().size());
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eChecking files...");
-            long createTime = System.currentTimeMillis();
-            for (String message : summary.getCreatedFiles()) {
-                if (message != null) {
-                    long elapsedTime = System.currentTimeMillis() - createTime;
-                    String formattedLine = String.format(Variables.pluginName + " §8- §aFile %s created successfully §6(%d ms)", message, elapsedTime);
-                    Bukkit.getConsoleSender().sendMessage(formattedLine);
-                }
-            }
+            logSyncResults(summary);
 
-            Bukkit.getConsoleSender().sendMessage(Variables.pluginName + " §8- §eUpdating files...");
-            long updateTime = System.currentTimeMillis();
-            for (String message : summary.getUpdatedFiles()) {
-                long elapsedTime = System.currentTimeMillis() - updateTime;
-                String formattedLine = String.format(Variables.pluginName + " §8- §aFile %s updated successfully §6(%d ms)", message, elapsedTime);
-                Bukkit.getConsoleSender().sendMessage(formattedLine);
-            }
-
-            File configFile = new File(Variables.getInstance().getDataFolder(), "config.yml");
-            FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-            LoadKeys.loadKeys(config);
-            LoadLanguageFile loadLanguageFile = new LoadLanguageFile();
-            loadLanguageFile.loadLanguageFile();
-            YamlConfiguration langFile = loadLanguageFile.getLangFile();
-            LoadMessages.loadMessages(langFile);
+            LoadLanguageFile loadLanguageFile = reloadLanguageSync();
             reloadReport.stepOk("language-load", "language and messages reloaded");
 
             Variables.getMessageService().send(sender, LoadMessages.reloadingstart);
 
-            final int[] step = {0};
+            final AtomicInteger step = new AtomicInteger(0);
+            // Use a single-element holder so the lambda can reference the task before the outer
+            // assignment on the next line — eliminates the race where the first tick fires before
+            // Variables.commandReloadTask is set and step-3 NPEs on cancel().
+            final WrappedTask[] taskHolder = new WrappedTask[1];
             WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
                 try {
-                    switch (step[0]) {
+                    switch (step.get()) {
                         case 0:
                             loadLanguageFile.loadLanguageFile();
                             YamlConfiguration reloadedLang = loadLanguageFile.getLangFile();
@@ -94,9 +80,13 @@ public class CommandReload {
                             break;
                         case 1:
                             Variables.getInstance().reloadConfig();
-                            LoadFiles.loadFiles();
+                            if (Variables.getPluginContext() != null) {
+                                Variables.getPluginContext().getConfigRegistry().reload();
+                            }
                             LoadKeys.loadKeys(Variables.getInstance().getConfig());
                             LoadBlockList.loadBlockList();
+                            // Reset in-flight counter so pre-reload drift doesn't throttle searches
+                            SearchPhasePolicy.reset();
                             refreshPortalSettings();
                             warnIfConfigInvalid();
                             reloadReport.stepOk("step-1", "configs, block lists and portal settings refreshed");
@@ -112,26 +102,25 @@ public class CommandReload {
                                 line = line.replace("%mc%", reloadPluginTime + "");
                                 sender.sendMessage(Variables.getMessageService().format(line));
                             }
-                            if (Variables.commandReloadTask != null) {
-                                Variables.commandReloadTask.cancel();
-                                Variables.commandReloadTask = null;
-                            }
+                            WrappedTask self = taskHolder[0];
+                            if (self != null) self.cancel();
+                            Variables.commandReloadTask = null;
                             isReloading.set(false);
                             reloadReport.finishSuccess();
                             return;
                     }
-                    step[0]++;
+                    step.getAndIncrement();
                 } catch (RuntimeException e) {
-                    reloadReport.stepFail("reload-step-" + step[0], e);
+                    reloadReport.stepFail("reload-step-" + step.get(), e);
                     reloadReport.finishFailure(e);
                     LoggerUtility.loggerUtility(CommandReload.class, e);
-                    if (Variables.commandReloadTask != null) {
-                        Variables.commandReloadTask.cancel();
-                        Variables.commandReloadTask = null;
-                    }
+                    WrappedTask self = taskHolder[0];
+                    if (self != null) self.cancel();
+                    Variables.commandReloadTask = null;
                     isReloading.set(false);
                 }
             }, 1L, 1L);
+            taskHolder[0] = task;
             Variables.commandReloadTask = task;
         } catch (RuntimeException e) {
             reloadReport.stepFail("reload-bootstrap", e);
@@ -145,12 +134,42 @@ public class CommandReload {
         }
     }
 
+    private static void logSyncResults(BootstrapCoordinator.FileChangeSummary summary) {
+        Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §eChecking files...");
+        long createTime = System.currentTimeMillis();
+        for (String message : summary.getCreatedFiles()) {
+            if (message != null) {
+                long elapsedTime = System.currentTimeMillis() - createTime;
+                Bukkit.getConsoleSender().sendMessage(String.format(
+                        ChatUtils.PLUGIN_NAME + " §8- §aFile %s created successfully §6(%d ms)", message, elapsedTime));
+            }
+        }
+        Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §eUpdating files...");
+        long updateTime = System.currentTimeMillis();
+        for (String message : summary.getUpdatedFiles()) {
+            long elapsedTime = System.currentTimeMillis() - updateTime;
+            Bukkit.getConsoleSender().sendMessage(String.format(
+                    ChatUtils.PLUGIN_NAME + " §8- §aFile %s updated successfully §6(%d ms)", message, elapsedTime));
+        }
+    }
+
+    private static LoadLanguageFile reloadLanguageSync() {
+        File configFile = new File(Variables.getInstance().getDataFolder(), "config.yml");
+        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+        LoadKeys.loadKeys(config);
+        LoadLanguageFile loadLanguageFile = new LoadLanguageFile();
+        loadLanguageFile.loadLanguageFile();
+        LoadMessages.loadMessages(loadLanguageFile.getLangFile());
+        return loadLanguageFile;
+    }
+
     /**
      * Logs a warning if critical config sections are null after reload.
      * This can happen when a YAML file is malformed or has a wrong structure.
      */
     private static void warnIfConfigInvalid() {
-        if (Variables.teleportfile == null || !Variables.teleportfile.contains("teleport")) {
+        org.bukkit.configuration.file.FileConfiguration warnTeleportfile = Variables.getPluginContext().getConfigRegistry().getTeleportFile();
+        if (warnTeleportfile == null || !warnTeleportfile.contains("teleport")) {
             Variables.getInstance().getLogger().warning(
                     "[sRandomRTP] teleport.yml is missing or has no 'teleport' section — some features may not work correctly.");
         }
@@ -171,7 +190,7 @@ public class CommandReload {
 
                 if (portalData.getTaskType().contains("particles")) {
                     WrappedTask newParticlesTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                            () -> CommandSetPortal.spawnParticles(portalData.getCenter(), portalData.getRadius(), portalData.getShape()),
+                            () -> PortalParticleManager.spawnParticles(portalData.getCenter(), portalData.getRadius(), portalData.getShape()),
                             portalData.getDelay(),
                             portalData.getPeriod()
                     );

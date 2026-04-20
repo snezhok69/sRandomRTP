@@ -11,28 +11,18 @@ import java.util.List;
 public class EffectGivePlayer {
     public static void effectGivePlayer(Player player) {
         boolean loggingEnabled = Variables.isLoggingEnabled();
-        if (Variables.cachedEffectsEnabled) {
-            List<String> effectGive = Variables.cachedEffectList;
-            int duration = Variables.cachedEffectDuration * 20;
-            int amplifier = Variables.cachedEffectAmplifier;
+        if (Variables.configCache.effectsEnabled) {
+            List<String> effectGive = Variables.configCache.effectList;
+            int duration = Variables.configCache.effectDuration * 20;
+            int amplifier = Variables.configCache.effectAmplifier;
             Variables.getFoliaLib().getImpl().runAtEntity(player, (s) -> {
                 for (String effect : effectGive) {
                     try {
-                        // Сначала пробуем по имени (современный API: SPEED, JUMP_BOOST и т.д.)
                         PotionEffectType effectType = PotionEffectType.getByName(effect.toUpperCase());
                         if (effectType == null) {
-                            // Fallback: числовой ID для обратной совместимости со старыми конфигами
-                            try {
-                                int effectId = Integer.parseInt(effect);
-                                //noinspection deprecation
-                                effectType = PotionEffectType.getById(effectId);
-                            } catch (NumberFormatException ignored) {
-                                // не число и не имя — невалидное значение
-                            }
-                        }
-                        if (effectType == null) {
                             if (loggingEnabled) {
-                                Bukkit.getConsoleSender().sendMessage("Invalid effect (unknown name or ID): " + effect);
+                                Bukkit.getConsoleSender().sendMessage(
+                                        "Invalid effect name: '" + effect + "'. Use names like SPEED, JUMP_BOOST. Numeric IDs are no longer supported.");
                             }
                             continue;
                         }

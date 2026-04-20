@@ -81,7 +81,7 @@ public final class CompatibleTeleport {
         }
 
         CompletableFuture<Boolean> result = new CompletableFuture<>();
-        RegionTaskExecutor.runAtEntity(player, () -> {
+        FoliaSchedulerFacade.runAtEntity(player, () -> {
             try {
                 result.complete(player.teleport(location));
             } catch (LinkageError | RuntimeException throwable) {

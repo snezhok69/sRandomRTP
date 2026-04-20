@@ -25,6 +25,8 @@ public class AdminBarService {
     public static final String ALL_BARS_PERMISSION = "sRandomRTP.Command.AllBars";
     private static final double MAX_TPS = 20.0D;
     private static final String NOT_AVAILABLE = "N/A";
+    /** Cached to avoid allocating a new array on every call to {@code AdminBarType.values()}. */
+    private static final AdminBarType[] ALL_BAR_TYPES = AdminBarType.values();
 
     private final MessageService messageService;
     private final ServerMetricsProvider serverMetricsProvider;
@@ -54,7 +56,7 @@ public class AdminBarService {
     }
 
     public boolean isEnabled(AdminBarType type) {
-        FileConfiguration config = Variables.adminbarsfile;
+        FileConfiguration config = Variables.getPluginContext() != null ? Variables.getPluginContext().getConfigRegistry().getAdminBarsFile() : null;
         return type != null
                 && config != null
                 && config.getBoolean("admin-bars.enabled", true)
@@ -240,7 +242,7 @@ public class AdminBarService {
         }
 
         Map<AdminBarType, BossBar> bossBars = getOrCreateBossBarMap(player);
-        for (AdminBarType type : AdminBarType.values()) {
+        for (AdminBarType type : ALL_BAR_TYPES) {
             if (!activeTypes.contains(type)) {
                 removeBar(player, type);
                 continue;
@@ -303,7 +305,7 @@ public class AdminBarService {
         double tps = resolvePrimaryTps();
         String formattedTps = formatMetric(tps);
         double progress = Double.isNaN(tps) ? 0.0D : clamp(tps / MAX_TPS);
-        BarColor color = resolveColorForLowIsBad(type, tps, 18.0D, 15.0D);
+        BarColor color = resolveBarColor(type, tps, 18.0D, 15.0D, false);
         String title = formatTitle(type,
                 "%value%", formattedTps,
                 "%tps%", formattedTps);
@@ -315,7 +317,7 @@ public class AdminBarService {
         double maxScale = getConfig().getDouble(type.getConfigPath() + ".max-scale", 50.0D);
         String formattedMspt = formatMetric(mspt);
         double progress = Double.isNaN(mspt) ? 0.0D : clamp(mspt / Math.max(1.0D, maxScale));
-        BarColor color = resolveColorForHighIsBad(type, mspt, 25.0D, 40.0D);
+        BarColor color = resolveBarColor(type, mspt, 25.0D, 40.0D, true);
         String title = formatTitle(type,
                 "%value%", formattedMspt,
                 "%mspt%", formattedMspt);
@@ -332,7 +334,7 @@ public class AdminBarService {
         double percent = maxMemory <= 0L ? 0.0D : (usedMemory * 100.0D) / maxMemory;
         double progress = clamp(percent / 100.0D);
         String formattedPercent = formatMetric(percent);
-        BarColor color = resolveColorForHighIsBad(type, percent, 60.0D, 80.0D);
+        BarColor color = resolveBarColor(type, percent, 60.0D, 80.0D, true);
         String title = formatTitle(type,
                 "%value%", formattedPercent,
                 "%used%", String.valueOf(usedMb),
@@ -342,34 +344,33 @@ public class AdminBarService {
         return new MetricSnapshot(title, progress, color, resolveStyle(type));
     }
 
-    private BarColor resolveColorForLowIsBad(AdminBarType type, double value, double warningDefault, double criticalDefault) {
+    /**
+     * Resolves the boss-bar color based on thresholds.
+     *
+     * @param highIsBad {@code true} for metrics where a high value is bad (MSPT, RAM);
+     *                  {@code false} for metrics where a low value is bad (TPS).
+     */
+    private BarColor resolveBarColor(AdminBarType type, double value,
+                                     double firstThresholdDefault, double secondThresholdDefault,
+                                     boolean highIsBad) {
         if (Double.isNaN(value)) {
             return BarColor.WHITE;
         }
-        double warning = getConfig().getDouble(type.getConfigPath() + ".thresholds.warning-at-or-below", warningDefault);
-        double critical = getConfig().getDouble(type.getConfigPath() + ".thresholds.critical-at-or-below", criticalDefault);
-        if (value <= critical) {
-            return parseBarColor(getConfig().getString(type.getConfigPath() + ".colors.critical"), BarColor.RED);
+        FileConfiguration cfg = getConfig();
+        String base = type.getConfigPath();
+        if (highIsBad) {
+            double good    = cfg.getDouble(base + ".thresholds.good-at-or-below",    firstThresholdDefault);
+            double warning = cfg.getDouble(base + ".thresholds.warning-at-or-below", secondThresholdDefault);
+            if (value <= good)    return parseBarColor(cfg.getString(base + ".colors.good"),     BarColor.GREEN);
+            if (value <= warning) return parseBarColor(cfg.getString(base + ".colors.warning"),  BarColor.YELLOW);
+            return parseBarColor(cfg.getString(base + ".colors.critical"), BarColor.RED);
+        } else {
+            double warning  = cfg.getDouble(base + ".thresholds.warning-at-or-below",  firstThresholdDefault);
+            double critical = cfg.getDouble(base + ".thresholds.critical-at-or-below", secondThresholdDefault);
+            if (value <= critical) return parseBarColor(cfg.getString(base + ".colors.critical"), BarColor.RED);
+            if (value <= warning)  return parseBarColor(cfg.getString(base + ".colors.warning"),  BarColor.YELLOW);
+            return parseBarColor(cfg.getString(base + ".colors.good"), BarColor.GREEN);
         }
-        if (value <= warning) {
-            return parseBarColor(getConfig().getString(type.getConfigPath() + ".colors.warning"), BarColor.YELLOW);
-        }
-        return parseBarColor(getConfig().getString(type.getConfigPath() + ".colors.good"), BarColor.GREEN);
-    }
-
-    private BarColor resolveColorForHighIsBad(AdminBarType type, double value, double goodDefault, double warningDefault) {
-        if (Double.isNaN(value)) {
-            return BarColor.WHITE;
-        }
-        double good = getConfig().getDouble(type.getConfigPath() + ".thresholds.good-at-or-below", goodDefault);
-        double warning = getConfig().getDouble(type.getConfigPath() + ".thresholds.warning-at-or-below", warningDefault);
-        if (value <= good) {
-            return parseBarColor(getConfig().getString(type.getConfigPath() + ".colors.good"), BarColor.GREEN);
-        }
-        if (value <= warning) {
-            return parseBarColor(getConfig().getString(type.getConfigPath() + ".colors.warning"), BarColor.YELLOW);
-        }
-        return parseBarColor(getConfig().getString(type.getConfigPath() + ".colors.critical"), BarColor.RED);
     }
 
     private BarStyle resolveStyle(AdminBarType type) {
@@ -407,7 +408,7 @@ public class AdminBarService {
     }
 
     private boolean activateType(Player player, AdminBarType type) {
-        Set<AdminBarType> activeTypes = getOrCreateActiveTypes(player);
+        Set<AdminBarType> activeTypes = copyActiveTypes(player);
         boolean changed = activeTypes.add(type);
         Variables.getRuntimeState().getAdminBarTypes().put(player, activeTypes);
         ensureRefreshTask(player);
@@ -416,7 +417,7 @@ public class AdminBarService {
     }
 
     private boolean deactivateType(Player player, AdminBarType type) {
-        Set<AdminBarType> activeTypes = getOrCreateActiveTypes(player);
+        Set<AdminBarType> activeTypes = copyActiveTypes(player);
         boolean changed = activeTypes.remove(type);
         removeBar(player, type);
         if (activeTypes.isEmpty()) {
@@ -444,14 +445,7 @@ public class AdminBarService {
         state.getAdminBarTasks().put(player, task);
     }
 
-    private Set<AdminBarType> getOrCreateActiveTypes(Player player) {
-        Set<AdminBarType> activeTypes = Variables.getRuntimeState().getAdminBarTypes().get(player);
-        if (activeTypes == null || activeTypes.isEmpty()) {
-            return EnumSet.noneOf(AdminBarType.class);
-        }
-        return EnumSet.copyOf(activeTypes);
-    }
-
+    /** Returns a snapshot of the active bar types for this player (never null). */
     private Set<AdminBarType> copyActiveTypes(Player player) {
         Set<AdminBarType> activeTypes = Variables.getRuntimeState().getAdminBarTypes().get(player);
         if (activeTypes == null || activeTypes.isEmpty()) {
@@ -465,7 +459,7 @@ public class AdminBarService {
         if (player == null) {
             return eligibleTypes;
         }
-        for (AdminBarType type : AdminBarType.values()) {
+        for (AdminBarType type : ALL_BAR_TYPES) {
             if (isEnabled(type)
                     && player.hasPermission(type.getPermissionNode())
                     && isMetricAvailable(type)) {
@@ -515,7 +509,7 @@ public class AdminBarService {
     }
 
     private FileConfiguration getConfig() {
-        return Variables.adminbarsfile;
+        return Variables.getPluginContext() != null ? Variables.getPluginContext().getConfigRegistry().getAdminBarsFile() : null;
     }
 
     private boolean isMetricAvailable(AdminBarType type) {
@@ -554,26 +548,22 @@ public class AdminBarService {
         return value;
     }
 
-    private BarColor parseBarColor(String value, BarColor fallback) {
-        if (value == null || value.trim().isEmpty()) {
-            return fallback;
-        }
+    /** Parses an enum constant by name; returns {@code fallback} if blank or unknown. */
+    private static <E extends Enum<E>> E parseEnum(Class<E> type, String value, E fallback) {
+        if (value == null || value.trim().isEmpty()) return fallback;
         try {
-            return BarColor.valueOf(value.trim().toUpperCase(Locale.ROOT));
+            return Enum.valueOf(type, value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ignored) {
             return fallback;
         }
     }
 
+    private BarColor parseBarColor(String value, BarColor fallback) {
+        return parseEnum(BarColor.class, value, fallback);
+    }
+
     private BarStyle parseBarStyle(String value, BarStyle fallback) {
-        if (value == null || value.trim().isEmpty()) {
-            return fallback;
-        }
-        try {
-            return BarStyle.valueOf(value.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ignored) {
-            return fallback;
-        }
+        return parseEnum(BarStyle.class, value, fallback);
     }
 
     private static final class MetricSnapshot {

@@ -14,11 +14,12 @@ public class ResolveTargetWorld {
         }
 
         World currentWorld = player.getWorld();
-        if (Variables.teleportfile.getBoolean("teleport.bannedworld.enabled")) {
-            List<String> bannedWorlds = Variables.teleportfile.getStringList("teleport.bannedworld.worlds");
+        org.bukkit.configuration.file.FileConfiguration teleportfile = Variables.getPluginContext().getConfigRegistry().getTeleportFile();
+        if (teleportfile.getBoolean("teleport.bannedworld.enabled")) {
+            List<String> bannedWorlds = teleportfile.getStringList("teleport.bannedworld.worlds");
             if (bannedWorlds.contains(currentWorld.getName())) {
-                if (Variables.teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
-                    String redirectWorldName = Variables.teleportfile.getString("teleport.bannedworld.redirect.world");
+                if (teleportfile.getBoolean("teleport.bannedworld.redirect.enabled")) {
+                    String redirectWorldName = teleportfile.getString("teleport.bannedworld.redirect.world");
                     World redirectWorld = Bukkit.getWorld(redirectWorldName);
                     if (redirectWorld != null) {
                         return redirectWorld;

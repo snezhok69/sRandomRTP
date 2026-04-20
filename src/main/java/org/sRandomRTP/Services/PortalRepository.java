@@ -46,12 +46,12 @@ public class PortalRepository {
         });
     }
 
+    /**
+     * Initialises the schema if it has not been created yet.
+     * Kept for compatibility with {@link MigrationRunner} — delegates to {@link #ensureSchemaAsync()}.
+     */
     public CompletableFuture<Void> openAsync() {
-        return runAsync(new SqlConsumer() {
-            @Override
-            public void accept(Connection connection) {
-            }
-        });
+        return ensureSchemaAsync();
     }
 
     public CompletableFuture<Void> ensureSchemaAsync() {
@@ -63,17 +63,16 @@ public class PortalRepository {
         });
     }
 
-    public Connection getConnection() throws SQLException {
-            synchronized (connectionLock) {
-                if (connection == null || connection.isClosed()) {
-                    ensureDriverLoaded();
-                    if (!dataFolder.exists()) {
-                        dataFolder.mkdirs();
-                    }
-                    String dbPath = dataFolder.getPath() + File.separator + "Portals.db";
-                    connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+    Connection getConnection() throws SQLException {
+        synchronized (connectionLock) {
+            if (connection == null || connection.isClosed()) {
+                if (!dataFolder.exists() && !dataFolder.mkdirs()) {
+                    throw new SQLException("Cannot create plugin data folder: " + dataFolder.getAbsolutePath());
                 }
-                return connection;
+                String dbPath = dataFolder.getPath() + File.separator + "Portals.db";
+                connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+            }
+            return connection;
         }
     }
 
@@ -101,8 +100,9 @@ public class PortalRepository {
     }
 
     public CompletableFuture<Void> closeAsync() {
-        // Submit close task first (while executor still accepts work),
-        // then shutdown — all previously queued tasks run before the close.
+        // Submit close task first (while executor still accepts work).
+        // Shut down the executor only AFTER the close task completes so that
+        // callers chaining on the returned future do not receive RejectedExecutionException.
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             synchronized (connectionLock) {
                 if (connection != null) {
@@ -116,7 +116,7 @@ public class PortalRepository {
                 }
             }
         }, dbExecutor);
-        dbExecutor.shutdown();
+        future.whenComplete((ignored, err) -> dbExecutor.shutdown());
         return future;
     }
 
@@ -164,6 +164,16 @@ public class PortalRepository {
                 "ALTER TABLE PlayerPortalsBlocks ADD COLUMN shape TEXT DEFAULT 'circle'");
         ensureColumn(activeConnection, "PlayerPortalsTasks", "shape",
                 "ALTER TABLE PlayerPortalsTasks ADD COLUMN shape TEXT DEFAULT 'circle'");
+
+        // Indices to avoid full-table scans on per-player and per-portal lookups
+        try (Statement idxStatement = activeConnection.createStatement()) {
+            idxStatement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_playerportals_name  ON PlayerPortals(player_name)");
+            idxStatement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_portalblocks_player ON PlayerPortalsBlocks(player_Name)");
+            idxStatement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_portalblocks_portal ON PlayerPortalsBlocks(portal_Name)");
+            idxStatement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_portaltasks_player  ON PlayerPortalsTasks(player_Name)");
+            idxStatement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_portaltasks_portal  ON PlayerPortalsTasks(portal_Name)");
+        }
+
         setSchemaVersion(activeConnection, PluginVersionCatalog.PORTAL_SCHEMA_VERSION);
     }
 
@@ -175,6 +185,9 @@ public class PortalRepository {
     }
 
     private void setSchemaVersion(Connection activeConnection, int version) throws SQLException {
+        if (version < 0) {
+            throw new IllegalArgumentException("Invalid schema version: " + version);
+        }
         try (Statement statement = activeConnection.createStatement()) {
             statement.execute("PRAGMA user_version = " + version);
         }
@@ -192,11 +205,4 @@ public class PortalRepository {
         }
     }
 
-    private void ensureDriverLoaded() {
-        try {
-            Class.forName("org.sqlite.JDBC");
-        } catch (ClassNotFoundException e) {
-            logger.warning("SQLite JDBC driver is not available: " + e.getMessage());
-        }
-    }
 }
