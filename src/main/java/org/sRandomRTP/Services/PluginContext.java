@@ -51,6 +51,7 @@ public class PluginContext {
     private final BootstrapCoordinator bootstrapCoordinator;
     private final TeleportService teleportService;
     private final DiagnosticsService diagnosticsService;
+    private final AdminBarService adminBarService;
     private final ConfigVersionSupport configVersionSupport;
     private final ServerMetricsProvider serverMetricsProvider;
     private final ReleaseCheckService releaseCheckService;
@@ -75,6 +76,7 @@ public class PluginContext {
         this.configVersionSupport = new ConfigVersionSupport(configRegistry, plugin.getLogger());
         this.serverMetricsProvider = new ServerMetricsProvider();
         this.releaseCheckService = new ReleaseCheckService(messageService);
+        this.adminBarService = new AdminBarService(messageService, serverMetricsProvider);
         this.bootstrapCoordinator = new BootstrapCoordinator(plugin, this);
     }
 
@@ -142,6 +144,10 @@ public class PluginContext {
 
     public DiagnosticsService getDiagnosticsService() {
         return diagnosticsService;
+    }
+
+    public AdminBarService getAdminBarService() {
+        return adminBarService;
     }
 
     public ConfigVersionSupport getConfigVersionSupport() {

@@ -14,16 +14,21 @@ class ConfigRegistryTest {
     Path tempDir;
 
     @Test
-    void managedConfigsIncludeBiomeFile() {
+    void managedConfigsIncludeAdminBarsFile() {
         ConfigRegistry configRegistry = new ConfigRegistry(tempDir.toFile());
 
+        boolean found = false;
         boolean foundBiome = false;
         for (File file : configRegistry.getManagedConfigFiles()) {
+            if (file.getPath().endsWith("Settings" + File.separator + "admin-bars.yml")) {
+                found = true;
+            }
             if (file.getPath().endsWith("Settings" + File.separator + "biome.yml")) {
                 foundBiome = true;
             }
         }
 
+        assertTrue(found, "Settings/admin-bars.yml must be managed for create/update/migration flow");
         assertTrue(foundBiome, "Settings/biome.yml must be managed for biome profile create/update flow");
     }
 }

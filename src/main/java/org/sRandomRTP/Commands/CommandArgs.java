@@ -91,6 +91,12 @@ public class CommandArgs implements CommandExecutor {
                         sender.sendMessage(ChatUtils.PLUGIN_NAME + " " + CommandRtpBiome.BIOME_USAGE);
                     }
                     break;
+                case "tpsbar":
+                case "rambar":
+                case "msptbar":
+                case "allbars":
+                    CommandAdminBar.handle(sender, args);
+                    break;
                 case "portal":
                     PortalCommandSupport.handle(sender, args);
                     break;

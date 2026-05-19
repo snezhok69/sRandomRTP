@@ -80,6 +80,22 @@ public class ServerMetricsProvider {
         this.runtimeServerAccess = runtimeServerAccess;
     }
 
+    public boolean isMetricAvailable(AdminBarType type) {
+        if (type == null) {
+            return false;
+        }
+        switch (type) {
+            case TPS:
+                return !Double.isNaN(getPrimaryTps());
+            case MSPT:
+                return !Double.isNaN(getAverageTickTimeMs());
+            case RAM:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public double getPrimaryTps() {
         // Fast path: return cached value if still fresh
         if (System.nanoTime() - lastRefreshNanos < CACHE_TTL_NANOS && !Double.isNaN(cachedTps)) {

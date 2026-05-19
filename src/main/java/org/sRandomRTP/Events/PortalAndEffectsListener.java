@@ -111,6 +111,7 @@ public class PortalAndEffectsListener implements Listener {
             searchTask.cancel();
             state.removeParticleTask(player);
         }
+        Variables.getAdminBarService().cleanupPlayer(player);
         // Dismiss any active countdown boss bar before clearing registry state —
         // removeBossBar is idempotent (safe when no bar is active).
         RemoveAllBossBars.removeBossBar(player);

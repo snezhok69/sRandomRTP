@@ -28,4 +28,10 @@ public final class ConfigDefaults {
     /** Default coordinate-generation strategy. Matches the value written by BootstrapCoordinator into teleport.yml. */
     public static final String   DEFAULT_COORDINATE_GENERATION        = "CIRCLE";
 
+    // ── Admin bars ────────────────────────────────────────────────────────────
+    public static final boolean ADMIN_BARS_ENABLED                  = true;
+    public static final long    ADMIN_BARS_UPDATE_INTERVAL_TICKS    = 20L;
+    public static final boolean ADMIN_BARS_TPS_ENABLED              = true;
+    public static final boolean ADMIN_BARS_RAM_ENABLED              = true;
+    public static final boolean ADMIN_BARS_MSPT_ENABLED             = true;
 }

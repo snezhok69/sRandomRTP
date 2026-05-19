@@ -3,6 +3,7 @@ package org.sRandomRTP.Services;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ServerMetricsProviderTest {
@@ -11,6 +12,8 @@ class ServerMetricsProviderTest {
     void resolvesDirectApiMetrics() {
         ServerMetricsProvider provider = new ServerMetricsProvider(() -> new DirectServer());
 
+        assertTrue(provider.isMetricAvailable(AdminBarType.TPS));
+        assertTrue(provider.isMetricAvailable(AdminBarType.MSPT));
         assertEquals(19.75D, provider.getPrimaryTps(), 0.001D);
         assertEquals(12.5D, provider.getAverageTickTimeMs(), 0.001D);
     }
@@ -19,6 +22,8 @@ class ServerMetricsProviderTest {
     void resolvesCraftFallbackMetrics() {
         ServerMetricsProvider provider = new ServerMetricsProvider(() -> new CraftLikeServer());
 
+        assertTrue(provider.isMetricAvailable(AdminBarType.TPS));
+        assertTrue(provider.isMetricAvailable(AdminBarType.MSPT));
         assertEquals(18.5D, provider.getPrimaryTps(), 0.001D);
         assertEquals(50.0D, provider.getAverageTickTimeMs(), 0.001D);
     }
@@ -27,8 +32,8 @@ class ServerMetricsProviderTest {
     void reportsUnavailableForUnsupportedServer() {
         ServerMetricsProvider provider = new ServerMetricsProvider(() -> new EmptyServer());
 
-        assertTrue(Double.isNaN(provider.getPrimaryTps()));
-        assertTrue(Double.isNaN(provider.getAverageTickTimeMs()));
+        assertFalse(provider.isMetricAvailable(AdminBarType.TPS));
+        assertFalse(provider.isMetricAvailable(AdminBarType.MSPT));
     }
 
     static final class DirectServer {
