@@ -6,6 +6,7 @@ import org.sRandomRTP.Main;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +17,8 @@ import java.util.Map;
  *
  * <p>Internally backed by a single {@code volatile Map} that is atomically
  * swapped on every {@link #reload()} call — no per-field volatiles needed.
- * Adding a new config file only requires two changes: add the path to
- * {@link #MANAGED_CONFIG_PATHS} and add a typed getter.</p>
+ * Adding a new public config file only requires two changes: add the path to
+ * {@link #PUBLIC_MANAGED_CONFIG_PATHS} and add a typed getter.</p>
  *
  * <p>{@link Variables} fields delegate here for backward compatibility
  * during the ongoing migration.</p>
@@ -40,7 +41,7 @@ public class ConfigRegistry {
     private static final String PATH_CHUNK      = "Settings/chunk-loading.yml";
     private static final String PATH_ADMIN_BARS = "Settings/admin-bars.yml";
 
-    private static final String[] MANAGED_CONFIG_PATHS = {
+    private static final String[] PUBLIC_MANAGED_CONFIG_PATHS = {
             "config.yml",
             PATH_EFFECTS,
             PATH_PARTICLES,
@@ -55,7 +56,6 @@ public class ConfigRegistry {
             PATH_BIOME,
             PATH_PORTAL,
             PATH_CHUNK,
-            PATH_ADMIN_BARS,
     };
 
     private final File dataFolder;
@@ -72,8 +72,9 @@ public class ConfigRegistry {
     }
 
     public void reload() {
-        Map<String, FileConfiguration> fresh = new HashMap<>(MANAGED_CONFIG_PATHS.length * 2);
-        for (String path : MANAGED_CONFIG_PATHS) {
+        List<String> managedPaths = getManagedConfigPaths();
+        Map<String, FileConfiguration> fresh = new HashMap<>(managedPaths.size() * 2);
+        for (String path : managedPaths) {
             fresh.put(path, load(path));
         }
         configs = fresh;
@@ -102,8 +103,9 @@ public class ConfigRegistry {
     }
 
     public List<File> getManagedConfigFiles() {
-        List<File> files = new ArrayList<>(MANAGED_CONFIG_PATHS.length);
-        for (String path : MANAGED_CONFIG_PATHS) {
+        List<String> managedPaths = getManagedConfigPaths();
+        List<File> files = new ArrayList<>(managedPaths.size());
+        for (String path : managedPaths) {
             files.add(resolve(path));
         }
         return Collections.unmodifiableList(files);
@@ -115,5 +117,13 @@ public class ConfigRegistry {
 
     private YamlConfiguration load(String relativePath) {
         return YamlConfiguration.loadConfiguration(resolve(relativePath));
+    }
+
+    private List<String> getManagedConfigPaths() {
+        List<String> paths = new ArrayList<>(Arrays.asList(PUBLIC_MANAGED_CONFIG_PATHS));
+        if (LocalFeatureGate.isLocalAdminBarsEnabled()) {
+            paths.add(PATH_ADMIN_BARS);
+        }
+        return paths;
     }
 }

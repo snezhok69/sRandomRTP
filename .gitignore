@@ -25,6 +25,8 @@ CLAUDE.md
 1.txt
 hoco
 .hoco
+.srandomrtp-local-admin-bars
+local-admin-bars.enabled
 .git-rewrite/
 *.log
 *.tmp

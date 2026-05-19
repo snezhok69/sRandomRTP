@@ -11,6 +11,7 @@ import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Services.AdminBarService;
 import org.sRandomRTP.Services.AdminBarType;
+import org.sRandomRTP.Services.LocalFeatureGate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -130,6 +131,9 @@ public class OnTabCompletes implements TabCompleter {
         if ("chunky".equals(subCommand)) {
             return Arrays.asList("stop");
         }
+        if (!LocalFeatureGate.isLocalAdminBarsEnabled()) {
+            return java.util.Collections.emptyList();
+        }
         if ("allbars".equals(subCommand) && Variables.getAdminBarService().shouldShowAllInTab(sender)) {
             return Arrays.asList("on", "off");
         }
@@ -159,6 +163,9 @@ public class OnTabCompletes implements TabCompleter {
     }
 
     private void addAdminBarArguments(CommandSender sender, List<String> arguments) {
+        if (!LocalFeatureGate.isLocalAdminBarsEnabled()) {
+            return;
+        }
         AdminBarService adminBarService = Variables.getAdminBarService();
         if (adminBarService.shouldShowInTab(sender, AdminBarType.TPS)) {
             arguments.add("tpsbar");
