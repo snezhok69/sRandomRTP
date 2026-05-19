@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import org.sRandomRTP.BlockBiomes.BiomeFilterSnapshot;
-import org.sRandomRTP.Services.AdminBarService;
 import org.sRandomRTP.Services.ConfigCache;
 import org.sRandomRTP.Services.ConfigVersionSupport;
 import org.sRandomRTP.Services.MessageService;
@@ -164,10 +163,6 @@ public class Variables {
 
     public static TeleportService getTeleportService() {
         return ctx(PluginContext::getTeleportService);
-    }
-
-    public static AdminBarService getAdminBarService() {
-        return ctx(PluginContext::getAdminBarService);
     }
 
     public static ReleaseCheckService getReleaseCheckService() {

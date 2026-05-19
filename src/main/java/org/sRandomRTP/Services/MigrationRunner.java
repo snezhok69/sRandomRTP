@@ -114,18 +114,6 @@ public class MigrationRunner {
             modified |= setIfMissing(yaml, "teleport.parallel-search.enabled",             ConfigDefaults.PARALLEL_SEARCH_ENABLED);
             modified |= setIfMissing(yaml, "teleport.parallel-search.candidates-per-batch", ConfigDefaults.PARALLEL_SEARCH_CANDIDATES_PER_BATCH);
             modified |= setIfMissing(yaml, "teleport.parallel-search.max-global-inflight", ConfigDefaults.PARALLEL_SEARCH_MAX_GLOBAL_INFLIGHT);
-        } else if ("admin-bars.yml".equalsIgnoreCase(fileName)) {
-            modified |= setIfMissing(yaml, "admin-bars.enabled",               ConfigDefaults.ADMIN_BARS_ENABLED);
-            modified |= setIfMissing(yaml, "admin-bars.update-interval-ticks", ConfigDefaults.ADMIN_BARS_UPDATE_INTERVAL_TICKS);
-            modified |= setIfMissing(yaml, "admin-bars.messages.enabled",      "&a[sRandomRTP] &a%bar% enabled.");
-            modified |= setIfMissing(yaml, "admin-bars.messages.disabled",     "&a[sRandomRTP] &e%bar% disabled.");
-            modified |= setIfMissing(yaml, "admin-bars.messages.unavailable",  "&a[sRandomRTP] &cThis metric is not available on this server core.");
-            modified |= setIfMissing(yaml, "admin-bars.messages.command-disabled", "&a[sRandomRTP] &cThis command is disabled in Settings/admin-bars.yml.");
-            modified |= setIfMissing(yaml, "admin-bars.messages.players-only", "&a[sRandomRTP] &cOnly players can use this command.");
-            modified |= setIfMissing(yaml, "admin-bars.messages.usage",        "&a[sRandomRTP] &6Usage: /rtp %command% [on|off]");
-            modified |= setIfMissing(yaml, "admin-bars.tpsbar.enabled",        ConfigDefaults.ADMIN_BARS_TPS_ENABLED);
-            modified |= setIfMissing(yaml, "admin-bars.rambar.enabled",        ConfigDefaults.ADMIN_BARS_RAM_ENABLED);
-            modified |= setIfMissing(yaml, "admin-bars.msptbar.enabled",       ConfigDefaults.ADMIN_BARS_MSPT_ENABLED);
         }
         return modified;
     }

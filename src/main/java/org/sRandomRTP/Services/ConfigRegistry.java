@@ -38,8 +38,6 @@ public class ConfigRegistry {
     private static final String PATH_BIOME      = "Settings/biome.yml";
     private static final String PATH_PORTAL     = "Settings/portal.yml";
     private static final String PATH_CHUNK      = "Settings/chunk-loading.yml";
-    private static final String PATH_ADMIN_BARS = "Settings/admin-bars.yml";
-
     private static final String[] MANAGED_CONFIG_PATHS = {
             "config.yml",
             PATH_EFFECTS,
@@ -55,7 +53,6 @@ public class ConfigRegistry {
             PATH_BIOME,
             PATH_PORTAL,
             PATH_CHUNK,
-            PATH_ADMIN_BARS,
     };
 
     private final File dataFolder;
@@ -93,7 +90,6 @@ public class ConfigRegistry {
     public FileConfiguration getBiomeFile()     { return configs.get(PATH_BIOME); }
     public FileConfiguration getPortalFile()    { return configs.get(PATH_PORTAL); }
     public FileConfiguration getChunkFile()     { return configs.get(PATH_CHUNK); }
-    public FileConfiguration getAdminBarsFile() { return configs.get(PATH_ADMIN_BARS); }
     /** Returns the main {@code config.yml} configuration. */
     public FileConfiguration getMainConfig()    { return configs.get("config.yml"); }
 
