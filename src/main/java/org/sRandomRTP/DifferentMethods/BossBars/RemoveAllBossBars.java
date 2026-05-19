@@ -27,6 +27,15 @@ public class RemoveAllBossBars {
                 bossBar.removeAll();
             }
             state.getBossBars().clear();
+            for (java.util.Map<org.sRandomRTP.Services.AdminBarType, BossBar> bossBars : state.getAdminBossBars().values()) {
+                if (bossBars == null) {
+                    continue;
+                }
+                for (BossBar bossBar : bossBars.values()) {
+                    bossBar.removeAll();
+                }
+            }
+            state.getAdminBossBars().clear();
         } catch (RuntimeException e) {
             LoggerUtility.loggerUtility(RemoveAllBossBars.class, e);
         }

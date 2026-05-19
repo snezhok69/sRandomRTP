@@ -130,7 +130,7 @@ public class FilesAutoReload {
         for (String name : Arrays.asList(
                 "teleport.yml", "sound.yml", "bossbar.yml", "near.yml", "title.yml",
                 "economy.yml", "effects.yml", "particles.yml", "far.yml", "middle.yml",
-                "biome.yml", "portal.yml", "chunk-loading.yml")) {
+                "biome.yml", "portal.yml", "chunk-loading.yml", "admin-bars.yml")) {
             map.put(name, standardReload);
         }
         RELOAD_ACTIONS = Collections.unmodifiableMap(map);

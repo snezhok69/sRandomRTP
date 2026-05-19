@@ -43,6 +43,7 @@ public class BootstrapCoordinator {
     }
 
     public void shutdown() {
+        pluginContext.getAdminBarService().shutdown();
         pluginContext.getReleaseCheckService().shutdown();
         pluginContext.getTeleportMetrics().logSummaryIfEnabled();
         try {

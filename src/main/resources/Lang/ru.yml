@@ -193,6 +193,7 @@ messages:
     - '&a/rtp listportal - &6посмотреть список порталов.'
     - '&a/rtp chunky N - &6начать прогрузку N чанков.'
     - '&a/rtp chunky stop - &6остановить прогрузку чанков в текущем мире игрока.'
+    - '&a/rtp tpsbar|rambar|msptbar - &6включить или выключить админский мониторинг через bossbar.'
     - ''
   Plugin-Enabled-Message:
     - ''
