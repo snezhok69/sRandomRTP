@@ -9,8 +9,6 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
-import org.sRandomRTP.Services.AdminBarService;
-import org.sRandomRTP.Services.AdminBarType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -109,7 +107,6 @@ public class OnTabCompletes implements TabCompleter {
         if (sender.hasPermission(Permissions.RTP_BIOME)) {
             arguments.add("biome");
         }
-        addAdminBarArguments(sender, arguments);
         return arguments;
     }
 
@@ -130,13 +127,6 @@ public class OnTabCompletes implements TabCompleter {
         if ("chunky".equals(subCommand)) {
             return Arrays.asList("stop");
         }
-        if ("allbars".equals(subCommand) && Variables.getAdminBarService().shouldShowAllInTab(sender)) {
-            return Arrays.asList("on", "off");
-        }
-        AdminBarType adminBarType = AdminBarType.fromSubCommand(subCommand);
-        if (adminBarType != null && Variables.getAdminBarService().shouldShowInTab(sender, adminBarType)) {
-            return Arrays.asList("on", "off");
-        }
         return java.util.Collections.emptyList();
     }
 
@@ -156,22 +146,6 @@ public class OnTabCompletes implements TabCompleter {
             return getSimpleBiomeSuggestions(args[2]);
         }
         return java.util.Collections.emptyList();
-    }
-
-    private void addAdminBarArguments(CommandSender sender, List<String> arguments) {
-        AdminBarService adminBarService = Variables.getAdminBarService();
-        if (adminBarService.shouldShowInTab(sender, AdminBarType.TPS)) {
-            arguments.add("tpsbar");
-        }
-        if (adminBarService.shouldShowInTab(sender, AdminBarType.RAM)) {
-            arguments.add("rambar");
-        }
-        if (adminBarService.shouldShowInTab(sender, AdminBarType.MSPT)) {
-            arguments.add("msptbar");
-        }
-        if (adminBarService.shouldShowAllInTab(sender)) {
-            arguments.add("allbars");
-        }
     }
 
     private List<String> getOnlinePlayerNames() {

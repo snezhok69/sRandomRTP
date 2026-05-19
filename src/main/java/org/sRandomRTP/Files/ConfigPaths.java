@@ -29,7 +29,6 @@ public final class ConfigPaths {
             "Settings/biome.yml",
             "Settings/portal.yml",
             "Settings/chunk-loading.yml",
-            "Settings/admin-bars.yml",
             "lang/en.yml",
             "lang/ru.yml",
             "lang/es.yml",
@@ -55,7 +54,6 @@ public final class ConfigPaths {
     public static final String[] CREATE_ONLY_FILES = {
             "Data/rtpCount.yml",
             "Settings_ru/bossbar.yml",
-            "Settings_ru/admin-bars.yml",
             "Settings_ru/chunk-loading.yml",
             "Settings_ru/config.yml",
             "Settings_ru/economy.yml",

@@ -1,37 +1,4 @@
-# sRandomRTP 3.1 - Stability, admin bars, and safer RTP internals
-
-New Commands Added!
-
-1. The following commands have been added:
-
-/rtp tpsbar
-/rtp rambar
-/rtp msptbar
-/rtp allbars
-
-1.1. /rtp tpsbar - shows or hides an admin bossbar with the current server TPS.
-Permission: sRandomRTP.Command.TpsBar
-
-1.2. /rtp rambar - shows or hides an admin bossbar with server RAM usage.
-Permission: sRandomRTP.Command.RamBar
-
-1.3. /rtp msptbar - shows or hides an admin bossbar with the current MSPT value.
-Permission: sRandomRTP.Command.MsptBar
-
-1.4. /rtp allbars - enables or disables all admin monitoring bossbars at once.
-Permission: sRandomRTP.Command.AllBars
-
-
-New Admin Monitoring Features!
-
-1. Added configurable TPS, RAM, and MSPT bossbars for server administrators.
-
-2. Each bar can have its own title, color, style, update format, thresholds, and enabled/disabled state in admin-bars.yml.
-
-3. Commands and tab completion now respect permissions, config state, and server metric support.
-
-4. Admin bars are cleaned up correctly when players leave, the plugin reloads, or the plugin disables.
-
+# sRandomRTP 3.1 - Stability, safer RTP internals, and Java 8 compatibility
 
 Teleport & Search Improvements!
 
@@ -56,10 +23,7 @@ Teleport & Search Improvements!
 
 Configuration & Localization Update!
 
-1. New config files were added:
-
-admin-bars.yml - TPS/RAM/MSPT bossbar settings, thresholds, colors, styles, titles, and messages.
-biome.yml - dedicated radius and search settings for /rtp biome, including per-world options and two-phase search behavior.
+1. New biome.yml config was added for /rtp biome, including dedicated radii, per-world options, and two-phase search behavior.
 
 2. Config files now use managed config-version values, default-key synchronization, and startup migrations.
 
@@ -71,7 +35,7 @@ biome.yml - dedicated radius and search settings for /rtp biome, including per-w
 
 6. The unknown-command chat message is now configurable through the invalid-command localization key.
 
-7. English and Russian localizations were expanded with admin bar messages, invalid command text, and updated command help.
+7. English and Russian localizations were expanded with invalid command text and updated RTP command help.
 
 
 Architecture & Diagnostics!
@@ -99,7 +63,7 @@ Small Changes & Fixes!
 
 3. Fixed configurable invalid command messages instead of always using the default server text.
 
-4. Improved cleanup for portal blocks, portal particles, admin bars, pending teleports, and economy charges.
+4. Improved cleanup for portal blocks, portal particles, pending teleports, and economy charges.
 
 5. Fixed edge cases with duplicate RTP requests, player quit during teleport, expired requests, and refunds after cancelled teleports.
 
@@ -107,11 +71,11 @@ Small Changes & Fixes!
 
 7. Plugin metadata was updated for the 3.1 release. The plugin is built for Java 8 bytecode and keeps the minimum Bukkit API marker at 1.16, so older 1.16 servers can still load it while newer servers continue to work.
 
-8. Java target stays compatible with Java 8, several dependencies were refreshed, and unused build dependencies were removed. Features that depend on newer server APIs now use fallbacks or stay unavailable on older cores.
+8. Features that depend on newer server APIs now use fallbacks or stay unavailable on older cores.
 
-9. If your server is still running Java 8, sRandomRTP 3.1 should still be able to load. For very old server setups, 3.0 or 2.9/2.9-FIX may be safer fallback versions.
+9. Admin monitoring bossbars were removed from the public RTP command set so the plugin stays focused on random teleportation.
 
-10. Automated tests were added and moved into tests/java, with coverage for cooldowns, configs, migrations, admin bars, portals, biome RTP, chunk pressure, safe-Y checks, and scheduler guards.
+10. Automated tests were added and moved into tests/java, with coverage for cooldowns, configs, migrations, portals, biome RTP, chunk pressure, safe-Y checks, and scheduler guards.
 
 11. .gitignore was updated to keep IDE files, local agent files, runtime databases, logs, and build artifacts out of the repository.
 

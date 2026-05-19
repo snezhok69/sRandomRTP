@@ -13,10 +13,8 @@ import org.sRandomRTP.DataPortals.PortalDataTasks;
 import org.sRandomRTP.DataPortals.PortalStateStore;
 import org.sRandomRTP.Utils.PlayerResourceMap;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,7 +46,7 @@ public final class RuntimeStateRegistry {
      */
     public enum SearchPhase { IDLE, SEARCHING, TASKS_CLEANED }
 
-    /** Boss-bar and admin-bar state, owned by AdminBarService. */
+    /** Boss-bar state used by RTP cooldown countdowns. */
     private final PlayerBarStateStore playerBarState = new PlayerBarStateStore();
     private final PlayerResourceMap<WrappedTask> teleportTasks = new PlayerResourceMap<>();
     private final PlayerResourceMap<WrappedTask> particleTasks = new PlayerResourceMap<>();
@@ -67,16 +65,13 @@ public final class RuntimeStateRegistry {
     private final Map<UUID, World> targetWorlds = new ConcurrentHashMap<>();
     private final java.util.concurrent.atomic.AtomicInteger rtpCount = new java.util.concurrent.atomic.AtomicInteger(0);
 
-    /** Returns the bar state sub-store (boss bars + admin bars). */
+    /** Returns the bar state sub-store. */
     public PlayerBarStateStore getPlayerBarState() {
         return playerBarState;
     }
 
     // ── Bar delegate methods (kept for backward compatibility) ───────────────
-    public PlayerResourceMap<BossBar> getBossBars()                             { return playerBarState.getBossBars(); }
-    public PlayerResourceMap<Map<AdminBarType, BossBar>> getAdminBossBars()     { return playerBarState.getAdminBossBars(); }
-    public PlayerResourceMap<WrappedTask> getAdminBarTasks()                    { return playerBarState.getAdminBarTasks(); }
-    public PlayerResourceMap<Set<AdminBarType>> getAdminBarTypes()              { return playerBarState.getAdminBarTypes(); }
+    public PlayerResourceMap<BossBar> getBossBars() { return playerBarState.getBossBars(); }
 
     public PlayerResourceMap<WrappedTask> getTeleportTasks()  { return teleportTasks; }
     public PlayerResourceMap<WrappedTask> getParticleTasks()  { return particleTasks; }
@@ -288,10 +283,5 @@ public final class RuntimeStateRegistry {
         particleTasks.remove(player);
         playerBarState.clearPlayer(player);
         org.sRandomRTP.Cooldowns.CooldownManager.instance().invalidatePermissionCache(playerId);
-    }
-
-    public Set<AdminBarType> getActiveAdminBarTypes(Player player) {
-        Set<AdminBarType> activeTypes = player == null ? null : playerBarState.getAdminBarTypes().get(player);
-        return activeTypes == null ? Collections.<AdminBarType>emptySet() : activeTypes;
     }
 }
