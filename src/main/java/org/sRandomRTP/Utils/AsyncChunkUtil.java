@@ -59,7 +59,7 @@ public final class AsyncChunkUtil {
         CompletableFuture<Chunk> result = new CompletableFuture<>();
         long startedAt = System.nanoTime();
         try {
-            Location chunkLocation = new Location(world, (chunkX << 4) + 8, world.getMinHeight(), (chunkZ << 4) + 8);
+            Location chunkLocation = new Location(world, (chunkX << 4) + 8, WorldHeightSupport.getMinHeight(world), (chunkZ << 4) + 8);
             FoliaSchedulerFacade.runAtLocation(chunkLocation, () -> {
                 try {
                     Chunk chunk = world.getChunkAt(chunkX, chunkZ);

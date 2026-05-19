@@ -5,6 +5,7 @@ import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Services.PluginVersionCatalog;
 
+import java.lang.reflect.Method;
 import java.util.logging.Level;
 
 public class CheckingServerVersion {
@@ -41,14 +42,16 @@ public class CheckingServerVersion {
     static int resolveMinorVersion() {
         // Primary: "1.20.4" → split on "." → index 1
         try {
-            String mc = Bukkit.getMinecraftVersion();
+            Method method = Bukkit.class.getMethod("getMinecraftVersion");
+            Object value = method.invoke(null);
+            String mc = value instanceof String ? (String) value : null;
             if (mc != null && !mc.isEmpty()) {
                 String[] parts = mc.split("\\.");
                 if (parts.length >= 2) {
                     return Integer.parseInt(parts[1]);
                 }
             }
-        } catch (RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
         }
 
         // Fallback: "org.bukkit.craftbukkit.v1_20_R3" → split on "." → [3] = "v1_20_R3"

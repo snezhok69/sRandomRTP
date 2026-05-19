@@ -76,5 +76,21 @@ public final class EconomyPaymentManager {
         }
     }
 
-    private record Payment(UUID payerId, double amount) {}
+    private static final class Payment {
+        private final UUID payerId;
+        private final double amount;
+
+        private Payment(UUID payerId, double amount) {
+            this.payerId = payerId;
+            this.amount = amount;
+        }
+
+        UUID payerId() {
+            return payerId;
+        }
+
+        double amount() {
+            return amount;
+        }
+    }
 }

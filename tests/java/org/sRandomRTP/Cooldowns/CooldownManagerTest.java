@@ -11,9 +11,9 @@ import org.mockito.Mockito;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Services.ConfigCache;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -83,14 +83,14 @@ class CooldownManagerTest {
         PermissionAttachmentInfo fourSeconds = Mockito.mock(PermissionAttachmentInfo.class);
         when(fourSeconds.getValue()).thenReturn(true);
         when(fourSeconds.getPermission()).thenReturn("sRandomRtp.Cooldown.4");
-        when(player.getEffectivePermissions()).thenReturn(Set.of(fourSeconds));
+        when(player.getEffectivePermissions()).thenReturn(Collections.singleton(fourSeconds));
 
         assertEquals(4, manager.resolveCustomCooldown(player, 60, false));
 
         PermissionAttachmentInfo twoSeconds = Mockito.mock(PermissionAttachmentInfo.class);
         when(twoSeconds.getValue()).thenReturn(true);
         when(twoSeconds.getPermission()).thenReturn("srandomrtp.cooldown.2");
-        when(player.getEffectivePermissions()).thenReturn(Set.of(twoSeconds));
+        when(player.getEffectivePermissions()).thenReturn(Collections.singleton(twoSeconds));
 
         assertEquals(2, manager.resolveCustomCooldown(player, 60, false));
     }

@@ -10,6 +10,7 @@ import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
+import org.sRandomRTP.Utils.WorldHeightSupport;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -42,7 +43,7 @@ public final class VerticalSafeYSearchSupport {
         }
 
         if (Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()) {
-            Location location = new Location(world, x, world.getMinHeight(), z);
+            Location location = new Location(world, x, WorldHeightSupport.getMinHeight(world), z);
             FoliaSchedulerFacade.runAtLocation(location, () -> completeSearch(sourceClass, logPrefix, future, world, x, z, context, minAllowedY, checker, true));
             return future;
         }
@@ -57,7 +58,7 @@ public final class VerticalSafeYSearchSupport {
                 future.complete(-1);
                 return;
             }
-            Location location = new Location(world, x, world.getMinHeight(), z);
+            Location location = new Location(world, x, WorldHeightSupport.getMinHeight(world), z);
             FoliaSchedulerFacade.runAtLocation(location, () -> completeSearch(sourceClass, logPrefix, future, world, x, z, context, minAllowedY, checker, false));
         });
 
@@ -79,7 +80,7 @@ public final class VerticalSafeYSearchSupport {
 
             boolean loggingEnabled = Variables.isLoggingEnabled();
             long startedAt = System.nanoTime();
-            int result = search(world, x, z, world.getMinHeight(), world.getMaxHeight() - 1,
+            int result = search(world, x, z, WorldHeightSupport.getMinHeight(world), world.getMaxHeight() - 1,
                     context, loggingEnabled, minAllowedY, logPrefix, checker);
             if (Variables.getTeleportMetrics() != null) {
                 Variables.getTeleportMetrics().recordSafeYSearch(System.nanoTime() - startedAt);
@@ -119,7 +120,7 @@ public final class VerticalSafeYSearchSupport {
 
             boolean loggingEnabled = Variables.isLoggingEnabled();
             long startedAt = System.nanoTime();
-            int result = search(world, x, z, world.getMinHeight(), world.getMaxHeight() - 1,
+            int result = search(world, x, z, WorldHeightSupport.getMinHeight(world), world.getMaxHeight() - 1,
                     context, loggingEnabled, minAllowedY, logPrefix, checker);
             if (Variables.getTeleportMetrics() != null) {
                 Variables.getTeleportMetrics().recordSafeYSearch(System.nanoTime() - startedAt);

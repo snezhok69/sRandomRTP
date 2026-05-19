@@ -27,7 +27,23 @@ public final class CooldownManager {
     private static final long CACHE_TTL_MS = org.sRandomRTP.Utils.PluginConstants.COOLDOWN_PERMISSION_CACHE_TTL_MS;
 
     /** Immutable cache entry — thread-safe when published via ConcurrentHashMap. */
-    private record CooldownCacheEntry(long cooldown, long cachedAt) {}
+    private static final class CooldownCacheEntry {
+        private final long cooldown;
+        private final long cachedAt;
+
+        private CooldownCacheEntry(long cooldown, long cachedAt) {
+            this.cooldown = cooldown;
+            this.cachedAt = cachedAt;
+        }
+
+        long cooldown() {
+            return cooldown;
+        }
+
+        long cachedAt() {
+            return cachedAt;
+        }
+    }
 
     /** Cache: player UUID → entry. Kept as a short-lived trace of the latest permission-derived value. */
     private final Map<UUID, CooldownCacheEntry> cooldownPermissionCache = new ConcurrentHashMap<>();
