@@ -1,5 +1,7 @@
 package org.sRandomRTP.Commands;
 
+import org.bukkit.permissions.Permissible;
+
 /** Centralised permission-node constants. */
 public final class Permissions {
     private Permissions() {}
@@ -25,5 +27,12 @@ public final class Permissions {
     public static final String TPS_BAR        = "sRandomRTP.Command.TpsBar";
     public static final String RAM_BAR        = "sRandomRTP.Command.RamBar";
     public static final String MSPT_BAR       = "sRandomRTP.Command.MsptBar";
-    public static final String COOLDOWN_BYPASS = "sRandomRTP.Cooldown.bypass";
+    public static final String COOLDOWN_BYPASS = "sRandomRTP.Command.bypass";
+    public static final String LEGACY_COOLDOWN_BYPASS = "sRandomRTP.Cooldown.bypass";
+
+    public static boolean hasCooldownBypass(Permissible permissible) {
+        return permissible != null
+                && (permissible.hasPermission(COOLDOWN_BYPASS)
+                || permissible.hasPermission(LEGACY_COOLDOWN_BYPASS));
+    }
 }

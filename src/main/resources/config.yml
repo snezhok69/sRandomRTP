@@ -17,8 +17,8 @@
 # Permissions:
 #
 #
-# (sRandomRtp.Cooldown.N - replace "N" with your time. With this permission you can set a custom cooldown on the /rtp command.
-# If the permission is not set, the cooldown for the command is taken from the config. If cooldown on the command is disabled, the permission will not work.);
+# (sRandomRtp.Cooldown.N - replace "N" with your time. With this permission you can set a custom cooldown on the /rtp command and bossbar countdown.
+# If the permission is not set, values are taken from the configs. If command cooldown is disabled, this permission still affects only the bossbar countdown.);
 # (sRandomRTP.Command.bypass - bypass the cooldown for commands and teleportation.);
 # (sRandomRTP.Command.Rtp - allow using the /rtp command.);
 # (sRandomRTP.Command.Reload - allow using the /rtp reload command.);

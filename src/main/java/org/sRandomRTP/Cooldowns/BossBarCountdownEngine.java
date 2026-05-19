@@ -37,7 +37,7 @@ public final class BossBarCountdownEngine {
      * otherwise starts the shared boss-bar countdown.
      */
     public static void dispatch(Player player, CommandSender sender, Runnable action) {
-        if (player.hasPermission(Permissions.COOLDOWN_BYPASS)) {
+        if (Permissions.hasCooldownBypass(player)) {
             action.run();
             return;
         }
@@ -53,7 +53,8 @@ public final class BossBarCountdownEngine {
     public static void startCountdown(Player player, CommandSender sender, Runnable onComplete) {
         RuntimeStateRegistry state = Variables.getRuntimeState();
         // Read config once at countdown start, not on every tick
-        final int countdownTime = Variables.configCache.bossBarTime;
+        final int countdownTime = Math.max(0, CooldownManager.instance().resolveCustomCooldown(
+                player, Variables.configCache.bossBarTime, Variables.isLoggingEnabled()));
         final double[] timeLeft = {countdownTime};
         final long[] lastSoundTime = {System.currentTimeMillis()};
         // AtomicReference allows the task to safely cancel itself from within its own body,

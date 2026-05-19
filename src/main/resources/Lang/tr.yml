@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &aEklenti başarıyla yeniden yüklendi. %mc% ms'
   no-permission:
     - '&a[sRandomRTP] &cBu komutu kullanmak için izniniz yok.'
+  invalid-command:
+    - '&a[sRandomRTP] &cGeçersiz komut!'
   cooldownMessage:
     - '&a[sRandomRTP] &cBir sonraki komut kullanımına kadar &6%time% &csaniye beklemelisiniz.'
   teleport-damaged-cancel:

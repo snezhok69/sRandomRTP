@@ -18,7 +18,7 @@ public class CooldownBypassBossBarPlayer {
     public static boolean cooldownBypassBossBarplayer(CommandSender sender, Player targetPlayer, World world) {
         try {
             RuntimeStateRegistry state = Variables.getRuntimeState();
-            if (targetPlayer.hasPermission(Permissions.COOLDOWN_BYPASS)) {
+            if (Permissions.hasCooldownBypass(targetPlayer)) {
                 RtpRtpSimple.launch(targetPlayer, world, true, "[sRandomRTP]");
                 return true;
             }

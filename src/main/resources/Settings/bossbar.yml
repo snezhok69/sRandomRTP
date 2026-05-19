@@ -5,6 +5,7 @@ teleport:
   # If false, there will be no bossbar delay.
   bossbarEnabled: true
   # Duration of the teleportation
+  # Players with sRandomRtp.Cooldown.N use N seconds instead of this value.
   bossbar-time: 7
   # If true, the actionbar is on.
   # If false, the actionbar is off.

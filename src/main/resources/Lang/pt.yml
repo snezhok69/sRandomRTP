@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &aO plugin foi recarregado com sucesso. %mc% ms'
   no-permission:
     - '&a[sRandomRTP] &cVocê não tem permissão para usar este comando.'
+  invalid-command:
+    - '&a[sRandomRTP] &cComando inválido!'
   cooldownMessage:
     - '&a[sRandomRTP] &cVocê deve esperar &6%time% &csegundos antes de usar este comando novamente.'
   teleport-damaged-cancel:

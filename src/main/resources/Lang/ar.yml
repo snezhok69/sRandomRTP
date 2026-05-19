@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &aتم إعادة تحميل البرنامج الإضافي بنجاح. %mc% مللي ثانية'
   no-permission:
     - '&a[sRandomRTP] &cليس لديك إذن لاستخدام هذا الأمر.'
+  invalid-command:
+    - '&a[sRandomRTP] &cأمر غير صالح!'
   cooldownMessage:
     - '&a[sRandomRTP] &cيجب عليك الانتظار &6%time% &cثوانٍ قبل استخدام هذا الأمر مرة أخرى.'
   teleport-damaged-cancel:

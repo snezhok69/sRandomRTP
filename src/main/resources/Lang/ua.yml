@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &aПлагін успішно перезавантажено. %mc% мс'
   no-permission:
     - '&a[sRandomRTP] &cУ вас немає прав для використання цієї команди.'
+  invalid-command:
+    - '&a[sRandomRTP] &cНевірна команда!'
   cooldownMessage:
     - '&a[sRandomRTP] &cВи повинні зачекати &6%time% &cсекунд перед наступним використанням команди.'
   teleport-damaged-cancel:

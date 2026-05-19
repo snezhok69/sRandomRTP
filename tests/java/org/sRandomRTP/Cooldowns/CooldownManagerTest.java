@@ -2,6 +2,7 @@ package org.sRandomRTP.Cooldowns;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -12,6 +13,7 @@ import org.sRandomRTP.Services.ConfigCache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,6 +76,23 @@ class CooldownManagerTest {
     @Test
     void evictExpiredCacheDoesNotThrowOnEmptyCache() {
         manager.evictExpiredCache();
+    }
+
+    @Test
+    void customCooldownPermissionIgnoresCaseAndRefreshesImmediately() {
+        PermissionAttachmentInfo fourSeconds = Mockito.mock(PermissionAttachmentInfo.class);
+        when(fourSeconds.getValue()).thenReturn(true);
+        when(fourSeconds.getPermission()).thenReturn("sRandomRtp.Cooldown.4");
+        when(player.getEffectivePermissions()).thenReturn(Set.of(fourSeconds));
+
+        assertEquals(4, manager.resolveCustomCooldown(player, 60, false));
+
+        PermissionAttachmentInfo twoSeconds = Mockito.mock(PermissionAttachmentInfo.class);
+        when(twoSeconds.getValue()).thenReturn(true);
+        when(twoSeconds.getPermission()).thenReturn("srandomrtp.cooldown.2");
+        when(player.getEffectivePermissions()).thenReturn(Set.of(twoSeconds));
+
+        assertEquals(2, manager.resolveCustomCooldown(player, 60, false));
     }
 
     @Test

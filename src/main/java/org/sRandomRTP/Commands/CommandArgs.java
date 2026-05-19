@@ -42,7 +42,7 @@ public class CommandArgs implements CommandExecutor {
     }
 
     private static void sendInvalidCommand(CommandSender sender) {
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cInvalid command!");
+        Variables.getMessageService().send(sender, LoadMessages.invalidcommand);
     }
 
     private static boolean requirePlayerSender(CommandSender sender) {
@@ -63,7 +63,7 @@ public class CommandArgs implements CommandExecutor {
                     CommandRtp.commandRtp(sender);
                     return true;
                 }
-                sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cInvalid command!");
+                sendInvalidCommand(sender);
                 return false;
             }
             String subCommand = args[0].toLowerCase();
