@@ -10,6 +10,9 @@ public final class ConfigPaths {
 
     private ConfigPaths() {}
 
+    public static final String ADMIN_BARS_FILE = "Settings/admin-bars.yml";
+    public static final String ADMIN_BARS_RU_FILE = "Settings_ru/admin-bars.yml";
+
     /**
      * Files that are both <em>created</em> on first run and <em>updated</em> on plugin upgrade.
      * Order is irrelevant.
@@ -29,7 +32,7 @@ public final class ConfigPaths {
             "Settings/biome.yml",
             "Settings/portal.yml",
             "Settings/chunk-loading.yml",
-            "Settings/admin-bars.yml",
+            ADMIN_BARS_FILE,
             "lang/en.yml",
             "lang/ru.yml",
             "lang/es.yml",
@@ -55,7 +58,7 @@ public final class ConfigPaths {
     public static final String[] CREATE_ONLY_FILES = {
             "Data/rtpCount.yml",
             "Settings_ru/bossbar.yml",
-            "Settings_ru/admin-bars.yml",
+            ADMIN_BARS_RU_FILE,
             "Settings_ru/chunk-loading.yml",
             "Settings_ru/config.yml",
             "Settings_ru/economy.yml",
@@ -71,4 +74,8 @@ public final class ConfigPaths {
             "Settings_ru/teleport.yml",
             "Settings_ru/title.yml",
     };
+
+    public static boolean isLocalAdminBarsFile(String fileName) {
+        return ADMIN_BARS_FILE.equals(fileName) || ADMIN_BARS_RU_FILE.equals(fileName);
+    }
 }

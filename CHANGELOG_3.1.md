@@ -1,8 +1,8 @@
-# sRandomRTP 3.1 - Stability, admin bars, and safer RTP internals
+# sRandomRTP 3.1 - Stability, private admin bars, and safer RTP internals
 
-New Commands Added!
+Private Local Admin Tools!
 
-1. The following commands have been added:
+1. The following admin monitoring commands now exist only as private/local tools and are disabled in public installs by default:
 
 /rtp tpsbar
 /rtp rambar
@@ -10,23 +10,25 @@ New Commands Added!
 /rtp allbars
 
 1.1. /rtp tpsbar - shows or hides an admin bossbar with the current server TPS.
-Permission: sRandomRTP.Command.TpsBar
+Permission when the local gate is enabled: sRandomRTP.Command.TpsBar
 
 1.2. /rtp rambar - shows or hides an admin bossbar with server RAM usage.
-Permission: sRandomRTP.Command.RamBar
+Permission when the local gate is enabled: sRandomRTP.Command.RamBar
 
 1.3. /rtp msptbar - shows or hides an admin bossbar with the current MSPT value.
-Permission: sRandomRTP.Command.MsptBar
+Permission when the local gate is enabled: sRandomRTP.Command.MsptBar
 
 1.4. /rtp allbars - enables or disables all admin monitoring bossbars at once.
-Permission: sRandomRTP.Command.AllBars
+Permission when the local gate is enabled: sRandomRTP.Command.AllBars
+
+1.5. Public servers do not see these commands in tab completion or /rtp help, and the admin-bars.yml file is not created or loaded unless the private local gate is enabled.
 
 
-New Admin Monitoring Features!
+Private Admin Monitoring Features!
 
-1. Added configurable TPS, RAM, and MSPT bossbars for server administrators.
+1. Added configurable TPS, RAM, and MSPT bossbars for private/local server monitoring.
 
-2. Each bar can have its own title, color, style, update format, thresholds, and enabled/disabled state in admin-bars.yml.
+2. Each local bar can have its own title, color, style, update format, thresholds, and enabled/disabled state in admin-bars.yml.
 
 3. Commands and tab completion now respect permissions, config state, and server metric support.
 
@@ -58,7 +60,7 @@ Configuration & Localization Update!
 
 1. New config files were added:
 
-admin-bars.yml - TPS/RAM/MSPT bossbar settings, thresholds, colors, styles, titles, and messages.
+admin-bars.yml - private/local TPS/RAM/MSPT bossbar settings, created and loaded only when the local admin gate is enabled.
 biome.yml - dedicated radius and search settings for /rtp biome, including per-world options and two-phase search behavior.
 
 2. Config files now use managed config-version values, default-key synchronization, and startup migrations.
@@ -71,7 +73,7 @@ biome.yml - dedicated radius and search settings for /rtp biome, including per-w
 
 6. The unknown-command chat message is now configurable through the invalid-command localization key.
 
-7. English and Russian localizations were expanded with admin bar messages, invalid command text, and updated command help.
+7. English and Russian localizations were expanded with local admin bar messages, invalid command text, and updated command help. Public help output hides local admin commands while the gate is disabled.
 
 
 Architecture & Diagnostics!

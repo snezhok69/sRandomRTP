@@ -1,6 +1,7 @@
 package org.sRandomRTP.Files;
 
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.LocalFeatureGate;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +14,10 @@ public class FilesUpdate {
         File dataFolder = Variables.getInstance().getDataFolder();
 
         for (String filePath : ConfigPaths.UPDATABLE_FILES) {
+            if (ConfigPaths.isLocalAdminBarsFile(filePath)
+                    && !LocalFeatureGate.isLocalAdminBarsEnabled()) {
+                continue;
+            }
             File file = new File(dataFolder, filePath);
             try {
                 boolean updated = ConfigUpdater.update(filePath, file);

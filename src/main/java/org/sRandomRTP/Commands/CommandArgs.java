@@ -14,6 +14,7 @@ import org.sRandomRTP.DifferentMethods.Teleport.CompatibleTeleport;
 import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
+import org.sRandomRTP.Services.LocalFeatureGate;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
 
 import java.util.Arrays;
@@ -95,7 +96,11 @@ public class CommandArgs implements CommandExecutor {
                 case "rambar":
                 case "msptbar":
                 case "allbars":
-                    CommandAdminBar.handle(sender, args);
+                    if (LocalFeatureGate.isLocalAdminBarsEnabled()) {
+                        CommandAdminBar.handle(sender, args);
+                    } else {
+                        sendInvalidCommand(sender);
+                    }
                     break;
                 case "portal":
                     PortalCommandSupport.handle(sender, args);
