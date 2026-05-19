@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &a插件重载完毕，耗时 %mc% ms'
   no-permission:
     - '&a[sRandomRTP] &c你没有权限使用该命令。'
+  invalid-command:
+    - '&a[sRandomRTP] &c无效命令！'
   cooldownMessage:
     - '&a[sRandomRTP] &c你需要等待 &6%time% &c秒才可再次使用该命令。'
   teleport-damaged-cancel:

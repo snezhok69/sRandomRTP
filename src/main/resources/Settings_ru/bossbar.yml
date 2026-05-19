@@ -3,6 +3,7 @@ teleport:
   # Если false, задержки боссбара не будет.
   bossbarEnabled: true
   # Длительность телепортации
+  # У игроков с sRandomRtp.Cooldown.N будет N секунд вместо этого значения.
   bossbar-time: 7
   # Если true, actionbar включен.
   # Если false, actionbar выключен.

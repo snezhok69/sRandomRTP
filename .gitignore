@@ -1,12 +1,16 @@
 # Build outputs
 /target/
 target/
+*.class
+*.jar
+dependency-reduced-pom.xml
 
 # IDE and editor files
 .idea/
 .vscode/
 .cursor/
 .cursorrules
+*.iml
 
 # OS files
 .DS_Store
@@ -22,3 +26,14 @@ CLAUDE.md
 hoco
 .hoco
 .git-rewrite/
+*.log
+*.tmp
+*.temp
+.env
+.env.*
+
+# Runtime plugin data
+LogsErrors/
+Diagnostics/
+*.db
+*.sqlite

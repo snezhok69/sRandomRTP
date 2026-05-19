@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &aプラグインが正常にリロードされました。%mc% ミリ秒'
   no-permission:
     - '&a[sRandomRTP] &cこのコマンドを使用する権限がありません。'
+  invalid-command:
+    - '&a[sRandomRTP] &c無効なコマンドです！'
   cooldownMessage:
     - '&a[sRandomRTP] &cこのコマンドを再度使用するには &6%time% &c秒待つ必要があります。'
   teleport-damaged-cancel:

@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &aPlugin đã được tải lại thành công. %mc% ms'
   no-permission:
     - '&a[sRandomRTP] &cBạn không có quyền sử dụng lệnh này.'
+  invalid-command:
+    - '&a[sRandomRTP] &cLệnh không hợp lệ!'
   cooldownMessage:
     - '&a[sRandomRTP] &cBạn phải chờ &6%time% &cgiây trước khi sử dụng lại lệnh này.'
   teleport-damaged-cancel:

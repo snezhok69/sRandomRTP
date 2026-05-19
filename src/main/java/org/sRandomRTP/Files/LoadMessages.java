@@ -1,6 +1,7 @@
 package org.sRandomRTP.Files;
 
 import org.bukkit.configuration.file.YamlConfiguration;
+import java.util.Collections;
 import java.util.List;
 
 public class LoadMessages {
@@ -9,6 +10,7 @@ public class LoadMessages {
     public static volatile List<String> reloadingstart;
     public static volatile List<String> successfullyreload;
     public static volatile List<String> nopermissioncommand;
+    public static volatile List<String> invalidcommand = Collections.singletonList("&a[sRandomRTP] &cInvalid command!");
     public static volatile List<String> messagescooldownMessage;
     public static volatile List<String> teleportdamagedcancel;
     public static volatile List<String> teleportmovecancel;
@@ -107,6 +109,8 @@ public class LoadMessages {
         reloadingstart = langFile.getStringList("messages.reloading-start");
         successfullyreload = langFile.getStringList("messages.successfully-reload");
         nopermissioncommand = langFile.getStringList("messages.no-permission");
+        invalidcommand = withFallback(langFile.getStringList("messages.invalid-command"),
+                "&a[sRandomRTP] &cInvalid command!");
         messagescooldownMessage = langFile.getStringList("messages.cooldownMessage");
         teleportdamagedcancel = langFile.getStringList("messages.teleport-damaged-cancel");
         teleportmovecancel = langFile.getStringList("messages.teleport-move-cancel");
@@ -216,5 +220,9 @@ public class LoadMessages {
         subtitleMessage_loading = langFile.getString("messages.subtitleMessage-loading");
         if (subtitleMessage_loading == null) subtitleMessage_loading = "";
         longteleportwait = langFile.getStringList("messages.long-teleport-wait");
+    }
+
+    private static List<String> withFallback(List<String> messages, String fallback) {
+        return messages == null || messages.isEmpty() ? Collections.singletonList(fallback) : messages;
     }
 }

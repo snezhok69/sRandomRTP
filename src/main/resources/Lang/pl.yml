@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &aWtyczka została pomyślnie przeładowana. %mc% ms'
   no-permission:
     - '&a[sRandomRTP] &cNie masz uprawnień do użycia tej komendy.'
+  invalid-command:
+    - '&a[sRandomRTP] &cNieprawidłowa komenda!'
   cooldownMessage:
     - '&a[sRandomRTP] &cMusisz poczekać &6%time% &csekund przed ponownym użyciem tej komendy.'
   teleport-damaged-cancel:

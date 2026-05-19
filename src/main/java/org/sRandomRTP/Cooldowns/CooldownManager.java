@@ -29,7 +29,7 @@ public final class CooldownManager {
     /** Immutable cache entry — thread-safe when published via ConcurrentHashMap. */
     private record CooldownCacheEntry(long cooldown, long cachedAt) {}
 
-    /** Cache: player UUID → entry. Avoids scanning all permissions on every RTP. */
+    /** Cache: player UUID → entry. Kept as a short-lived trace of the latest permission-derived value. */
     private final Map<UUID, CooldownCacheEntry> cooldownPermissionCache = new ConcurrentHashMap<>();
 
     /** Default singleton used by static convenience methods. */
@@ -65,7 +65,7 @@ public final class CooldownManager {
                                  Map<UUID, Long> cooldownMap, boolean loggingEnabled) {
         UUID playerId = player.getUniqueId();
         if (Variables.configCache.cooldownsEnabled) {
-            if (player.hasPermission(Permissions.COOLDOWN_BYPASS)) {
+            if (Permissions.hasCooldownBypass(player)) {
                 // Update timestamp on bypass so cooldown counts from last teleport after bypass is revoked
                 cooldownMap.put(playerId, System.currentTimeMillis());
                 invalidatePermissionCache(playerId);
@@ -77,7 +77,7 @@ public final class CooldownManager {
             if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage("Default cooldown from config: " + cooldown);
             }
-            cooldown = getCustomCooldown(player, cooldown, loggingEnabled);
+            cooldown = resolveCustomCooldown(player, cooldown, loggingEnabled);
             if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage("Custom cooldown after checking permissions: " + cooldown);
             }
@@ -116,36 +116,35 @@ public final class CooldownManager {
         return INSTANCE.checkCooldown(player, sender, state.getBiomeCooldowns(), Variables.isLoggingEnabled());
     }
 
-    private int getCustomCooldown(Player player, int defaultCooldown, boolean loggingEnabled) {
+    public int resolveCustomCooldown(Player player, int defaultCooldown, boolean loggingEnabled) {
         UUID playerId = player.getUniqueId();
         long now = System.currentTimeMillis();
-        CooldownCacheEntry cached = cooldownPermissionCache.get(playerId);
-        if (cached != null && (now - cached.cachedAt()) < CACHE_TTL_MS) {
-            int cooldown = cached.cooldown() >= 0 ? (int) cached.cooldown() : defaultCooldown;
-            if (loggingEnabled) {
-                Bukkit.getConsoleSender().sendMessage("Applying cached cooldown: " + cooldown);
-            }
-            return cooldown;
-        }
-
         Set<PermissionAttachmentInfo> permissions = player.getEffectivePermissions();
+        int customCooldown = -1;
+        String matchedPermission = null;
         for (PermissionAttachmentInfo permInfo : permissions) {
             if (permInfo.getValue()) {
                 String permission = permInfo.getPermission();
                 Matcher matcher = COOLDOWN_PERMISSION_PATTERN.matcher(permission);
                 if (matcher.matches()) {
                     int cooldown = Integer.parseInt(matcher.group(1));
-                    cooldownPermissionCache.put(playerId, new CooldownCacheEntry(cooldown, now));
-                    if (loggingEnabled) {
-                        Bukkit.getConsoleSender().sendMessage(
-                                "Matching permission: " + permission + ", extracted cooldown: " + cooldown);
-                        Bukkit.getConsoleSender().sendMessage("Applying custom cooldown: " + cooldown);
+                    if (customCooldown < 0 || cooldown < customCooldown) {
+                        customCooldown = cooldown;
+                        matchedPermission = permission;
                     }
-                    return cooldown;
                 }
             }
         }
-        cooldownPermissionCache.put(playerId, new CooldownCacheEntry(-1, now));
+        if (customCooldown >= 0) {
+            cooldownPermissionCache.put(playerId, new CooldownCacheEntry(customCooldown, now));
+            if (loggingEnabled) {
+                Bukkit.getConsoleSender().sendMessage(
+                        "Matching permission: " + matchedPermission + ", extracted cooldown: " + customCooldown);
+                Bukkit.getConsoleSender().sendMessage("Applying custom cooldown: " + customCooldown);
+            }
+            return customCooldown;
+        }
+        cooldownPermissionCache.remove(playerId);
         if (loggingEnabled) {
             Bukkit.getConsoleSender().sendMessage(
                     "No custom cooldown permissions found, using default: " + defaultCooldown);

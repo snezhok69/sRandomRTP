@@ -10,6 +10,8 @@ messages:
     - '&a[sRandomRTP] &a플러그인이 성공적으로 다시 로드되었습니다. %mc% 밀리초'
   no-permission:
     - '&a[sRandomRTP] &c이 명령어를 사용할 권한이 없습니다.'
+  invalid-command:
+    - '&a[sRandomRTP] &c잘못된 명령어입니다!'
   cooldownMessage:
     - '&a[sRandomRTP] &c이 명령어를 다시 사용하려면 &6%time% &c초를 기다려야 합니다.'
   teleport-damaged-cancel:
