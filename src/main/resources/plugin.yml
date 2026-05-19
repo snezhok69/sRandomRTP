@@ -1,5 +1,5 @@
 name: sRandomRTP
-version: 3.0
+version: 3.1
 main: org.sRandomRTP.Main
 api-version: 1.16
 folia-supported: true

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.sRandomRTP.DifferentMethods.Variables;
 
-import java.util.Set;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,7 +46,8 @@ class BiomeBlockValidatorTest {
     void emptyCaveBiomesSnapshotAllowsForest() {
         // Snapshot with empty caves/ocean sets but blockCave=true still allows any non-cave biome
         Variables.biomeFilters = new BiomeFilterSnapshot(
-                Set.of(), Set.of(), Set.of(), Set.of(), true, true);
+                Collections.<String>emptySet(), Collections.<Biome>emptySet(),
+                Collections.<Biome>emptySet(), Collections.<Biome>emptySet(), true, true);
         // FOREST is not in an empty cave or ocean set — must be allowed
         assertFalse(BiomeBlockValidator.isBiomeBanned(Biome.FOREST),
                 "FOREST must not be banned when no biomes are explicitly banned");
@@ -57,7 +58,8 @@ class BiomeBlockValidatorTest {
     @Test
     void explicitlyBannedBiomeReturnsBanned() {
         Variables.biomeFilters = new BiomeFilterSnapshot(
-                Set.of("FOREST"), Set.of(Biome.FOREST), Set.of(), Set.of(), false, false);
+                Collections.singleton("FOREST"), Collections.singleton(Biome.FOREST),
+                Collections.<Biome>emptySet(), Collections.<Biome>emptySet(), false, false);
         assertTrue(BiomeBlockValidator.isBiomeBanned(Biome.FOREST),
                 "FOREST must be banned when present in bannedBiomes set");
     }
@@ -72,7 +74,8 @@ class BiomeBlockValidatorTest {
             return; // No cave biome available in this Bukkit version — skip
         }
         Variables.biomeFilters = new BiomeFilterSnapshot(
-                Set.of(), Set.of(), Set.of(cave), Set.of(), true, false);
+                Collections.<String>emptySet(), Collections.<Biome>emptySet(),
+                Collections.singleton(cave), Collections.<Biome>emptySet(), true, false);
         assertTrue(BiomeBlockValidator.isBiomeBanned(cave),
                 "Cave biome must be banned when blockCave=true");
     }
@@ -82,7 +85,8 @@ class BiomeBlockValidatorTest {
         Biome cave = findBiomeContaining("CAVES");
         if (cave == null) return;
         Variables.biomeFilters = new BiomeFilterSnapshot(
-                Set.of(), Set.of(), Set.of(cave), Set.of(), false, false);
+                Collections.<String>emptySet(), Collections.<Biome>emptySet(),
+                Collections.singleton(cave), Collections.<Biome>emptySet(), false, false);
         assertFalse(BiomeBlockValidator.isBiomeBanned(cave),
                 "Cave biome must be allowed when blockCave=false");
     }
@@ -94,7 +98,8 @@ class BiomeBlockValidatorTest {
         Biome ocean = findBiomeContaining("OCEAN");
         if (ocean == null) return;
         Variables.biomeFilters = new BiomeFilterSnapshot(
-                Set.of(), Set.of(), Set.of(), Set.of(ocean), false, true);
+                Collections.<String>emptySet(), Collections.<Biome>emptySet(),
+                Collections.<Biome>emptySet(), Collections.singleton(ocean), false, true);
         assertTrue(BiomeBlockValidator.isBiomeBanned(ocean),
                 "Ocean biome must be banned when blockOceanRiver=true");
     }
@@ -104,7 +109,8 @@ class BiomeBlockValidatorTest {
         Biome ocean = findBiomeContaining("OCEAN");
         if (ocean == null) return;
         Variables.biomeFilters = new BiomeFilterSnapshot(
-                Set.of(), Set.of(), Set.of(), Set.of(ocean), false, false);
+                Collections.<String>emptySet(), Collections.<Biome>emptySet(),
+                Collections.<Biome>emptySet(), Collections.singleton(ocean), false, false);
         assertFalse(BiomeBlockValidator.isBiomeBanned(ocean),
                 "Ocean biome must be allowed when blockOceanRiver=false");
     }

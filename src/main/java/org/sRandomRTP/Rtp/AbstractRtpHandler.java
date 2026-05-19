@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods;
 import org.sRandomRTP.Utils.ConfigUtils;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
+import org.sRandomRTP.Utils.WorldHeightSupport;
 import org.sRandomRTP.Utils.WorldUtils;
 
 import static org.sRandomRTP.DifferentMethods.rtprtps.DifferentRtpMethods.*;
@@ -440,7 +441,7 @@ public abstract class AbstractRtpHandler {
                         }
 
                         Location processingLocation = new Location(world, task.x,
-                                Math.max(candidate.getY(), world.getMinHeight()), task.z);
+                                Math.max(candidate.getY(), WorldHeightSupport.getMinHeight(world)), task.z);
                         FoliaSchedulerFacade.runAtLocation(processingLocation, () -> {
                             processCandidateLocation(player, world, centerX, centerZ,
                                     candidate, task.searchStage, loggingEnabled, attemptNumber, maxAttempts,
@@ -514,7 +515,7 @@ public abstract class AbstractRtpHandler {
         }
 
         if (border != null && !border.isInside(new Location(world, finalNewX + 0.5,
-                world.getMinHeight(), finalNewZ + 0.5))) {
+                WorldHeightSupport.getMinHeight(world), finalNewZ + 0.5))) {
             if (log) {
                 Bukkit.getConsoleSender().sendMessage("Generated coordinates outside world border: X=" + finalNewX + ", Z=" + finalNewZ);
             }
@@ -538,7 +539,7 @@ public abstract class AbstractRtpHandler {
                                     acquireResult.isAlreadyLoaded(), acquireResult.isGenerationAllowed());
 
                             CompletableFuture<RtpCandidateResolution> future = new CompletableFuture<>();
-                            Location candidateLocation = new Location(world, finalNewX, world.getMinHeight(), finalNewZ);
+                            Location candidateLocation = new Location(world, finalNewX, WorldHeightSupport.getMinHeight(world), finalNewZ);
                             FoliaSchedulerFacade.runAtLocation(candidateLocation, () -> {
                                 try {
                                     future.complete(resolveCandidateOnLoadedChunk(world, acquireResult, finalNewX, finalNewZ,
@@ -645,7 +646,7 @@ public abstract class AbstractRtpHandler {
             int headY = teleportY + 1;
             int belowY = teleportY - 1;
             int worldMaxY = world.getMaxHeight() - 1;
-            int worldMinY = world.getMinHeight();
+            int worldMinY = WorldHeightSupport.getMinHeight(world);
 
             if (teleportY > worldMaxY || headY > worldMaxY || belowY < worldMinY) {
                 if (log) {
@@ -811,7 +812,7 @@ public abstract class AbstractRtpHandler {
         if (world == null) {
             return null;
         }
-        int minY = world.getMinHeight();
+        int minY = WorldHeightSupport.getMinHeight(world);
         int maxY = Math.max(minY, world.getMaxHeight() - 1);
         int probeY = world.getHighestBlockYAt(x, z);
         if (probeY < minY) {

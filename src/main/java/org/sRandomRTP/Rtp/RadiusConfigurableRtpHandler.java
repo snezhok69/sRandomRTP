@@ -22,16 +22,34 @@ public final class RadiusConfigurableRtpHandler extends AbstractRtpHandler {
      * Configuration for a specific mode (far / middle).
      * All fields are immutable — safe to pass between threads.
      */
-    record HandlerConfig(
-            String coordKey,
-            String absoluteKey,
-            String radiusKey,
-            String minRadiusKey,
-            String perWorldBase,
-            String configPrefix,
-            String logPrefix,
-            Supplier<FileConfiguration> configSupplier
-    ) {}
+    private static final class HandlerConfig {
+        private final String coordKey;
+        private final String absoluteKey;
+        private final String radiusKey;
+        private final String minRadiusKey;
+        private final String perWorldBase;
+        private final String configPrefix;
+        private final String logPrefix;
+        private final Supplier<FileConfiguration> configSupplier;
+
+        private HandlerConfig(String coordKey,
+                              String absoluteKey,
+                              String radiusKey,
+                              String minRadiusKey,
+                              String perWorldBase,
+                              String configPrefix,
+                              String logPrefix,
+                              Supplier<FileConfiguration> configSupplier) {
+            this.coordKey = coordKey;
+            this.absoluteKey = absoluteKey;
+            this.radiusKey = radiusKey;
+            this.minRadiusKey = minRadiusKey;
+            this.perWorldBase = perWorldBase;
+            this.configPrefix = configPrefix;
+            this.logPrefix = logPrefix;
+            this.configSupplier = configSupplier;
+        }
+    }
 
     private static final HandlerConfig FAR_CONFIG = new HandlerConfig(
             "teleport-far.coordinate-generation-far",
@@ -71,14 +89,14 @@ public final class RadiusConfigurableRtpHandler extends AbstractRtpHandler {
         this.cfg = cfg;
     }
 
-    private FileConfiguration getConfigFile()          { return cfg.configSupplier().get(); }
-    protected String getConfigPrefix()                 { return cfg.configPrefix(); }
-    protected String getRadiusKeyFull()                { return cfg.radiusKey(); }
-    protected String getMinRadiusKeyFull()             { return cfg.minRadiusKey(); }
-    protected String getPerWorldBase()                 { return cfg.perWorldBase(); }
-    protected String getLogPrefix()                    { return cfg.logPrefix(); }
-    protected String getCoordinateGenerationMethod()   { return getConfigFile().getString(cfg.coordKey()); }
-    protected boolean getUseAbsoluteCoordinates()      { return getConfigFile().getBoolean(cfg.absoluteKey()); }
+    private FileConfiguration getConfigFile()          { return cfg.configSupplier.get(); }
+    protected String getConfigPrefix()                 { return cfg.configPrefix; }
+    protected String getRadiusKeyFull()                { return cfg.radiusKey; }
+    protected String getMinRadiusKeyFull()             { return cfg.minRadiusKey; }
+    protected String getPerWorldBase()                 { return cfg.perWorldBase; }
+    protected String getLogPrefix()                    { return cfg.logPrefix; }
+    protected String getCoordinateGenerationMethod()   { return getConfigFile().getString(cfg.coordKey); }
+    protected boolean getUseAbsoluteCoordinates()      { return getConfigFile().getBoolean(cfg.absoluteKey); }
 
     private int resolveRadius(World world, boolean isRadius) {
         return resolveRadiusFromConfig(getConfigFile(), getPerWorldBase(), world.getName(),

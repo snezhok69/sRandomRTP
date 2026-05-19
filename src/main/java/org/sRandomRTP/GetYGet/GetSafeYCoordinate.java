@@ -15,8 +15,10 @@ import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
+import org.sRandomRTP.Utils.WorldHeightSupport;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -35,15 +37,15 @@ public class GetSafeYCoordinate {
             Material.BUBBLE_COLUMN, Material.VINE
     );
 
-    private static final Set<Material> UNSAFE_OCCUPANT_MATERIALS = EnumSet.of(
-            Material.COBWEB,
-            Material.POWDER_SNOW,
-            Material.FIRE,
-            Material.SOUL_FIRE,
-            Material.CACTUS,
-            Material.CAMPFIRE,
-            Material.SOUL_CAMPFIRE,
-            Material.MAGMA_BLOCK
+    private static final Set<Material> UNSAFE_OCCUPANT_MATERIALS = materialSet(
+            "COBWEB",
+            "POWDER_SNOW",
+            "FIRE",
+            "SOUL_FIRE",
+            "CACTUS",
+            "CAMPFIRE",
+            "SOUL_CAMPFIRE",
+            "MAGMA_BLOCK"
     );
 
     private static final Set<Material> UNSAFE_SUPPORT_MATERIALS = EnumSet.of(
@@ -70,7 +72,7 @@ public class GetSafeYCoordinate {
                 leaves.add(m);
             }
         }
-        LEAF_MATERIALS = leaves.isEmpty() ? java.util.Collections.emptySet() : leaves;
+        LEAF_MATERIALS = leaves.isEmpty() ? Collections.emptySet() : leaves;
     }
 
     /** Priority Y-levels probed first in Nether to avoid the solid ceiling/floor zones. */
@@ -86,6 +88,24 @@ public class GetSafeYCoordinate {
             {4, 0}, {0, 4}, {-4, 0}, {0, -4},
             {4, 2}, {-4, 2}, {4, -2}, {-4, -2}
     };
+
+    private static Set<Material> materialSet(String... names) {
+        Set<Material> materials = EnumSet.noneOf(Material.class);
+        if (names == null) {
+            return Collections.emptySet();
+        }
+        for (String name : names) {
+            if (name == null) {
+                continue;
+            }
+            try {
+                materials.add(Material.valueOf(name));
+            } catch (IllegalArgumentException ignored) {
+                // Newer materials, such as POWDER_SNOW, do not exist on 1.16.
+            }
+        }
+        return materials.isEmpty() ? Collections.emptySet() : materials;
+    }
 
     public static class CoordinateWithBiome {
         public final int x;
@@ -134,7 +154,7 @@ public class GetSafeYCoordinate {
         }
 
         if (Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()) {
-            Location location = new Location(world, x, world.getMinHeight(), z);
+            Location location = new Location(world, x, WorldHeightSupport.getMinHeight(world), z);
             FoliaSchedulerFacade.runAtLocation(location, () -> {
                 try {
                     if (context != null && context.isInactive()) {
@@ -173,7 +193,7 @@ public class GetSafeYCoordinate {
                 return;
             }
 
-            Location location = new Location(world, x, world.getMinHeight(), z);
+            Location location = new Location(world, x, WorldHeightSupport.getMinHeight(world), z);
             FoliaSchedulerFacade.runAtLocation(location, () -> {
                 try {
                     if (context != null && context.isInactive()) {
@@ -336,7 +356,7 @@ public class GetSafeYCoordinate {
         }
 
         int maxY = world.getMaxHeight() - 1;
-        int minWorldY = world.getMinHeight();
+        int minWorldY = WorldHeightSupport.getMinHeight(world);
         // Capture once — avoids a volatile memory-barrier on every iteration of the Y scan loop
         int minY = Math.max(minWorldY, Variables.configCache.minY);
         int relativeX = x & 0xF; // x % 16
@@ -391,7 +411,7 @@ public class GetSafeYCoordinate {
 
     private static CoordinateWithBiome findSafeYInNether(World world, Chunk chunk, int x, int z, TeleportRequestContext context,
                                                          boolean loggingEnabled, boolean allowFailureLog) {
-        int minY = world.getMinHeight();
+        int minY = WorldHeightSupport.getMinHeight(world);
         int maxY = world.getMaxHeight() - 1;
         int relativeX = x & 0xF;
         int relativeZ = z & 0xF;
@@ -455,7 +475,7 @@ public class GetSafeYCoordinate {
 
     private static CoordinateWithBiome findSafeYInOtherWorlds(World world, Chunk chunk, int x, int z, TeleportRequestContext context,
                                                               boolean loggingEnabled, boolean allowFailureLog) {
-        int minY = world.getMinHeight();
+        int minY = WorldHeightSupport.getMinHeight(world);
         int maxY = world.getMaxHeight() - 1;
         int relativeX = x & 0xF;
         int relativeZ = z & 0xF;
@@ -497,7 +517,7 @@ public class GetSafeYCoordinate {
             return false;
         }
 
-        if (y + 1 >= world.getMaxHeight() || y - 1 < world.getMinHeight()) {
+        if (y + 1 >= world.getMaxHeight() || y - 1 < WorldHeightSupport.getMinHeight(world)) {
             return false;
         }
 
@@ -552,7 +572,7 @@ public class GetSafeYCoordinate {
             return false;
         }
 
-        int worldMinY = chunk.getWorld().getMinHeight();
+        int worldMinY = WorldHeightSupport.getMinHeight(chunk.getWorld());
         int worldMaxY = chunk.getWorld().getMaxHeight() - 1;
         int surfaceGroundY = Math.min(Math.max(surfaceY - 1, worldMinY), worldMaxY);
         int surfaceBlockY = Math.min(Math.max(surfaceY, worldMinY), worldMaxY);
@@ -581,7 +601,7 @@ public class GetSafeYCoordinate {
                 continue;
             }
 
-            int minHeight = world.getMinHeight();
+            int minHeight = WorldHeightSupport.getMinHeight(world);
             int maxHeight = world.getMaxHeight() - 1;
             int surfaceGroundY = Math.min(Math.max(surfaceY - 1, minHeight), maxHeight);
             int surfaceBlockY = Math.min(Math.max(surfaceY, minHeight), maxHeight);
