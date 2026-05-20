@@ -25,6 +25,7 @@ import java.util.Set;
 public final class ConfiguredCommandAliases {
 
     public static final String CONFIG_PATH = "Command-Aliases";
+    public static final String ENABLED_CONFIG_PATH = "Command-Aliases-Enabled";
     private static final String MAIN_COMMAND = "rtp";
     private static final Map<String, AliasCommand> REGISTERED_ALIASES = new LinkedHashMap<String, AliasCommand>();
 
@@ -104,7 +105,10 @@ public final class ConfiguredCommandAliases {
         return Collections.unmodifiableList(new ArrayList<String>(aliases));
     }
 
-    private static List<String> getConfiguredAliases(FileConfiguration config) {
+    static List<String> getConfiguredAliases(FileConfiguration config) {
+        if (config != null && !config.getBoolean(ENABLED_CONFIG_PATH, ConfigDefaults.COMMAND_ALIASES_ENABLED)) {
+            return Collections.emptyList();
+        }
         if (config == null || !config.contains(CONFIG_PATH)) {
             return ConfigDefaults.COMMAND_ALIASES;
         }

@@ -140,7 +140,7 @@ biome.yml — отдельные радиусы и настройки поиск
 
 10. Admin bossbar-команды остаются в плагине, но в публичной сборке выключены по умолчанию через Settings/commands.yml; после включения /rtp settings можно отдельно переключать видимость /rtp tpsbar, /rtp rambar, /rtp msptbar и /rtp allbars.
 
-11. /randomtp и /randomteleport перенесены из plugin.yml в config.yml → Command-Aliases, поэтому владелец сервера может включать, удалять или менять RTP-алиасы без правки metadata плагина.
+11. /randomtp и /randomteleport перенесены из plugin.yml в config.yml → Command-Aliases, а Command-Aliases-Enabled даёт быстрый переключатель true/false.
 
 
 Примечания

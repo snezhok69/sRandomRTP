@@ -140,7 +140,7 @@ Additional Stability Polish!
 
 10. Admin bossbar commands remain in the plugin, but public builds keep them disabled by default through Settings/commands.yml; /rtp settings can toggle /rtp tpsbar, /rtp rambar, /rtp msptbar, and /rtp allbars visibility after the settings command is enabled.
 
-11. /randomtp and /randomteleport were moved out of plugin.yml into config.yml → Command-Aliases, so server owners can enable, remove, or change RTP aliases without editing plugin metadata.
+11. /randomtp and /randomteleport were moved out of plugin.yml into config.yml → Command-Aliases, with Command-Aliases-Enabled as a quick true/false switch.
 
 
 Notes

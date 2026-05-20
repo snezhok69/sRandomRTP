@@ -1,6 +1,7 @@
 package org.sRandomRTP.Commands;
 
 import org.junit.jupiter.api.Test;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,5 +29,14 @@ class ConfiguredCommandAliasesTest {
     @Test
     void sanitizeAliasesAcceptsEmptyConfig() {
         assertEquals(Collections.emptyList(), ConfiguredCommandAliases.sanitizeAliases(Collections.<String>emptyList()));
+    }
+
+    @Test
+    void configuredAliasesCanBeDisabledWithQuickSwitch() {
+        YamlConfiguration config = new YamlConfiguration();
+        config.set(ConfiguredCommandAliases.ENABLED_CONFIG_PATH, false);
+        config.set(ConfiguredCommandAliases.CONFIG_PATH, Arrays.asList("randomtp", "randomteleport"));
+
+        assertEquals(Collections.emptyList(), ConfiguredCommandAliases.getConfiguredAliases(config));
     }
 }

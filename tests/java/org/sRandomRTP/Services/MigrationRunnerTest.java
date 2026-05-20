@@ -52,6 +52,7 @@ class MigrationRunnerTest {
         YamlConfiguration migrated = YamlConfiguration.loadConfiguration(configFile);
         assertEquals(PluginVersionCatalog.CONFIG_VERSION, migrated.getInt("config-version"));
         assertEquals(ConfigDefaults.SLOW_REQUEST_THRESHOLD_MS, migrated.getLong("metrics.rtp.slow-request-threshold-ms"));
+        assertEquals(ConfigDefaults.COMMAND_ALIASES_ENABLED, migrated.getBoolean("Command-Aliases-Enabled"));
         assertEquals(ConfigDefaults.COMMAND_ALIASES, migrated.getStringList("Command-Aliases"));
     }
 
