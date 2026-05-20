@@ -5,10 +5,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 import org.sRandomRTP.DifferentMethods.*;
 import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Text.LoadLanguageFile;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.Files.*;
 import org.sRandomRTP.Commands.portal.PortalParticleManager;
 import org.sRandomRTP.DataPortals.PortalDataTasks;
@@ -96,17 +98,7 @@ public class CommandReload {
                             reloadReport.stepOk("step-2", "background version checker restarted");
                             break;
                         case 3:
-                            for (String line : LoadMessages.successfullyreload) {
-                                long endTime = System.currentTimeMillis();
-                                long reloadPluginTime = endTime - startTime;
-                                line = line.replace("%mc%", reloadPluginTime + "");
-                                sender.sendMessage(Variables.getMessageService().format(line));
-                            }
-                            WrappedTask self = taskHolder[0];
-                            if (self != null) self.cancel();
-                            Variables.commandReloadTask = null;
-                            isReloading.set(false);
-                            reloadReport.finishSuccess();
+                            finishReloadSuccess(sender, startTime, reloadReport, taskHolder[0]);
                             return;
                     }
                     step.getAndIncrement();
@@ -132,6 +124,59 @@ public class CommandReload {
             }
             isReloading.set(false);
         }
+    }
+
+    private static void finishReloadSuccess(CommandSender sender, long startTime,
+                                            DiagnosticsService.Report reloadReport, WrappedTask task) {
+        if (task != null) {
+            task.cancel();
+        }
+        Variables.commandReloadTask = null;
+        isReloading.set(false);
+
+        sendReloadMessages(sender, buildReloadSuccessMessages(startTime, System.currentTimeMillis()));
+        reloadReport.finishSuccess();
+    }
+
+    static List<String> buildReloadSuccessMessages(long startTime, long endTime) {
+        long reloadPluginTime = Math.max(0L, endTime - startTime);
+        List<String> source = LoadMessages.successfullyreload;
+        if (source == null || source.isEmpty()) {
+            source = Collections.singletonList("&a[sRandomRTP] &aPlugin successfully reloaded. %mc% ms");
+        }
+
+        List<String> messages = new ArrayList<>();
+        for (String line : source) {
+            if (line != null) {
+                messages.add(line.replace("%mc%", String.valueOf(reloadPluginTime)));
+            }
+        }
+        if (messages.isEmpty()) {
+            messages.add("&a[sRandomRTP] &aPlugin successfully reloaded. " + reloadPluginTime + " ms");
+        }
+        return messages;
+    }
+
+    private static void sendReloadMessages(CommandSender sender, List<String> messages) {
+        Runnable send = () -> {
+            for (String line : messages) {
+                sender.sendMessage(Variables.getMessageService().format(line));
+            }
+        };
+
+        try {
+            if (sender instanceof Player) {
+                FoliaSchedulerFacade.runAtEntity((Player) sender, send);
+                return;
+            }
+            if (Variables.getFoliaLib() != null) {
+                Variables.getFoliaLib().getImpl().runNextTick(task -> send.run());
+                return;
+            }
+        } catch (RuntimeException e) {
+            LoggerUtility.loggerUtility(CommandReload.class, e);
+        }
+        send.run();
     }
 
     private static void logSyncResults(BootstrapCoordinator.FileChangeSummary summary) {
