@@ -31,8 +31,10 @@ public class TeleportCancellationListener implements Listener {
             Player player = event.getPlayer();
             // Skip all map lookups for players not in an active search
             if (!Variables.getRuntimeState().isPlayerSearching(player)) return;
-            if (event.getFrom().getBlockX() == event.getTo().getBlockX()
-                    && event.getFrom().getBlockZ() == event.getTo().getBlockZ()) {
+            boolean blockMoved = event.getFrom().getBlockX() != event.getTo().getBlockX()
+                    || event.getFrom().getBlockY() != event.getTo().getBlockY()
+                    || event.getFrom().getBlockZ() != event.getTo().getBlockZ();
+            if (!blockMoved) {
                 // No block movement — check for mouse rotation if enabled
                 if (cache.mouseMoveCancelRtp
                         && (event.getFrom().getYaw() != event.getTo().getYaw()

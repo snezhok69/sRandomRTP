@@ -26,7 +26,7 @@ public class CommandCancel {
                     loggingEnabled,
                     "cancel command",
                     LoadMessages.teleportcancel,
-                    Variables.configCache.dmgCancelCooldown
+                    true
             );
         } catch (RuntimeException e) {
             LoggerUtility.loggerUtility(CommandCancel.class, e);

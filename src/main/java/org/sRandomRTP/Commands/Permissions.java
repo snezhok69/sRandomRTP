@@ -23,6 +23,10 @@ public final class Permissions {
     public static final String HELP       = "sRandomRTP.Command.Help";
     public static final String ACCEPT     = "sRandomRTP.Command.Accept";
     public static final String DENY       = "sRandomRTP.Command.Deny";
+    public static final String SETTINGS   = "sRandomRTP.Command.Settings";
+    public static final String DOCTOR     = "sRandomRTP.Command.Doctor";
+    public static final String DUMP       = "sRandomRTP.Command.Dump";
+    public static final String STATS      = "sRandomRTP.Command.Stats";
     public static final String ALL_BARS       = "sRandomRTP.Command.AllBars";
     public static final String TPS_BAR        = "sRandomRTP.Command.TpsBar";
     public static final String RAM_BAR        = "sRandomRTP.Command.RamBar";

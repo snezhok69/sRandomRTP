@@ -171,6 +171,11 @@ public class PerformTeleport {
         }
         showSuccessMessage(player, finalNewX, finalNewZ, newY, loggingEnabled);
         showTitlesAndApplyEffects(player, finalNewX, finalNewZ, newY, loggingEnabled);
+        org.sRandomRTP.Services.RuntimeStateRegistry state = Variables.getRuntimeState();
+        if (state != null) {
+            state.getLastRtpLocations().put(player.getUniqueId(), player.getLocation().clone());
+        }
+        Bukkit.getPluginManager().callEvent(new org.sRandomRTP.Events.RtpTeleportSuccessEvent(player, player.getLocation()));
         EconomyPaymentManager.confirmSuccess(player);
         CleanupTasks.cleanupTasks(player, loggingEnabled);
         CleanupTasks.finalizeTeleportStatus(player, loggingEnabled);
@@ -187,6 +192,7 @@ public class PerformTeleport {
         org.sRandomRTP.Services.RuntimeStateRegistry state = Variables.getRuntimeState();
         if (state != null) state.removeInitialPosition(player);
         TeleportRequestManager.cancelRequest(playerId, loggingEnabled, "teleport failure");
+        Bukkit.getPluginManager().callEvent(new org.sRandomRTP.Events.RtpTeleportFailEvent(player, "teleport failure"));
         teleportInProgress.remove(playerId);
     }
 

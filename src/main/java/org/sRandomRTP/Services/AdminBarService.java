@@ -440,12 +440,12 @@ public class AdminBarService {
         }
         FileConfiguration config = getConfig();
         long interval = Math.max(1L, config == null ? 20L : config.getLong("admin-bars.update-interval-ticks", 20L));
-        WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
+        WrappedTask task = FoliaSchedulerFacade.runAtEntityTimer(player, () -> {
             if (player == null || !player.isOnline()) {
                 cleanupPlayer(player);
                 return;
             }
-            FoliaSchedulerFacade.runAtEntity(player, () -> refreshBars(player));
+            refreshBars(player);
         }, 0L, interval);
         state.getAdminBarTasks().put(player, task);
     }

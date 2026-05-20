@@ -106,6 +106,42 @@ public class TeleportMetrics {
                 + ", refunds=" + refunds.get());
     }
 
+    public long getCoordinateSamples() {
+        return coordinateSamples.get();
+    }
+
+    public long getSafeYSamples() {
+        return safeYSamples.get();
+    }
+
+    public long getChunkSamples() {
+        return chunkSamples.get();
+    }
+
+    public long getCancellations() {
+        return cancellations.get();
+    }
+
+    public long getCompletedRequests() {
+        return completedRequests.get();
+    }
+
+    public long getRefunds() {
+        return refunds.get();
+    }
+
+    public String getCoordinateAverageMillis() {
+        return formatAverage(coordinateTotalNanos.get(), coordinateSamples.get());
+    }
+
+    public String getSafeYAverageMillis() {
+        return formatAverage(safeYTotalNanos.get(), safeYSamples.get());
+    }
+
+    public String getChunkAverageMillis() {
+        return formatAverage(chunkTotalNanos.get(), chunkSamples.get());
+    }
+
     private void record(long durationNanos, AtomicLong samples, AtomicLong totalNanos) {
         if (durationNanos < 0L) {
             return;

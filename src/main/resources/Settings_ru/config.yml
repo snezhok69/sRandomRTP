@@ -34,6 +34,10 @@
 # (sRandomRTP.Command.Deny - позволяет использовать команду /rtp deny (эта команда работает исключительно с командой /rtp player!);
 # (sRandomRTP.Command.Accept - позволяет использовать команду /rtp accept (эта команда работает исключительно с командой /rtp player!);
 # (sRandomRTP.Command.Portal - позволяет использовать команду - /rtp portal list/del/set.;
+# (sRandomRTP.Command.Settings - позволяет использовать /rtp settings для переключения команд прямо в игре.);
+# (sRandomRTP.Command.Doctor - позволяет использовать диагностику запуска/конфигов /rtp doctor.);
+# (sRandomRTP.Command.Dump - позволяет создать support bundle через /rtp dump.);
+# (sRandomRTP.Command.Stats - позволяет использовать runtime-диагностику /rtp stats.);
 #
 #
 # Отладочные сообщения в консоль, которые отображаются при использовании команды /rtp

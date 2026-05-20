@@ -12,7 +12,7 @@ import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.DifferentMethods.Text.LoadLanguageFile;
 import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.Files.*;
-import org.sRandomRTP.Commands.portal.PortalParticleManager;
+import org.sRandomRTP.Commands.portal.PortalTaskScheduler;
 import org.sRandomRTP.DataPortals.PortalDataTasks;
 import org.sRandomRTP.DifferentMethods.Teleport.SearchPhasePolicy;
 import org.sRandomRTP.Services.BootstrapCoordinator;
@@ -71,7 +71,7 @@ public class CommandReload {
             // assignment on the next line — eliminates the race where the first tick fires before
             // Variables.commandReloadTask is set and step-3 NPEs on cancel().
             final WrappedTask[] taskHolder = new WrappedTask[1];
-            WrappedTask task = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
+            WrappedTask task = FoliaSchedulerFacade.runTimer(() -> {
                 try {
                     switch (step.get()) {
                         case 0:
@@ -86,10 +86,12 @@ public class CommandReload {
                                 Variables.getPluginContext().getConfigRegistry().reload();
                             }
                             LoadKeys.loadKeys(Variables.getInstance().getConfig());
+                            org.sRandomRTP.Cooldowns.CooldownManager.instance().clearPermissionCache();
                             LoadBlockList.loadBlockList();
                             // Reset in-flight counter so pre-reload drift doesn't throttle searches
                             SearchPhasePolicy.reset();
                             refreshPortalSettings();
+                            ValidateConfigEntries.validateManagedConfigs(Variables.getPluginContext().getConfigRegistry());
                             warnIfConfigInvalid();
                             reloadReport.stepOk("step-1", "configs, block lists and portal settings refreshed");
                             break;
@@ -234,8 +236,10 @@ public class CommandReload {
                 }
 
                 if (portalData.getTaskType().contains("particles")) {
-                    WrappedTask newParticlesTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                            () -> PortalParticleManager.spawnParticles(portalData.getCenter(), portalData.getRadius(), portalData.getShape()),
+                    WrappedTask newParticlesTask = PortalTaskScheduler.scheduleParticles(
+                            portalData.getCenter(),
+                            portalData.getRadius(),
+                            portalData.getShape(),
                             portalData.getDelay(),
                             portalData.getPeriod()
                     );

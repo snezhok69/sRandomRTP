@@ -254,6 +254,7 @@ public abstract class AbstractRtpHandler {
             if (params == null) return;
 
             TeleportRequestContext context = TeleportRequestManager.beginRequest(player, loggingEnabled);
+            Bukkit.getPluginManager().callEvent(new org.sRandomRTP.Events.RtpSearchStartEvent(player, world));
             searchStarted = true;
             long sessionNonce = params.useSessionNonce ? computeSessionSeed(player, context.getRequestId()) : 0L;
             state.setPlayerSearching(player, true);

@@ -2,6 +2,7 @@ package org.sRandomRTP.Services;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.sRandomRTP.Main;
+import org.sRandomRTP.Commands.CommandFeatureFlag;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -106,6 +108,7 @@ public class MigrationRunner {
         String fileName = file.getName();
         if ("config.yml".equalsIgnoreCase(fileName)) {
             modified |= setIfMissing(yaml, "metrics.rtp.slow-request-threshold-ms", ConfigDefaults.SLOW_REQUEST_THRESHOLD_MS);
+            modified |= setIfMissing(yaml, "diagnostics.enabled", true);
         } else if ("teleport.yml".equalsIgnoreCase(fileName)) {
             modified |= setIfMissing(yaml, "teleport.coordinate-generation",               ConfigDefaults.DEFAULT_COORDINATE_GENERATION);
             modified |= setIfMissing(yaml, "teleport.prefer-generated-chunks.enabled",     ConfigDefaults.PREFER_GENERATED_CHUNKS_ENABLED);
@@ -114,6 +117,35 @@ public class MigrationRunner {
             modified |= setIfMissing(yaml, "teleport.parallel-search.enabled",             ConfigDefaults.PARALLEL_SEARCH_ENABLED);
             modified |= setIfMissing(yaml, "teleport.parallel-search.candidates-per-batch", ConfigDefaults.PARALLEL_SEARCH_CANDIDATES_PER_BATCH);
             modified |= setIfMissing(yaml, "teleport.parallel-search.max-global-inflight", ConfigDefaults.PARALLEL_SEARCH_MAX_GLOBAL_INFLIGHT);
+        } else if ("portal.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "portal.particles.floor_count", 2);
+            modified |= setIfMissing(yaml, "portal.particles.floor_density", 0.5D);
+            modified |= setIfMissing(yaml, "portal.particles.floor_spread", 0.1D);
+            modified |= setIfMissing(yaml, "portal.particles.border_count", 5);
+            modified |= setIfMissing(yaml, "portal.particles.border_density", 0.5D);
+            modified |= setIfMissing(yaml, "portal.particles.border_spread", 0.1D);
+            modified |= setIfMissing(yaml, "portal.cooldown.enabled", true);
+            modified |= setIfMissing(yaml, "portal.cooldown.time", 5);
+        } else if ("biome.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "teleport-biome.search-mode", "TWO_PHASE");
+            modified |= setIfMissing(yaml, "teleport-biome.fast-random-attempts", 12);
+            modified |= setIfMissing(yaml, "teleport-biome.probe-samples-per-attempt", 8);
+        } else if ("chunk-loading.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "chunk-warming.enabled", false);
+            modified |= setIfMissing(yaml, "chunk-warming.loads-per-tick-budget", 24);
+            modified |= setIfMissing(yaml, "chunk-warming.max-inflight-loads", 64);
+            modified |= setIfMissing(yaml, "chunk-warming.tps-pause-threshold", 18.5D);
+        } else if ("commands.yml".equalsIgnoreCase(fileName)) {
+            for (CommandFeatureFlag flag : CommandFeatureFlag.values()) {
+                modified |= setIfMissing(yaml, flag.getConfigPath(), flag.isDefaultEnabled());
+            }
+        } else if ("particles.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "particles.enabled", false);
+        } else if ("effects.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "effects.enabled", false);
+        } else if ("bossbar.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "teleport.bossbarEnabled", true);
+            modified |= setIfMissing(yaml, "teleport.actionBarEnabled", true);
         } else if ("admin-bars.yml".equalsIgnoreCase(fileName)) {
             modified |= setIfMissing(yaml, "admin-bars.enabled",               ConfigDefaults.ADMIN_BARS_ENABLED);
             modified |= setIfMissing(yaml, "admin-bars.update-interval-ticks", ConfigDefaults.ADMIN_BARS_UPDATE_INTERVAL_TICKS);
@@ -134,6 +166,8 @@ public class MigrationRunner {
     private boolean setIfMissing(YamlConfiguration yaml, String path, Object value) {
         if (!yaml.contains(path)) {
             yaml.set(path, value);
+            ConfigChangeReporter.record("managed-config", "migration added default",
+                    Collections.singletonList(path));
             return true;
         }
         return false;

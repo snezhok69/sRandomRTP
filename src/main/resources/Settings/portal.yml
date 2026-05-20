@@ -1,5 +1,5 @@
 # Commands to be executed when jumping into the portal
-config-version: 3
+config-version: 4
 
 portal-commands:
   # Enable/disable command execution when entering the portal

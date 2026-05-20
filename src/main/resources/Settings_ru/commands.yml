@@ -1,0 +1,78 @@
+config-version: 4
+
+# Переключатели команд /rtp.
+# Права всё равно проверяются: OP получает админские права по умолчанию из plugin.yml.
+# Если команда выключена здесь, она скрывается из /rtp help, tab-complete и обычного запуска.
+#
+# /rtp settings открывает кликабельное меню для этих переключателей прямо в игре.
+# /rtp settings нельзя выключить через само меню, чтобы админ случайно не закрыл себе доступ.
+#
+# Команды отладки/поддержки:
+# /rtp doctor       - здоровье запуска/конфигов и статус local-admin-bars gate.
+# /rtp dump         - создает zip для поддержки в plugins/sRandomRTP/Diagnostics.
+# /rtp stats        - live-метрики RTP/search/chunk/portal.
+# /rtp portal check - проверяет отсутствующие миры, дубли порталов и активные portal tasks.
+#
+# Local admin bossbars:
+# /rtp tpsbar, /rtp rambar, /rtp msptbar и /rtp allbars являются local-only.
+# Они находятся в той же debug-секции, что и /rtp doctor, но всё ещё требуют JVM/local gate.
+# В публичной сборке они скрыты даже если ниже true.
+
+commands:
+  player:
+    rtp:
+      enabled: true
+    near:
+      enabled: true
+    far:
+      enabled: true
+    middle:
+      enabled: true
+    base:
+      enabled: true
+    biome:
+      enabled: true
+    world:
+      enabled: true
+    back:
+      enabled: true
+    cancel:
+      enabled: true
+    accept:
+      enabled: true
+    deny:
+      enabled: true
+
+  admin:
+    player:
+      enabled: true
+    portal:
+      enabled: true
+    chunky:
+      enabled: true
+    version:
+      enabled: true
+    reload:
+      enabled: true
+    help:
+      enabled: true
+    settings:
+      enabled: true
+
+  debug:
+    doctor:
+      enabled: true
+    dump:
+      enabled: true
+    stats:
+      enabled: true
+    portal-check:
+      enabled: true
+    allbars:
+      enabled: true
+    tpsbar:
+      enabled: true
+    rambar:
+      enabled: true
+    msptbar:
+      enabled: true

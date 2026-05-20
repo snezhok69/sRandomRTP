@@ -1,7 +1,9 @@
-config-version: 3
+config-version: 4
 
 admin-bars:
   # Master switch for all admin monitoring bossbars below.
+  # These commands are local-only and stay hidden unless the local JVM gate is enabled.
+  # Command visibility can also be toggled in Settings/commands.yml or via /rtp settings.
   enabled: true
 
   # Update period for the live monitoring bossbars.

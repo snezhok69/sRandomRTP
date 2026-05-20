@@ -79,6 +79,7 @@ public class Main extends JavaPlugin {
                 throw new IllegalStateException("Failed to synchronize plugin files", fileSummary.getFailure());
             }
             loadFilesAndMetrics(metrics);
+            ValidateConfigEntries.validateManagedConfigs(Variables.getPluginContext().getConfigRegistry());
             if (startupReport != null) {
                 startupReport.stepOk("config-load", "managed configuration files loaded");
             }
@@ -279,10 +280,11 @@ public class Main extends JavaPlugin {
         Variables.getReleaseCheckService().triggerStartupConsoleCheck();
         Variables.getReleaseCheckService().startAutoChecks();
         Variables.getPluginContext().cancelBackgroundTasks();
-        WrappedTask cleanupTask = Variables.getFoliaLib().getImpl().runTimerAsync(
+        WrappedTask cleanupTask = org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade.runTimerAsync(
                 () -> {
                     Variables.cleanExpiredCooldowns(org.sRandomRTP.Utils.PluginConstants.COOLDOWN_CLEANUP_MAX_AGE_MS);
                     org.sRandomRTP.Cooldowns.CooldownManager.instance().evictExpiredCache();
+                    RtpCountDataStore.saveIfDirty();
                     org.sRandomRTP.Commands.portal.PortalTeleportCooldownManager mgr =
                             Variables.getPortalTeleportCooldownManager();
                     if (mgr != null) mgr.cleanExpired();
@@ -323,6 +325,7 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        RtpCountDataStore.saveIfDirty();
         Variables.getPluginContext().cancelBackgroundTasks();
         org.bukkit.event.HandlerList.unregisterAll(this);
         TeleportRequestContext.shutdownTimeoutScheduler();

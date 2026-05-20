@@ -40,6 +40,7 @@ public final class BossBarCountdownEngine {
     public static void dispatch(Player player, CommandSender sender, Runnable action) {
         if (Permissions.hasCooldownBypass(player)) {
             action.run();
+            recordRtpUse();
             return;
         }
         startCountdown(player, sender, action);
@@ -88,9 +89,7 @@ public final class BossBarCountdownEngine {
                 RemoveAllBossBars.removeBossBar(player);
                 state.setPlayerSearching(player, false);
                 onComplete.run();
-                RuntimeStateRegistry freshState = Variables.getRuntimeState();
-                if (freshState != null) freshState.getRtpCount().incrementAndGet();
-                RtpCountDataStore.save();
+                recordRtpUse();
             } else {
                 updateBossBarAndActionBar(sender, player, onlinePlayer, timeLeft[0], countdownTime);
             }
@@ -99,6 +98,10 @@ public final class BossBarCountdownEngine {
         progressTaskRef.set(task);
         state.putTeleportTask(player, task);
         state.setPlayerSearching(player, true);
+    }
+
+    private static void recordRtpUse() {
+        RtpCountDataStore.incrementAndMarkDirty();
     }
 
     private static void playSound(Player player) {

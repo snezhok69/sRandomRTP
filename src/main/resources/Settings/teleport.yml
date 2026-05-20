@@ -1,5 +1,5 @@
 # Internal file version used for automatic config migrations.
-config-version: 3
+config-version: 4
 
 teleport:
   # Link to all biomes - https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/Biome.html.

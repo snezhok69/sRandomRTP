@@ -28,20 +28,26 @@ public final class CooldownManager {
 
     /** Immutable cache entry — thread-safe when published via ConcurrentHashMap. */
     private static final class CooldownCacheEntry {
-        private final long cooldown;
+        private final int cooldown;
         private final long cachedAt;
+        private final String matchedPermission;
 
-        private CooldownCacheEntry(long cooldown, long cachedAt) {
+        private CooldownCacheEntry(int cooldown, long cachedAt, String matchedPermission) {
             this.cooldown = cooldown;
             this.cachedAt = cachedAt;
+            this.matchedPermission = matchedPermission;
         }
 
-        long cooldown() {
+        int cooldown() {
             return cooldown;
         }
 
         long cachedAt() {
             return cachedAt;
+        }
+
+        String matchedPermission() {
+            return matchedPermission;
         }
     }
 
@@ -59,6 +65,10 @@ public final class CooldownManager {
     /** Invalidate cached permission lookup for a player (call on cooldown removal). */
     public void invalidatePermissionCache(UUID playerId) {
         cooldownPermissionCache.remove(playerId);
+    }
+
+    public void clearPermissionCache() {
+        cooldownPermissionCache.clear();
     }
 
     /** Evict cache entries older than TTL — call from a periodic cleanup task. */
@@ -135,8 +145,21 @@ public final class CooldownManager {
     public int resolveCustomCooldown(Player player, int defaultCooldown, boolean loggingEnabled) {
         UUID playerId = player.getUniqueId();
         long now = System.currentTimeMillis();
+        CooldownCacheEntry cached = cooldownPermissionCache.get(playerId);
+        if (cached != null && now - cached.cachedAt() <= CACHE_TTL_MS) {
+            if (loggingEnabled) {
+                Bukkit.getConsoleSender().sendMessage("Cooldown permission cache hit: "
+                        + cached.cooldown() + " seconds"
+                        + (cached.matchedPermission() == null ? "" : " from " + cached.matchedPermission()));
+            }
+            return cached.cooldown();
+        }
+        if (cached != null) {
+            cooldownPermissionCache.remove(playerId, cached);
+        }
+
         Set<PermissionAttachmentInfo> permissions = player.getEffectivePermissions();
-        int customCooldown = -1;
+        int resolvedCooldown = defaultCooldown;
         String matchedPermission = null;
         for (PermissionAttachmentInfo permInfo : permissions) {
             if (permInfo.getValue()) {
@@ -144,27 +167,26 @@ public final class CooldownManager {
                 Matcher matcher = COOLDOWN_PERMISSION_PATTERN.matcher(permission);
                 if (matcher.matches()) {
                     int cooldown = Integer.parseInt(matcher.group(1));
-                    if (customCooldown < 0 || cooldown < customCooldown) {
-                        customCooldown = cooldown;
+                    if (matchedPermission == null || cooldown < resolvedCooldown) {
+                        resolvedCooldown = cooldown;
                         matchedPermission = permission;
                     }
                 }
             }
         }
-        if (customCooldown >= 0) {
-            cooldownPermissionCache.put(playerId, new CooldownCacheEntry(customCooldown, now));
+        cooldownPermissionCache.put(playerId, new CooldownCacheEntry(resolvedCooldown, now, matchedPermission));
+        if (matchedPermission != null) {
             if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage(
-                        "Matching permission: " + matchedPermission + ", extracted cooldown: " + customCooldown);
-                Bukkit.getConsoleSender().sendMessage("Applying custom cooldown: " + customCooldown);
+                        "Matching permission: " + matchedPermission + ", extracted cooldown: " + resolvedCooldown);
+                Bukkit.getConsoleSender().sendMessage("Applying custom cooldown: " + resolvedCooldown);
             }
-            return customCooldown;
+            return resolvedCooldown;
         }
-        cooldownPermissionCache.remove(playerId);
         if (loggingEnabled) {
             Bukkit.getConsoleSender().sendMessage(
                     "No custom cooldown permissions found, using default: " + defaultCooldown);
         }
-        return defaultCooldown;
+        return resolvedCooldown;
     }
 }
