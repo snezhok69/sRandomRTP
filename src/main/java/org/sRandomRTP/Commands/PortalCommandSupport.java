@@ -153,9 +153,10 @@ final class PortalCommandSupport {
                 }
             }
         }
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §6Portal check: §ftotal=" + total
-                + " §7missing_worlds=§f" + missingWorlds
-                + " §7duplicate_world_names=§f" + duplicateWorldNames
-                + " §7tasks=§f" + Variables.getRuntimeState().getPlayerPortalsTasks().size());
+        Variables.getMessageService().send(sender, LoadMessages.diagnostics_portal_check,
+                "%total%", String.valueOf(total),
+                "%missing_worlds%", String.valueOf(missingWorlds),
+                "%duplicate_world_names%", String.valueOf(duplicateWorldNames),
+                "%tasks%", String.valueOf(Variables.getRuntimeState().getPlayerPortalsTasks().size()));
     }
 }

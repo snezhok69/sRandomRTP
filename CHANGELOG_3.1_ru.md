@@ -134,9 +134,11 @@ biome.yml — отдельные радиусы и настройки поиск
 
 7. Команды отладки/поддержки получили более понятные gate-настройки: /rtp doctor, /rtp dump, /rtp stats, /rtp portal check и local admin bossbar-команды теперь переключаются из одной debug-секции.
 
-8. /rtp portal check больше не имеет отдельной permission-ноды; теперь это debug/support-команда, а не отдельное право управления порталами.
+8. /rtp portal check относится к debug/support-командам и теперь имеет отдельную permission-ноду: sRandomRTP.Command.Portal.Check.
 
-9. Local admin bossbar-команды остаются в плагине, но в публичной сборке всё ещё скрыты за local-only gate; когда gate открыт, через /rtp settings можно отдельно переключать видимость /rtp tpsbar, /rtp rambar, /rtp msptbar и /rtp allbars.
+9. Вывод новых debug/settings-команд теперь локализуется через lang/*.yml, включая /rtp doctor, /rtp dump, /rtp stats, /rtp settings, /rtp portal check и help-строки local admin bossbar.
+
+10. Local admin bossbar-команды остаются в плагине, но в публичной сборке всё ещё скрыты за local-only gate; когда gate открыт, через /rtp settings можно отдельно переключать видимость /rtp tpsbar, /rtp rambar, /rtp msptbar и /rtp allbars.
 
 
 Примечания

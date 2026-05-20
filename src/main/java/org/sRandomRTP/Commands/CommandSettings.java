@@ -4,8 +4,9 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
+import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.LocalFeatureGate;
-import org.sRandomRTP.Utils.ChatUtils;
 
 import java.io.IOException;
 
@@ -46,17 +47,19 @@ public final class CommandSettings {
     private static void handleToggle(CommandSender sender, String[] args) {
         CommandFeatureFlag flag = CommandFeatureFlag.fromId(args[2]);
         if (flag == null) {
-            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cUnknown setting: §f" + args[2]);
+            Variables.getMessageService().send(sender, LoadMessages.settings_unknown, "%id%", args[2]);
             return;
         }
         if (!flag.isToggleable()) {
-            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §e" + flag.getCommandLabel() + " is protected from in-game toggles.");
+            Variables.getMessageService().send(sender, LoadMessages.settings_locked,
+                    "%command%", flag.getCommandLabel());
             return;
         }
 
         Boolean explicit = args.length >= 4 ? parseMode(args[3]) : null;
         if (args.length >= 4 && explicit == null) {
-            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cUse: /rtp settings toggle " + flag.getId() + " [on|off]");
+            Variables.getMessageService().send(sender, LoadMessages.settings_invalid_mode,
+                    "%id%", flag.getId());
             return;
         }
 
@@ -64,14 +67,16 @@ public final class CommandSettings {
         try {
             CommandFeatureFlag.setEnabled(flag, newValue);
         } catch (IOException e) {
-            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cFailed to save Settings/commands.yml: " + e.getMessage());
+            Variables.getMessageService().send(sender, LoadMessages.settings_save_failed,
+                    "%error%", e.getMessage());
             return;
         }
 
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §a" + flag.getCommandLabel()
-                + " command is now " + (newValue ? "§aenabled" : "§edisabled") + "§a.");
+        Variables.getMessageService().send(sender, LoadMessages.settings_changed,
+                "%command%", flag.getCommandLabel(),
+                "%state%", newValue ? LoadMessages.settings_status_on : LoadMessages.settings_status_off);
         if (flag.isLocalOnly() && !LocalFeatureGate.isLocalAdminBarsEnabled()) {
-            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §7Local gate is still closed, so this command stays hidden in public builds.");
+            Variables.getMessageService().send(sender, LoadMessages.settings_local_gate_hidden);
         }
         sendPage(sender, pageFor(flag));
     }
@@ -84,16 +89,20 @@ public final class CommandSettings {
         int end = Math.min(flags.length, start + PAGE_SIZE);
 
         sender.sendMessage("");
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §6Settings §7(" + page + "/" + maxPage + ")");
-        sender.sendMessage("§7Debug commands and local admin bossbars are controlled here. Permissions still apply.");
-        sender.sendMessage("§7Local admin bars gate: §f" + LocalFeatureGate.isLocalAdminBarsEnabled());
+        sender.sendMessage(format(LoadMessages.settings_header,
+                "%page%", String.valueOf(page),
+                "%max_page%", String.valueOf(maxPage)));
+        sender.sendMessage(format(LoadMessages.settings_description));
+        sender.sendMessage(format(LoadMessages.settings_local_gate,
+                "%state%", String.valueOf(LocalFeatureGate.isLocalAdminBarsEnabled())));
 
         String lastCategory = "";
         for (int i = start; i < end; i++) {
             CommandFeatureFlag flag = flags[i];
             if (!flag.getCategory().equals(lastCategory)) {
                 lastCategory = flag.getCategory();
-                sender.sendMessage("§8- §e" + lastCategory);
+                sender.sendMessage(format(LoadMessages.settings_category,
+                        "%category%", localizedCategory(lastCategory)));
             }
             sendFlagLine(sender, flag);
         }
@@ -104,9 +113,12 @@ public final class CommandSettings {
 
     private static void sendFlagLine(CommandSender sender, CommandFeatureFlag flag) {
         String effectiveStatus = statusLabel(flag);
-        String line = "  §7" + flag.getCommandLabel() + " §8(" + flag.getId() + ") §7perm: §f" + flag.getPermission() + " ";
+        String line = format(LoadMessages.settings_flag_line,
+                "%command%", flag.getCommandLabel(),
+                "%id%", flag.getId(),
+                "%permission%", flag.getPermission());
         if (!flag.isToggleable()) {
-            sender.sendMessage(line + "§8[locked]");
+            sender.sendMessage(line + format(LoadMessages.settings_status_locked));
             return;
         }
 
@@ -114,7 +126,8 @@ public final class CommandSettings {
         TextComponent button = new TextComponent(TextComponent.fromLegacyText(effectiveStatus));
         button.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rtp settings toggle " + flag.getId()));
         button.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                TextComponent.fromLegacyText("Toggle " + flag.getCommandLabel())));
+                TextComponent.fromLegacyText(format(LoadMessages.settings_toggle_hover,
+                        "%command%", flag.getCommandLabel()))));
         message.addExtra(button);
         sender.spigot().sendMessage(message);
     }
@@ -122,30 +135,49 @@ public final class CommandSettings {
     private static void sendNavigation(CommandSender sender, int page, int maxPage) {
         TextComponent nav = new TextComponent("");
         if (page > 1) {
-            TextComponent prev = new TextComponent(TextComponent.fromLegacyText("§a[< Previous]"));
+            TextComponent prev = new TextComponent(TextComponent.fromLegacyText(format(LoadMessages.settings_prev_button)));
             prev.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rtp settings " + (page - 1)));
-            prev.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Open previous settings page")));
+            prev.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                    TextComponent.fromLegacyText(format(LoadMessages.settings_prev_hover))));
             nav.addExtra(prev);
         } else {
-            nav.addExtra(new TextComponent(TextComponent.fromLegacyText("§8[< Previous]")));
+            nav.addExtra(new TextComponent(TextComponent.fromLegacyText(format(LoadMessages.settings_prev_disabled))));
         }
         nav.addExtra(new TextComponent(TextComponent.fromLegacyText(" §7| ")));
         if (page < maxPage) {
-            TextComponent next = new TextComponent(TextComponent.fromLegacyText("§a[Next >]"));
+            TextComponent next = new TextComponent(TextComponent.fromLegacyText(format(LoadMessages.settings_next_button)));
             next.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rtp settings " + (page + 1)));
-            next.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("Open next settings page")));
+            next.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                    TextComponent.fromLegacyText(format(LoadMessages.settings_next_hover))));
             nav.addExtra(next);
         } else {
-            nav.addExtra(new TextComponent(TextComponent.fromLegacyText("§8[Next >]")));
+            nav.addExtra(new TextComponent(TextComponent.fromLegacyText(format(LoadMessages.settings_next_disabled))));
         }
         sender.spigot().sendMessage(nav);
     }
 
     private static String statusLabel(CommandFeatureFlag flag) {
         if (flag.isLocalOnly() && !flag.isLocalGateOpen()) {
-            return flag.isConfiguredEnabled() ? "§6[LOCAL GATE OFF]" : "§c[OFF]";
+            return format(flag.isConfiguredEnabled()
+                    ? LoadMessages.settings_status_local_gate_off
+                    : LoadMessages.settings_status_off);
         }
-        return flag.isConfiguredEnabled() ? "§a[ON]" : "§c[OFF]";
+        return format(flag.isConfiguredEnabled()
+                ? LoadMessages.settings_status_on
+                : LoadMessages.settings_status_off);
+    }
+
+    private static String localizedCategory(String category) {
+        if ("Player".equals(category)) {
+            return LoadMessages.settings_category_player;
+        }
+        if ("Admin".equals(category)) {
+            return LoadMessages.settings_category_admin;
+        }
+        if ("Debug".equals(category)) {
+            return LoadMessages.settings_category_debug;
+        }
+        return category;
     }
 
     private static int pageFor(CommandFeatureFlag flag) {
@@ -177,8 +209,10 @@ public final class CommandSettings {
     }
 
     private static void sendUsage(CommandSender sender) {
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §6Usage:");
-        sender.sendMessage("§7/rtp settings [page]");
-        sender.sendMessage("§7/rtp settings toggle <id> [on|off]");
+        Variables.getMessageService().send(sender, LoadMessages.settings_usage);
+    }
+
+    private static String format(String line, String... replacements) {
+        return Variables.getMessageService().format(line, replacements);
     }
 }

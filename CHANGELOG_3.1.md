@@ -134,9 +134,11 @@ Additional Stability Polish!
 
 7. Debug/support commands now have clearer gates: /rtp doctor, /rtp dump, /rtp stats, /rtp portal check, and the local admin bossbar commands can be toggled from the same debug section.
 
-8. /rtp portal check no longer has a separate permission node; it is treated as a debug/support command instead of a portal-management permission.
+8. /rtp portal check is treated as a debug/support command and now has its own permission node: sRandomRTP.Command.Portal.Check.
 
-9. Local admin bossbar commands remain in the plugin, but public builds still hide them behind the local-only gate; when the gate is open, /rtp settings can also toggle /rtp tpsbar, /rtp rambar, /rtp msptbar, and /rtp allbars visibility.
+9. New debug/settings command output is now localized through lang/*.yml, including /rtp doctor, /rtp dump, /rtp stats, /rtp settings, /rtp portal check, and the local admin bossbar help lines.
+
+10. Local admin bossbar commands remain in the plugin, but public builds still hide them behind the local-only gate; when the gate is open, /rtp settings can also toggle /rtp tpsbar, /rtp rambar, /rtp msptbar, and /rtp allbars visibility.
 
 
 Notes

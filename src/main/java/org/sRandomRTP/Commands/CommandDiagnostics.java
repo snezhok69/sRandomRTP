@@ -1,27 +1,23 @@
 package org.sRandomRTP.Commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadKeys;
+import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.ConfigRegistry;
 import org.sRandomRTP.Services.LocalFeatureGate;
 import org.sRandomRTP.Services.PluginVersionCatalog;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
 import org.sRandomRTP.Services.TeleportMetrics;
-import org.sRandomRTP.Utils.ChatUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -43,18 +39,19 @@ public final class CommandDiagnostics {
         if (!CommandUtils.checkPermission(sender, Permissions.STATS)) return;
         RuntimeStateRegistry state = Variables.getRuntimeState();
         TeleportMetrics metrics = Variables.getTeleportMetrics();
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §6Runtime stats");
-        sender.sendMessage("§7Active searches: §f" + state.getPlayerSearchStatus().size());
-        sender.sendMessage("§7Total RTP uses: §f" + state.getRtpCount().get());
-        sender.sendMessage("§7Cooldowns: §f" + state.getCooldowns().size()
-                + " §8| §7Biome cooldowns: §f" + state.getBiomeCooldowns().size());
-        sender.sendMessage("§7Portal tasks: §f" + state.getPlayerPortalsTasks().size()
-                + " §8| §7Portal blocks: §f" + state.getPlayerPortalsBlocks().size());
-        sender.sendMessage("§7Completed/cancelled/refunds: §f" + metrics.getCompletedRequests()
-                + "§7/§f" + metrics.getCancellations() + "§7/§f" + metrics.getRefunds());
-        sender.sendMessage("§7Avg coordinate/safeY/chunk ms: §f" + metrics.getCoordinateAverageMillis()
-                + "§7/§f" + metrics.getSafeYAverageMillis()
-                + "§7/§f" + metrics.getChunkAverageMillis());
+        Variables.getMessageService().send(sender, LoadMessages.diagnostics_stats_lines,
+                "%active_searches%", String.valueOf(state.getPlayerSearchStatus().size()),
+                "%rtp_uses%", String.valueOf(state.getRtpCount().get()),
+                "%cooldowns%", String.valueOf(state.getCooldowns().size()),
+                "%biome_cooldowns%", String.valueOf(state.getBiomeCooldowns().size()),
+                "%portal_tasks%", String.valueOf(state.getPlayerPortalsTasks().size()),
+                "%portal_blocks%", String.valueOf(state.getPlayerPortalsBlocks().size()),
+                "%completed%", String.valueOf(metrics.getCompletedRequests()),
+                "%cancelled%", String.valueOf(metrics.getCancellations()),
+                "%refunds%", String.valueOf(metrics.getRefunds()),
+                "%coordinate_avg%", String.valueOf(metrics.getCoordinateAverageMillis()),
+                "%safe_y_avg%", String.valueOf(metrics.getSafeYAverageMillis()),
+                "%chunk_avg%", String.valueOf(metrics.getChunkAverageMillis()));
     }
 
     public static void dump(CommandSender sender) {
@@ -63,29 +60,33 @@ public final class CommandDiagnostics {
         try {
             dump = createSupportDump();
         } catch (IOException e) {
-            sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cFailed to create support dump: " + e.getMessage());
+            Variables.getMessageService().send(sender, LoadMessages.diagnostics_dump_failed,
+                    "%error%", e.getMessage());
             return;
         }
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §aSupport dump created: §f" + dump.getAbsolutePath());
+        Variables.getMessageService().send(sender, LoadMessages.diagnostics_dump_created,
+                "%path%", dump.getAbsolutePath());
     }
 
     static List<String> buildDoctorLines() {
-        java.util.ArrayList<String> lines = new java.util.ArrayList<>();
         RuntimeStateRegistry state = Variables.getRuntimeState();
-        lines.add(ChatUtils.PLUGIN_NAME + " §6Doctor");
-        lines.add("§7Plugin: §f" + Variables.getInstance().getDescription().getVersion()
-                + " §8| §7Java: §f" + System.getProperty("java.version"));
-        lines.add("§7Server: §f" + Bukkit.getServer().getVersion());
-        lines.add("§7Folia: §f" + (Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()));
-        lines.add("§7Language: §f" + LoadKeys.language);
-        lines.add("§7Integrations: §fWorldGuard=" + isPluginEnabled("WorldGuard")
-                + ", Vault=" + isPluginEnabled("Vault")
-                + ", Chunky=" + isPluginEnabled("Chunky")
-                + ", PlaceholderAPI=" + isPluginEnabled("PlaceholderAPI"));
-        lines.add("§7Local admin bars gate: §f" + LocalFeatureGate.isLocalAdminBarsEnabled());
-        lines.add("§7Active searches: §f" + state.getPlayerSearchStatus().size()
-                + " §8| §7Portal tasks: §f" + state.getPlayerPortalsTasks().size());
-        lines.add("§7Config versions: §f" + configVersionSummary());
+        java.util.ArrayList<String> lines = new java.util.ArrayList<>();
+        for (String line : LoadMessages.diagnostics_doctor_lines) {
+            lines.add(Variables.getMessageService().format(line,
+                    "%plugin_version%", Variables.getInstance().getDescription().getVersion(),
+                    "%java_version%", System.getProperty("java.version"),
+                    "%server_version%", Bukkit.getServer().getVersion(),
+                    "%folia%", String.valueOf(Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()),
+                    "%language%", LoadKeys.language,
+                    "%worldguard%", String.valueOf(isPluginEnabled("WorldGuard")),
+                    "%vault%", String.valueOf(isPluginEnabled("Vault")),
+                    "%chunky%", String.valueOf(isPluginEnabled("Chunky")),
+                    "%placeholderapi%", String.valueOf(isPluginEnabled("PlaceholderAPI")),
+                    "%local_admin_bars_gate%", String.valueOf(LocalFeatureGate.isLocalAdminBarsEnabled()),
+                    "%active_searches%", String.valueOf(state.getPlayerSearchStatus().size()),
+                    "%portal_tasks%", String.valueOf(state.getPlayerPortalsTasks().size()),
+                    "%config_versions%", configVersionSummary()));
+        }
         return lines;
     }
 

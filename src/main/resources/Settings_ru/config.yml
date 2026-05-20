@@ -38,6 +38,7 @@
 # (sRandomRTP.Command.Doctor - позволяет использовать диагностику запуска/конфигов /rtp doctor.);
 # (sRandomRTP.Command.Dump - позволяет создать support bundle через /rtp dump.);
 # (sRandomRTP.Command.Stats - позволяет использовать runtime-диагностику /rtp stats.);
+# (sRandomRTP.Command.Portal.Check - позволяет использовать диагностику /rtp portal check.);
 #
 #
 # Отладочные сообщения в консоль, которые отображаются при использовании команды /rtp

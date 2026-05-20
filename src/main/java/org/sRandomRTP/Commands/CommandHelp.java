@@ -2,6 +2,7 @@ package org.sRandomRTP.Commands;
 
 import org.bukkit.command.CommandSender;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Files.LoadMessages;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,18 +32,18 @@ public class CommandHelp {
         addIf(sender, lines, CommandFeatureFlag.DENY, "&a/rtp deny - &6denies a teleport request.");
         addIf(sender, lines, CommandFeatureFlag.CANCEL, "&a/rtp cancel - &6cancels your active teleport.");
         addIf(sender, lines, CommandFeatureFlag.PORTAL, "&a/rtp portal <set|del|list> - &6manages RTP portals.");
-        addIf(sender, lines, CommandFeatureFlag.PORTAL_CHECK, "&a/rtp portal check - &6checks portal health.");
+        addIf(sender, lines, CommandFeatureFlag.PORTAL_CHECK, LoadMessages.commandhelp_portal_check);
         addIf(sender, lines, CommandFeatureFlag.CHUNKY, "&a/rtp chunky <radius|stop> - &6controls Chunky generation.");
         addIf(sender, lines, CommandFeatureFlag.VERSION, "&a/rtp version - &6checks for a new plugin version.");
         addIf(sender, lines, CommandFeatureFlag.RELOAD, "&a/rtp reload - &6reloads the plugin.");
-        addIf(sender, lines, CommandFeatureFlag.SETTINGS, "&a/rtp settings - &6opens command toggles.");
-        addIf(sender, lines, CommandFeatureFlag.DOCTOR, "&a/rtp doctor - &6shows startup/config health.");
-        addIf(sender, lines, CommandFeatureFlag.STATS, "&a/rtp stats - &6shows runtime metrics.");
-        addIf(sender, lines, CommandFeatureFlag.DUMP, "&a/rtp dump - &6creates a support bundle.");
-        addIf(sender, lines, CommandFeatureFlag.TPS_BAR, "&a/rtp tpsbar - &6toggles the TPS admin bossbar.");
-        addIf(sender, lines, CommandFeatureFlag.RAM_BAR, "&a/rtp rambar - &6toggles the RAM admin bossbar.");
-        addIf(sender, lines, CommandFeatureFlag.MSPT_BAR, "&a/rtp msptbar - &6toggles the MSPT admin bossbar.");
-        addIf(sender, lines, CommandFeatureFlag.ALL_BARS, "&a/rtp allbars - &6toggles all admin bossbars.");
+        addIf(sender, lines, CommandFeatureFlag.SETTINGS, LoadMessages.commandhelp_settings);
+        addIf(sender, lines, CommandFeatureFlag.DOCTOR, LoadMessages.commandhelp_doctor);
+        addIf(sender, lines, CommandFeatureFlag.STATS, LoadMessages.commandhelp_stats);
+        addIf(sender, lines, CommandFeatureFlag.DUMP, LoadMessages.commandhelp_dump);
+        addIf(sender, lines, CommandFeatureFlag.TPS_BAR, LoadMessages.commandhelp_tpsbar);
+        addIf(sender, lines, CommandFeatureFlag.RAM_BAR, LoadMessages.commandhelp_rambar);
+        addIf(sender, lines, CommandFeatureFlag.MSPT_BAR, LoadMessages.commandhelp_msptbar);
+        addIf(sender, lines, CommandFeatureFlag.ALL_BARS, LoadMessages.commandhelp_allbars);
         lines.add("");
         return lines;
     }

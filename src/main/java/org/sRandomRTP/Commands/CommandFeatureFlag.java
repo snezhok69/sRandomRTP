@@ -4,11 +4,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.ConfigCache;
 import org.sRandomRTP.Services.ConfigRegistry;
 import org.sRandomRTP.Services.LocalFeatureGate;
 import org.sRandomRTP.Services.PluginVersionCatalog;
-import org.sRandomRTP.Utils.ChatUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public enum CommandFeatureFlag {
     DOCTOR("doctor", "Debug", "commands.debug.doctor.enabled", "/rtp doctor", Permissions.DOCTOR, true, false, true),
     DUMP("dump", "Debug", "commands.debug.dump.enabled", "/rtp dump", Permissions.DUMP, true, false, true),
     STATS("stats", "Debug", "commands.debug.stats.enabled", "/rtp stats", Permissions.STATS, true, false, true),
-    PORTAL_CHECK("portal-check", "Debug", "commands.debug.portal-check.enabled", "/rtp portal check", Permissions.DOCTOR, true, false, true),
+    PORTAL_CHECK("portal-check", "Debug", "commands.debug.portal-check.enabled", "/rtp portal check", Permissions.PORTAL_CHECK, true, false, true),
     ALL_BARS("allbars", "Debug", "commands.debug.allbars.enabled", "/rtp allbars", Permissions.ALL_BARS, true, true, true),
     TPS_BAR("tpsbar", "Debug", "commands.debug.tpsbar.enabled", "/rtp tpsbar", Permissions.TPS_BAR, true, true, true),
     RAM_BAR("rambar", "Debug", "commands.debug.rambar.enabled", "/rtp rambar", Permissions.RAM_BAR, true, true, true),
@@ -133,7 +133,8 @@ public enum CommandFeatureFlag {
     }
 
     public void sendDisabled(CommandSender sender) {
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cThis command is disabled in §fSettings/commands.yml§c: §e" + id);
+        Variables.getMessageService().send(sender, LoadMessages.settings_command_disabled,
+                "%id%", id);
     }
 
     public static CommandFeatureFlag fromId(String id) {
