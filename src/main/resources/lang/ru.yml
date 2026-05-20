@@ -160,36 +160,36 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Язык: &f%language%'
       - '&7Интеграции: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Local admin bars gate: &f%local_admin_bars_gate%'
+      - '&7Локальный доступ к админским bossbar: &f%local_admin_bars_gate%'
       - '&7Активные поиски: &f%active_searches% &8| &7Задачи порталов: &f%portal_tasks%'
       - '&7Версии конфигов: &f%config_versions%'
     stats-lines:
-      - '&a[sRandomRTP] &6Runtime-статистика'
+      - '&a[sRandomRTP] &6Статистика работы'
       - '&7Активные поиски: &f%active_searches%'
       - '&7Всего RTP: &f%rtp_uses%'
-      - '&7Cooldowns: &f%cooldowns% &8| &7Biome cooldowns: &f%biome_cooldowns%'
+      - '&7Кулдауны: &f%cooldowns% &8| &7Кулдауны биомов: &f%biome_cooldowns%'
       - '&7Задачи порталов: &f%portal_tasks% &8| &7Блоки порталов: &f%portal_blocks%'
       - '&7Завершено/отменено/возвраты: &f%completed%&7/&f%cancelled%&7/&f%refunds%'
-      - '&7Среднее coordinate/safeY/chunk ms: &f%coordinate_avg%&7/&f%safe_y_avg%&7/&f%chunk_avg%'
+      - '&7Среднее координаты/safeY/чанк, мс: &f%coordinate_avg%&7/&f%safe_y_avg%&7/&f%chunk_avg%'
     dump-created:
-      - '&a[sRandomRTP] &aSupport dump создан: &f%path%'
+      - '&a[sRandomRTP] &aДамп поддержки создан: &f%path%'
     dump-failed:
-      - '&a[sRandomRTP] &cНе удалось создать support dump: %error%'
+      - '&a[sRandomRTP] &cНе удалось создать дамп поддержки: %error%'
     portal-check:
-      - '&a[sRandomRTP] &6Проверка порталов: &fвсего=%total% &7missing_worlds=&f%missing_worlds% &7duplicate_world_names=&f%duplicate_world_names% &7tasks=&f%tasks%'
+      - '&a[sRandomRTP] &6Проверка порталов: &fвсего=%total% &7отсутствующие_миры=&f%missing_worlds% &7дубли_имён=&f%duplicate_world_names% &7задачи=&f%tasks%'
   settings:
     header: '&a[sRandomRTP] &6Настройки &7(%page%/%max_page%)'
-    description: '&7Команды отладки и local admin bossbar настраиваются здесь. Permissions всё равно проверяются.'
-    local-gate: '&7Local admin bars gate: &f%state%'
+    description: '&7Команды отладки и локальные админские bossbar настраиваются здесь. Права всё равно проверяются.'
+    local-gate: '&7Локальный доступ к админским bossbar: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Игрок'
       admin: 'Админ'
       debug: 'Отладка'
-    flag-line: '  &7%command% &8(%id%) &7perm: &f%permission% '
+    flag-line: '  &7%command% &8(%id%) &7право: &f%permission% '
     status-on: '&a[ВКЛ]'
     status-off: '&c[ВЫКЛ]'
-    status-local-gate-off: '&6[LOCAL GATE OFF]'
+    status-local-gate-off: '&6[ЛОКАЛЬНЫЙ ДОСТУП ВЫКЛ]'
     status-locked: '&8[закрыто]'
     toggle-hover: '&7Переключить %command%'
     prev-button: '&a[< Назад]'
@@ -209,7 +209,7 @@ messages:
     changed:
       - '&a[sRandomRTP] &aКоманда %command% теперь %state%&a.'
     local-gate-hidden:
-      - '&a[sRandomRTP] &7Local gate всё ещё закрыт, поэтому эта команда скрыта в публичной сборке.'
+      - '&a[sRandomRTP] &7Локальный доступ всё ещё закрыт, поэтому эта команда скрыта в публичной сборке.'
     usage:
       - '&a[sRandomRTP] &6Использование:'
       - '&7/rtp settings [page]'
@@ -219,13 +219,13 @@ messages:
   command-help:
     settings: '&a/rtp settings - &6открыть переключатели команд.'
     doctor: '&a/rtp doctor - &6показать здоровье запуска и конфигов.'
-    stats: '&a/rtp stats - &6показать runtime-метрики.'
-    dump: '&a/rtp dump - &6создать support bundle.'
+    stats: '&a/rtp stats - &6показать рабочие метрики.'
+    dump: '&a/rtp dump - &6создать архив поддержки.'
     portal-check: '&a/rtp portal check - &6проверить состояние порталов.'
-    tpsbar: '&a/rtp tpsbar - &6переключить TPS admin bossbar.'
-    rambar: '&a/rtp rambar - &6переключить RAM admin bossbar.'
-    msptbar: '&a/rtp msptbar - &6переключить MSPT admin bossbar.'
-    allbars: '&a/rtp allbars - &6переключить все admin bossbar.'
+    tpsbar: '&a/rtp tpsbar - &6переключить админскую TPS bossbar.'
+    rambar: '&a/rtp rambar - &6переключить админскую RAM bossbar.'
+    msptbar: '&a/rtp msptbar - &6переключить админскую MSPT bossbar.'
+    allbars: '&a/rtp allbars - &6переключить все админские bossbar.'
   error-break-portal-block:
     - '&a[sRandomRTP] &6Вы не можете ломать данный блок.'
   redirect-world:
