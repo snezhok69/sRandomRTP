@@ -1,5 +1,9 @@
 package org.sRandomRTP.Services;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Single source of truth for default configuration values that appear both in
  * {@link ConfigCache.Builder} field initialisers and in
@@ -23,6 +27,10 @@ public final class ConfigDefaults {
 
     // ── Slow-request threshold ────────────────────────────────────────────────
     public static final long    SLOW_REQUEST_THRESHOLD_MS           = 3000L;
+
+    // ── Main command aliases ─────────────────────────────────────────────────
+    public static final List<String> COMMAND_ALIASES = Collections.unmodifiableList(
+            Arrays.asList("randomtp", "randomteleport"));
 
     // ── Coordinate generation ─────────────────────────────────────────────────
     /** Default coordinate-generation strategy. Matches the value written by BootstrapCoordinator into teleport.yml. */

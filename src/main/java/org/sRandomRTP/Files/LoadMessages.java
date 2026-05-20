@@ -94,7 +94,7 @@ public class LoadMessages {
     public static volatile List<String> diagnostics_dump_failed = Collections.emptyList();
     public static volatile List<String> diagnostics_portal_check = Collections.emptyList();
     public static volatile String settings_header = "&a[sRandomRTP] &6Settings &7(%page%/%max_page%)";
-    public static volatile String settings_description = "&7Debug commands and local admin bossbars are controlled here. Permissions still apply.";
+    public static volatile String settings_description = "&7Debug commands and admin bossbars are controlled here. Permissions still apply.";
     public static volatile String settings_category = "&8- &e%category%";
     public static volatile String settings_category_player = "Player";
     public static volatile String settings_category_admin = "Admin";

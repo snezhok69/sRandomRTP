@@ -1,8 +1,8 @@
-# sRandomRTP 3.1 - Stability, private admin bars, and safer RTP internals
+# sRandomRTP 3.1 - Stability, admin debug tools, and safer RTP internals
 
-Private Local Admin Tools!
+Admin Debug Tools!
 
-1. The following admin monitoring commands now exist only as private/local tools and are disabled in public installs by default:
+1. The following admin monitoring commands are debug tools and are disabled in public installs by default through Settings/commands.yml:
 
 /rtp tpsbar
 /rtp rambar
@@ -10,25 +10,25 @@ Private Local Admin Tools!
 /rtp allbars
 
 1.1. /rtp tpsbar - shows or hides an admin bossbar with the current server TPS.
-Permission when the local gate is enabled: sRandomRTP.Command.TpsBar
+Permission: sRandomRTP.Command.TpsBar
 
 1.2. /rtp rambar - shows or hides an admin bossbar with server RAM usage.
-Permission when the local gate is enabled: sRandomRTP.Command.RamBar
+Permission: sRandomRTP.Command.RamBar
 
 1.3. /rtp msptbar - shows or hides an admin bossbar with the current MSPT value.
-Permission when the local gate is enabled: sRandomRTP.Command.MsptBar
+Permission: sRandomRTP.Command.MsptBar
 
 1.4. /rtp allbars - enables or disables all admin monitoring bossbars at once.
-Permission when the local gate is enabled: sRandomRTP.Command.AllBars
+Permission: sRandomRTP.Command.AllBars
 
-1.5. Public servers do not see these commands in tab completion or /rtp help, and the admin-bars.yml file is not created or loaded unless the private local gate is enabled.
+1.5. Public servers do not see these commands in tab completion or /rtp help until they are enabled in Settings/commands.yml or through /rtp settings.
 
 
-Private Admin Monitoring Features!
+Admin Monitoring Features!
 
-1. Added configurable TPS, RAM, and MSPT bossbars for private/local server monitoring.
+1. Added configurable TPS, RAM, and MSPT bossbars for server monitoring.
 
-2. Each local bar can have its own title, color, style, update format, thresholds, and enabled/disabled state in admin-bars.yml.
+2. Each bar can have its own title, color, style, update format, thresholds, and enabled/disabled state in admin-bars.yml.
 
 3. Commands and tab completion now respect permissions, config state, and server metric support.
 
@@ -60,7 +60,7 @@ Configuration & Localization Update!
 
 1. New config files were added:
 
-admin-bars.yml - private/local TPS/RAM/MSPT bossbar settings, created and loaded only when the local admin gate is enabled.
+admin-bars.yml - TPS/RAM/MSPT bossbar settings. The commands are disabled by default in Settings/commands.yml.
 biome.yml - dedicated radius and search settings for /rtp biome, including per-world options and two-phase search behavior.
 
 2. Config files now use managed config-version values, default-key synchronization, and startup migrations.
@@ -73,7 +73,7 @@ biome.yml - dedicated radius and search settings for /rtp biome, including per-w
 
 6. The unknown-command chat message is now configurable through the invalid-command localization key.
 
-7. English and Russian localizations were expanded with local admin bar messages, invalid command text, and updated command help. Public help output hides local admin commands while the gate is disabled.
+7. English and Russian localizations were expanded with admin bar messages, invalid command text, and updated command help. Public help output hides debug admin commands while their command switches are disabled.
 
 
 Architecture & Diagnostics!
@@ -132,13 +132,15 @@ Additional Stability Polish!
 
 6. Added Settings/commands.yml and /rtp settings, a clickable in-game menu for enabling or disabling RTP subcommands without removing their permission checks.
 
-7. Debug/support commands now have clearer gates: /rtp doctor, /rtp dump, /rtp stats, /rtp portal check, and the local admin bossbar commands can be toggled from the same debug section.
+7. Debug/support commands now have clearer switches: /rtp doctor, /rtp dump, /rtp stats, /rtp portal check, and the admin bossbar commands can be toggled from the same debug section.
 
 8. /rtp portal check is treated as a debug/support command and now has its own permission node: sRandomRTP.Command.Portal.Check.
 
-9. New debug/settings command output is now localized through lang/*.yml, including /rtp doctor, /rtp dump, /rtp stats, /rtp settings, /rtp portal check, and the local admin bossbar help lines.
+9. New debug/settings command output is now localized through lang/*.yml, including /rtp doctor, /rtp dump, /rtp stats, /rtp settings, /rtp portal check, and the admin bossbar help lines.
 
-10. Local admin bossbar commands remain in the plugin, but public builds still hide them behind the local-only gate; when the gate is open, /rtp settings can also toggle /rtp tpsbar, /rtp rambar, /rtp msptbar, and /rtp allbars visibility.
+10. Admin bossbar commands remain in the plugin, but public builds keep them disabled by default through Settings/commands.yml; /rtp settings can toggle /rtp tpsbar, /rtp rambar, /rtp msptbar, and /rtp allbars visibility after the settings command is enabled.
+
+11. /randomtp and /randomteleport were moved out of plugin.yml into config.yml → Command-Aliases, so server owners can enable, remove, or change RTP aliases without editing plugin metadata.
 
 
 Notes
