@@ -56,6 +56,46 @@ public final class FoliaSchedulerFacade {
         return Variables.getFoliaLib().getImpl().runLater(runnable, Math.max(0L, delayTicks));
     }
 
+    public static WrappedTask runTimer(Runnable runnable, long delayTicks, long periodTicks) {
+        if (runnable == null) return null;
+        if (Variables.getFoliaLib() == null) {
+            throw new IllegalStateException("FoliaLib is not initialized and timer execution cannot be scheduled safely");
+        }
+        return Variables.getFoliaLib().getImpl().runTimer(runnable, Math.max(0L, delayTicks), Math.max(1L, periodTicks));
+    }
+
+    public static WrappedTask runTimerAsync(Runnable runnable, long delayTicks, long periodTicks) {
+        if (runnable == null) return null;
+        if (Variables.getFoliaLib() == null) {
+            throw new IllegalStateException("FoliaLib is not initialized and async timer execution cannot be scheduled safely");
+        }
+        return Variables.getFoliaLib().getImpl().runTimerAsync(runnable, Math.max(0L, delayTicks), Math.max(1L, periodTicks));
+    }
+
+    public static WrappedTask runAtLocationTimer(Location location, Runnable runnable, long delayTicks, long periodTicks) {
+        if (location == null || runnable == null) return null;
+        requireFoliaOrPrimary("runAtLocationTimer");
+        if (Variables.getFoliaLib() != null) {
+            return Variables.getFoliaLib().getImpl().runAtLocationTimer(location, runnable,
+                    Math.max(0L, delayTicks), Math.max(1L, periodTicks));
+        }
+        warnInlineFallback("runAtLocationTimer");
+        runnable.run();
+        return null;
+    }
+
+    public static WrappedTask runAtEntityTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks) {
+        if (entity == null || runnable == null) return null;
+        requireFoliaOrPrimary("runAtEntityTimer");
+        if (Variables.getFoliaLib() != null) {
+            return Variables.getFoliaLib().getImpl().runAtEntityTimer(entity, runnable,
+                    Math.max(0L, delayTicks), Math.max(1L, periodTicks));
+        }
+        warnInlineFallback("runAtEntityTimer");
+        runnable.run();
+        return null;
+    }
+
     public static WrappedTask runLaterEntityAware(Player player, long delayTicks, Runnable runnable) {
         if (player == null || runnable == null) return null;
         return runLater(() -> runAtEntity(player, runnable), delayTicks);

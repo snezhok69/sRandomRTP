@@ -2,6 +2,7 @@ package org.sRandomRTP.Commands.portal;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Commands.PortalShape;
 import org.sRandomRTP.DifferentMethods.Variables;
@@ -12,8 +13,10 @@ import org.sRandomRTP.Services.PortalSettings;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -32,10 +35,10 @@ public final class PortalTriggerHandler {
     private static final Pattern PLAYER_NAME_SANITIZE = Pattern.compile("[^a-zA-Z0-9_]");
 
     /**
-     * Players currently inside a portal trigger zone.
-     * ALL reads and writes MUST be performed exclusively under {@code insideLock}.
+     * Players currently inside each portal trigger zone.
+     * Keyed by world/location/radius/shape so one portal cannot suppress another portal's entry.
      */
-    private final Set<UUID> insidePlayers = new HashSet<>();
+    private final Map<String, Set<UUID>> insidePlayersByPortal = new ConcurrentHashMap<>();
     private final Object insideLock = new Object();
 
     private final PortalTeleportCooldownManager cooldownManager;
@@ -57,20 +60,26 @@ public final class PortalTriggerHandler {
         if (center == null || center.getWorld() == null) return;
         PortalSettings settings = PortalSettings.current();
 
+        String portalKey = portalKey(center, radius, shape);
+
         // Snapshot the previous occupant set under the lock (brief — just a copy).
         // This avoids holding the lock across the full player iteration and the
         // triggerPortalEntry dispatch, which can schedule async tasks and send messages.
         Set<UUID> previousPlayers;
         synchronized (insideLock) {
-            previousPlayers = new HashSet<>(insidePlayers);
+            Set<UUID> previous = insidePlayersByPortal.get(portalKey);
+            previousPlayers = previous == null ? new HashSet<UUID>() : new HashSet<>(previous);
         }
 
         // Determine which players are inside and which are new entrants — outside the lock.
         Set<UUID> currentPlayers = new HashSet<>();
         List<Player> newEntrants = new ArrayList<>();
 
-        for (Player player : center.getWorld().getPlayers()) {
-            if (player == null || !player.isOnline()) continue;
+        double range = Math.max(1.0D, radius + 1.0D);
+        for (Entity entity : center.getWorld().getNearbyEntities(center, range, range, range)) {
+            if (!(entity instanceof Player)) continue;
+            Player player = (Player) entity;
+            if (!player.isOnline()) continue;
             if (shape.isInside(player.getLocation(), center, radius)) {
                 currentPlayers.add(player.getUniqueId());
                 if (!previousPlayers.contains(player.getUniqueId())) {
@@ -81,8 +90,11 @@ public final class PortalTriggerHandler {
 
         // Update the occupant set under the lock (brief — only set operations).
         synchronized (insideLock) {
-            insidePlayers.clear();
-            insidePlayers.addAll(currentPlayers);
+            if (currentPlayers.isEmpty()) {
+                insidePlayersByPortal.remove(portalKey);
+            } else {
+                insidePlayersByPortal.put(portalKey, currentPlayers);
+            }
         }
 
         // Dispatch entry actions entirely outside the lock.
@@ -92,6 +104,7 @@ public final class PortalTriggerHandler {
                 Variables.getMessageService().send(player, LoadMessages.error_cooldown_wait);
                 continue;
             }
+            Bukkit.getPluginManager().callEvent(new org.sRandomRTP.Events.PortalEnterEvent(player, center, radius));
             triggerPortalEntry(player, settings);
             if (settings.isCooldownEnabled()) {
                 cooldownManager.setCooldown(player.getUniqueId(),
@@ -106,7 +119,10 @@ public final class PortalTriggerHandler {
      */
     public void handlePlayerQuit(UUID playerId) {
         synchronized (insideLock) {
-            insidePlayers.remove(playerId);
+            for (Set<UUID> players : insidePlayersByPortal.values()) {
+                players.remove(playerId);
+            }
+            insidePlayersByPortal.entrySet().removeIf(entry -> entry.getValue().isEmpty());
         }
         cooldownManager.clearCooldown(playerId);
     }
@@ -145,5 +161,14 @@ public final class PortalTriggerHandler {
             Variables.getFoliaLib().getImpl().runAtEntity(player, e ->
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand));
         }
+    }
+
+    private static String portalKey(Location center, int radius, PortalShape shape) {
+        return center.getWorld().getName()
+                + ':' + center.getBlockX()
+                + ':' + center.getBlockY()
+                + ':' + center.getBlockZ()
+                + ':' + radius
+                + ':' + shape;
     }
 }

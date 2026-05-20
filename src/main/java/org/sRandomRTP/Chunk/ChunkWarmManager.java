@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Variables;
 import java.util.Map;
 import java.util.UUID;
@@ -120,7 +121,7 @@ public final class ChunkWarmManager implements Listener {
 
     private void scheduleWarmTask() {
         cancelWarmTask();
-        warmTask = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
+        warmTask = FoliaSchedulerFacade.runTimer(() -> {
             try {
                 runWarmCycle();
             } catch (RuntimeException throwable) {

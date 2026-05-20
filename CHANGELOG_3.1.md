@@ -118,6 +118,27 @@ Small Changes & Fixes!
 11. .gitignore was updated to keep IDE files, local agent files, runtime databases, logs, and build artifacts out of the repository.
 
 
+Additional Stability Polish!
+
+1. Added /rtp doctor, /rtp dump, /rtp stats, and /rtp portal check to make support and server diagnostics easier.
+
+2. Chunk warming, portal particles/triggers, admin bars, and release-check callbacks now avoid unsafe async Bukkit API access.
+
+3. RTP usage counting is now saved in batches instead of writing Data/rtpCount.yml after every teleport, and cooldown-bypass teleports are counted correctly.
+
+4. Config updates now create backups and write Diagnostics/config-changes.txt, while startup/reload diagnostics are written even when normal logs are disabled.
+
+5. Added PlaceholderAPI values and public RTP/portal events for integrations, plus extra tests for config versions, plugin.yml permissions, scheduler safety, and Java 8 bytecode.
+
+6. Added Settings/commands.yml and /rtp settings, a clickable in-game menu for enabling or disabling RTP subcommands without removing their permission checks.
+
+7. Debug/support commands now have clearer gates: /rtp doctor, /rtp dump, /rtp stats, /rtp portal check, and the local admin bossbar commands can be toggled from the same debug section.
+
+8. /rtp portal check no longer has a separate permission node; it is treated as a debug/support command instead of a portal-management permission.
+
+9. Local admin bossbar commands remain in the plugin, but public builds still hide them behind the local-only gate; when the gate is open, /rtp settings can also toggle /rtp tpsbar, /rtp rambar, /rtp msptbar, and /rtp allbars visibility.
+
+
 Notes
 
 Update 3.1 is mainly a stability, diagnostics, and internal cleanup update after the large 3.0 release. A lot of teleport, portal, cooldown, and config internals changed, so please report any missed edge cases on the Discord server or by creating a GitHub issue.

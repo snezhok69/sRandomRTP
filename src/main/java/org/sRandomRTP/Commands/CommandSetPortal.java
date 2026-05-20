@@ -7,8 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.Commands.portal.PortalBlockPlacer;
 import org.sRandomRTP.Commands.portal.PortalCreationContext;
-import org.sRandomRTP.Commands.portal.PortalParticleManager;
-import org.sRandomRTP.Commands.portal.PortalTriggerHandler;
+import org.sRandomRTP.Commands.portal.PortalTaskScheduler;
 import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DataPortals.PortalDataSerializer;
 import org.sRandomRTP.DataPortals.PortalDataTasks;
@@ -53,13 +52,6 @@ public class CommandSetPortal {
                     "%excessCharacters%", String.valueOf(excessCharacters));
             return;
         }
-        RuntimeStateRegistry state = Variables.getRuntimeState();
-        if (state.hasPlayerPortal(sender.getName(), portalName)) {
-            Variables.getMessageService().send(sender, LoadMessages.error_portal_name_already_exists,
-                    "%portalName%", portalName);
-            return;
-        }
-
         PortalShape shape = PortalShape.fromString(shapeStr);
         Player player = (Player) sender;
         Location center = player.getLocation().clone();
@@ -77,6 +69,12 @@ public class CommandSetPortal {
         World world = center.getWorld();
         if (world == null) return;
         String worldName = world.getName();
+        RuntimeStateRegistry state = Variables.getRuntimeState();
+        if (state.hasPlayerPortal(sender.getName(), portalName) || hasPortalNameCollision(state, worldName, portalName)) {
+            Variables.getMessageService().send(sender, LoadMessages.error_portal_name_already_exists,
+                    "%portalName%", portalName);
+            return;
+        }
         PortalData portalData = new PortalData(player.getName(), worldName, portalName,
                 center.getX(), center.getY(), center.getZ(), shape.toString());
         state.putPlayerPortal(player.getName(), portalName, portalData);
@@ -95,13 +93,8 @@ public class CommandSetPortal {
                 radius, allBlocksDataStr, shape.toString());
 
         // Schedule particle and trigger tasks
-        WrappedTask particlesTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                () -> PortalParticleManager.spawnParticles(center, radius, shape), 0L, 10L);
-        PortalTriggerHandler triggerHandler = Variables.getPortalTriggerHandler();
-        WrappedTask triggerTask = triggerHandler != null
-                ? Variables.getFoliaLib().getImpl().runTimerAsync(
-                        () -> triggerHandler.handlePortalTrigger(center, radius, shape), 0L, 20L)
-                : null;
+        WrappedTask particlesTask = PortalTaskScheduler.scheduleParticles(center, radius, shape, 0L, 10L);
+        WrappedTask triggerTask = PortalTaskScheduler.scheduleTrigger(center, radius, shape, 0L, 20L);
 
         // Task IDs are deterministic (derived from portalName) — stored for record-keeping
         // but tasks are looked up at runtime exclusively by portalName, not by these IDs.
@@ -113,5 +106,21 @@ public class CommandSetPortal {
 
         Variables.getMessageService().send(sender, LoadMessages.success_portal_created,
                 "%portalName%", portalName, "%radius%", String.valueOf(radius), "%shape%", shape.toString());
+    }
+
+    private static boolean hasPortalNameCollision(RuntimeStateRegistry state, String worldName, String portalName) {
+        if (state == null || worldName == null || portalName == null) {
+            return false;
+        }
+        for (java.util.Map<String, PortalData> portals : state.getPlayerPortals().values()) {
+            if (portals == null) {
+                continue;
+            }
+            PortalData existing = portals.get(portalName);
+            if (existing != null && worldName.equalsIgnoreCase(existing.getWorldName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -1,4 +1,4 @@
-config-version: 3
+config-version: 4
 
 teleport:
   # Minimum radius for selecting a random teleportation point when using the /rtp near command.

@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class OnTabCompletes implements TabCompleter {
+    private static final List<String> BIOME_NAMES = buildBiomeNames();
 
     public List<String> getAllArguments(CommandSender sender, String[] args) {
         try {
@@ -33,7 +34,13 @@ public class OnTabCompletes implements TabCompleter {
             if (args.length == 3) {
                 return getThirdArgumentSuggestions(sender, args);
             }
-            if (args.length == 5 && isPortalSetShapeRequest(args)) {
+            if (args.length == 4
+                    && "settings".equalsIgnoreCase(args[0])
+                    && "toggle".equalsIgnoreCase(args[1])
+                    && CommandFeatureFlag.SETTINGS.isVisibleTo(sender)) {
+                return Arrays.asList("on", "off");
+            }
+            if (args.length == 5 && isPortalSetShapeRequest(args) && CommandFeatureFlag.PORTAL.isVisibleTo(sender)) {
                 return PortalCommandSupport.shapeSuggestions();
             }
             return java.util.Collections.emptyList();
@@ -62,52 +69,64 @@ public class OnTabCompletes implements TabCompleter {
 
     private List<String> getRootArguments(CommandSender sender) {
         List<String> arguments = new ArrayList<String>();
-        if (sender.hasPermission(Permissions.RELOAD)) {
+        if (CommandFeatureFlag.RELOAD.isVisibleTo(sender)) {
             arguments.add("reload");
         }
-        if (sender.hasPermission(Permissions.CANCEL)) {
+        if (CommandFeatureFlag.CANCEL.isVisibleTo(sender)) {
             arguments.add("cancel");
         }
-        if (sender.hasPermission(Permissions.VERSION)) {
+        if (CommandFeatureFlag.VERSION.isVisibleTo(sender)) {
             arguments.add("version");
         }
-        if (sender.hasPermission(Permissions.NEAR)) {
+        if (CommandFeatureFlag.NEAR.isVisibleTo(sender)) {
             arguments.add("near");
         }
-        if (sender.hasPermission(Permissions.HELP)) {
+        if (CommandFeatureFlag.HELP.isVisibleTo(sender)) {
             arguments.add("help");
         }
-        if (sender.hasPermission(Permissions.PLAYER)) {
+        if (CommandFeatureFlag.PLAYER.isVisibleTo(sender)) {
             arguments.add("player");
         }
-        if (sender.hasPermission(Permissions.BASE)) {
+        if (CommandFeatureFlag.BASE.isVisibleTo(sender)) {
             arguments.add("base");
         }
-        if (sender.hasPermission(Permissions.BACK)) {
+        if (CommandFeatureFlag.BACK.isVisibleTo(sender)) {
             arguments.add("back");
         }
-        if (sender.hasPermission(Permissions.WORLD)) {
+        if (CommandFeatureFlag.WORLD.isVisibleTo(sender)) {
             arguments.add("world");
         }
-        if (sender.hasPermission(Permissions.ACCEPT)) {
+        if (CommandFeatureFlag.ACCEPT.isVisibleTo(sender)) {
             arguments.add("accept");
         }
-        if (sender.hasPermission(Permissions.DENY)) {
+        if (CommandFeatureFlag.DENY.isVisibleTo(sender)) {
             arguments.add("deny");
         }
-        if (sender.hasPermission(Permissions.PORTAL)) {
+        if (CommandFeatureFlag.SETTINGS.isVisibleTo(sender)) {
+            arguments.add("settings");
+        }
+        if (CommandFeatureFlag.DOCTOR.isVisibleTo(sender)) {
+            arguments.add("doctor");
+        }
+        if (CommandFeatureFlag.DUMP.isVisibleTo(sender)) {
+            arguments.add("dump");
+        }
+        if (CommandFeatureFlag.STATS.isVisibleTo(sender)) {
+            arguments.add("stats");
+        }
+        if (CommandFeatureFlag.PORTAL.isVisibleTo(sender) || CommandFeatureFlag.PORTAL_CHECK.isVisibleTo(sender)) {
             arguments.add("portal");
         }
-        if (sender.hasPermission(Permissions.CHUNKY)) {
+        if (CommandFeatureFlag.CHUNKY.isVisibleTo(sender)) {
             arguments.add("chunky");
         }
-        if (sender.hasPermission(Permissions.FAR)) {
+        if (CommandFeatureFlag.FAR.isVisibleTo(sender)) {
             arguments.add("far");
         }
-        if (sender.hasPermission(Permissions.MIDDLE)) {
+        if (CommandFeatureFlag.MIDDLE.isVisibleTo(sender)) {
             arguments.add("middle");
         }
-        if (sender.hasPermission(Permissions.RTP_BIOME)) {
+        if (CommandFeatureFlag.BIOME.isVisibleTo(sender)) {
             arguments.add("biome");
         }
         addAdminBarArguments(sender, arguments);
@@ -116,29 +135,40 @@ public class OnTabCompletes implements TabCompleter {
 
     private List<String> getSecondArgumentSuggestions(CommandSender sender, String[] args) {
         String subCommand = args[0].toLowerCase();
-        if ("portal".equals(subCommand) && sender.hasPermission(Permissions.PORTAL)) {
-            return PortalCommandSupport.actionSuggestions();
+        if ("portal".equals(subCommand)
+                && (CommandFeatureFlag.PORTAL.isVisibleTo(sender) || CommandFeatureFlag.PORTAL_CHECK.isVisibleTo(sender))) {
+            return PortalCommandSupport.actionSuggestions(sender);
         }
-        if ("world".equals(subCommand) && sender.hasPermission(Permissions.WORLD)) {
+        if ("world".equals(subCommand) && CommandFeatureFlag.WORLD.isVisibleTo(sender)) {
             return getWorldSuggestions(10);
         }
-        if ("player".equals(subCommand)) {
+        if ("player".equals(subCommand) && CommandFeatureFlag.PLAYER.isVisibleTo(sender)) {
             return getOnlinePlayerNames();
         }
-        if ("biome".equals(subCommand) && sender.hasPermission(Permissions.RTP_BIOME)) {
+        if ("biome".equals(subCommand) && CommandFeatureFlag.BIOME.isVisibleTo(sender)) {
+            if ("list".equalsIgnoreCase(args[1])) {
+                return Arrays.asList("1", "2", "3");
+            }
             return getBiomeArgumentSuggestions(args[1]);
         }
-        if ("chunky".equals(subCommand)) {
+        if ("chunky".equals(subCommand) && CommandFeatureFlag.CHUNKY.isVisibleTo(sender)) {
             return Arrays.asList("stop");
+        }
+        if ("settings".equals(subCommand) && CommandFeatureFlag.SETTINGS.isVisibleTo(sender)) {
+            return Arrays.asList("1", "2", "3", "4", "toggle");
         }
         if (!LocalFeatureGate.isLocalAdminBarsEnabled()) {
             return java.util.Collections.emptyList();
         }
-        if ("allbars".equals(subCommand) && Variables.getAdminBarService().shouldShowAllInTab(sender)) {
+        if ("allbars".equals(subCommand)
+                && CommandFeatureFlag.ALL_BARS.isVisibleTo(sender)
+                && Variables.getAdminBarService().shouldShowAllInTab(sender)) {
             return Arrays.asList("on", "off");
         }
         AdminBarType adminBarType = AdminBarType.fromSubCommand(subCommand);
-        if (adminBarType != null && Variables.getAdminBarService().shouldShowInTab(sender, adminBarType)) {
+        if (adminBarType != null
+                && CommandFeatureFlag.fromSubCommand(subCommand).isVisibleTo(sender)
+                && Variables.getAdminBarService().shouldShowInTab(sender, adminBarType)) {
             return Arrays.asList("on", "off");
         }
         return java.util.Collections.emptyList();
@@ -147,17 +177,26 @@ public class OnTabCompletes implements TabCompleter {
     private List<String> getThirdArgumentSuggestions(CommandSender sender, String[] args) {
         String subCommand = args[0].toLowerCase();
         if ("portal".equals(subCommand)
+                && CommandFeatureFlag.PORTAL.isVisibleTo(sender)
                 && ("del".equalsIgnoreCase(args[1]) || "list".equalsIgnoreCase(args[1]))) {
             return PortalCommandSupport.portalNameSuggestions(sender, args[2], 8);
         }
-        if ("player".equals(subCommand)) {
+        if ("player".equals(subCommand) && CommandFeatureFlag.PLAYER.isVisibleTo(sender)) {
             return getWorldSuggestions(10);
         }
-        if ("chunky".equals(subCommand) && !"stop".equalsIgnoreCase(args[1])) {
+        if ("chunky".equals(subCommand) && CommandFeatureFlag.CHUNKY.isVisibleTo(sender) && !"stop".equalsIgnoreCase(args[1])) {
             return Arrays.asList("stop");
         }
-        if ("biome".equals(subCommand) && sender.hasPermission(Permissions.RTP_BIOME)) {
+        if ("biome".equals(subCommand) && CommandFeatureFlag.BIOME.isVisibleTo(sender)) {
+            if ("list".equalsIgnoreCase(args[1])) {
+                return Arrays.asList("1", "2", "3");
+            }
             return getSimpleBiomeSuggestions(args[2]);
+        }
+        if ("settings".equals(subCommand)
+                && CommandFeatureFlag.SETTINGS.isVisibleTo(sender)
+                && "toggle".equalsIgnoreCase(args[1])) {
+            return getSettingsFlagSuggestions(args[2]);
         }
         return java.util.Collections.emptyList();
     }
@@ -167,16 +206,16 @@ public class OnTabCompletes implements TabCompleter {
             return;
         }
         AdminBarService adminBarService = Variables.getAdminBarService();
-        if (adminBarService.shouldShowInTab(sender, AdminBarType.TPS)) {
+        if (CommandFeatureFlag.TPS_BAR.isVisibleTo(sender) && adminBarService.shouldShowInTab(sender, AdminBarType.TPS)) {
             arguments.add("tpsbar");
         }
-        if (adminBarService.shouldShowInTab(sender, AdminBarType.RAM)) {
+        if (CommandFeatureFlag.RAM_BAR.isVisibleTo(sender) && adminBarService.shouldShowInTab(sender, AdminBarType.RAM)) {
             arguments.add("rambar");
         }
-        if (adminBarService.shouldShowInTab(sender, AdminBarType.MSPT)) {
+        if (CommandFeatureFlag.MSPT_BAR.isVisibleTo(sender) && adminBarService.shouldShowInTab(sender, AdminBarType.MSPT)) {
             arguments.add("msptbar");
         }
-        if (adminBarService.shouldShowAllInTab(sender)) {
+        if (CommandFeatureFlag.ALL_BARS.isVisibleTo(sender) && adminBarService.shouldShowAllInTab(sender)) {
             arguments.add("allbars");
         }
     }
@@ -212,6 +251,17 @@ public class OnTabCompletes implements TabCompleter {
                 && "set".equalsIgnoreCase(args[1]);
     }
 
+    private List<String> getSettingsFlagSuggestions(String prefix) {
+        String lowerPrefix = prefix == null ? "" : prefix.toLowerCase();
+        List<String> suggestions = new ArrayList<String>();
+        for (CommandFeatureFlag flag : CommandFeatureFlag.values()) {
+            if (flag.isToggleable() && flag.getId().startsWith(lowerPrefix)) {
+                suggestions.add(flag.getId());
+            }
+        }
+        return suggestions;
+    }
+
     private List<String> getBiomeArgumentSuggestions(String rawInput) {
         String value = rawInput == null ? "" : rawInput;
         int commaIndex = value.lastIndexOf(',');
@@ -235,8 +285,18 @@ public class OnTabCompletes implements TabCompleter {
         List<String> suggestions = new ArrayList<>();
         String normalized = query == null ? "" : query.trim().toLowerCase();
         boolean enforceLimit = normalized.isEmpty();
-        for (Biome biome : Biome.values()) {
-            String name = biome.name();
+        if ("list".startsWith(normalized)) {
+            suggestions.add(prefix + "list");
+        }
+        for (String category : CommandRtpBiome.categoryNames()) {
+            if (normalized.isEmpty() || category.startsWith(normalized)) {
+                suggestions.add(prefix + category);
+                if (enforceLimit && suggestions.size() >= 10) {
+                    return suggestions;
+                }
+            }
+        }
+        for (String name : BIOME_NAMES) {
             if (normalized.isEmpty() || name.toLowerCase().startsWith(normalized)) {
                 suggestions.add(prefix + name);
                 if (enforceLimit && suggestions.size() >= 10) {
@@ -245,5 +305,13 @@ public class OnTabCompletes implements TabCompleter {
             }
         }
         return suggestions;
+    }
+
+    private static List<String> buildBiomeNames() {
+        List<String> names = new ArrayList<>();
+        for (Biome biome : Biome.values()) {
+            names.add(biome.name());
+        }
+        return java.util.Collections.unmodifiableList(names);
     }
 }

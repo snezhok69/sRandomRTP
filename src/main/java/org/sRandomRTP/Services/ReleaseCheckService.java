@@ -44,16 +44,18 @@ public class ReleaseCheckService {
 
     public void triggerStartupConsoleCheck() {
         requestLatestVersion(false).whenComplete((result, throwable) -> {
-            if (throwable != null || result == null) {
-                return;
-            }
+            runSync(() -> {
+                if (throwable != null || result == null) {
+                    return;
+                }
 
-            if (result.isUpdateAvailable()) {
-                sendLines(Bukkit.getConsoleSender(), LoadMessages.newVersionMessage,
-                        "%new-CommandVersion%", result.getLatestVersion(),
-                        "%old-CommandVersion%", result.getCurrentVersion());
-            }
-            maybeWarnSeverelyOutdated(result);
+                if (result.isUpdateAvailable()) {
+                    sendLines(Bukkit.getConsoleSender(), LoadMessages.newVersionMessage,
+                            "%new-CommandVersion%", result.getLatestVersion(),
+                            "%old-CommandVersion%", result.getCurrentVersion());
+                }
+                maybeWarnSeverelyOutdated(result);
+            });
         });
     }
 
@@ -75,38 +77,9 @@ public class ReleaseCheckService {
         long periodSeconds = Math.max(30L, Variables.getInstance().getConfig().getLong("Period-Checking-New-Version", 1800L));
         long periodTicks = periodSeconds * 20L;
 
-        autoCheckTask = Variables.getFoliaLib().getImpl().runTimerAsync(() -> {
+        autoCheckTask = FoliaSchedulerFacade.runTimerAsync(() -> {
             requestLatestVersion(true).whenComplete((result, throwable) -> {
-                if (throwable != null || result == null) {
-                    Bukkit.getConsoleSender().sendMessage("§b[sRandomRTP] §8- §cError when checking new plugin version: §6"
-                            + safe(throwable == null ? null : throwable.getMessage()));
-                    return;
-                }
-
-                if (result.getStatus() == Status.ERROR) {
-                    Bukkit.getConsoleSender().sendMessage("§b[sRandomRTP] §8- §cError when checking new plugin version: §6"
-                            + safe(result.getErrorMessage()));
-                    return;
-                }
-
-                if (result.isUpdateAvailable()) {
-                    if (consoleEnabled) {
-                        sendLines(Bukkit.getConsoleSender(), LoadMessages.newVersionMessage,
-                                "%new-CommandVersion%", result.getLatestVersion(),
-                                "%old-CommandVersion%", result.getCurrentVersion());
-                    }
-                    if (playersEnabled) {
-                        for (Player player : Bukkit.getOnlinePlayers()) {
-                            if (player != null && player.isOnline()) {
-                                sendLines(player, LoadMessages.newVersionMessage,
-                                        "%new-CommandVersion%", result.getLatestVersion(),
-                                        "%old-CommandVersion%", result.getCurrentVersion());
-                            }
-                        }
-                    }
-                }
-
-                maybeWarnSeverelyOutdated(result);
+                runSync(() -> handleAutoCheckResult(result, throwable, playersEnabled, consoleEnabled));
             });
         }, periodTicks, periodTicks);
         Variables.autoCheckVersionTask = autoCheckTask;
@@ -128,20 +101,22 @@ public class ReleaseCheckService {
     public void sendVersionStatus(CommandSender sender) {
         sendLines(sender, LoadMessages.CheckingVersion);
         requestLatestVersion(false).whenComplete((result, throwable) -> {
-            if (throwable != null || result == null || result.getStatus() == Status.ERROR) {
-                String error = throwable != null ? throwable.getMessage() : result == null ? "unknown error" : result.getErrorMessage();
-                sendLines(sender, LoadMessages.ErrorCheckingVersionMessage, "%error%", safe(error));
-                return;
-            }
+            runSync(() -> {
+                if (throwable != null || result == null || result.getStatus() == Status.ERROR) {
+                    String error = throwable != null ? throwable.getMessage() : result == null ? "unknown error" : result.getErrorMessage();
+                    sendLines(sender, LoadMessages.ErrorCheckingVersionMessage, "%error%", safe(error));
+                    return;
+                }
 
-            if (result.isUpdateAvailable()) {
-                sendLines(sender, LoadMessages.newVersionMessage,
-                        "%new-CommandVersion%", result.getLatestVersion(),
-                        "%old-CommandVersion%", result.getCurrentVersion());
-            } else {
-                sendLines(sender, LoadMessages.LatestVersionMessage,
-                        "%latest-CommandVersion%", result.getCurrentVersion());
-            }
+                if (result.isUpdateAvailable()) {
+                    sendLines(sender, LoadMessages.newVersionMessage,
+                            "%new-CommandVersion%", result.getLatestVersion(),
+                            "%old-CommandVersion%", result.getCurrentVersion());
+                } else {
+                    sendLines(sender, LoadMessages.LatestVersionMessage,
+                            "%latest-CommandVersion%", result.getCurrentVersion());
+                }
+            });
         });
     }
 
@@ -237,9 +212,7 @@ public class ReleaseCheckService {
         Bukkit.getConsoleSender().sendMessage(ChatUtils.PLUGIN_NAME + " §8- §c> WARNING ========================================== WARNING <");
         Bukkit.getConsoleSender().sendMessage("");
 
-        if (severeOutdatedWarningCount.incrementAndGet() >= 10 && Variables.getInstance() != null) {
-            Variables.getInstance().getServer().getPluginManager().disablePlugin(Variables.getInstance());
-        }
+        severeOutdatedWarningCount.incrementAndGet();
     }
 
     private int computeMinorGap(String latestVersion, String currentVersion) {
@@ -300,6 +273,53 @@ public class ReleaseCheckService {
         return value == null || value.trim().isEmpty() ? "unknown error" : value;
     }
 
+    private void handleAutoCheckResult(ReleaseCheckResult result, Throwable throwable,
+                                       boolean playersEnabled, boolean consoleEnabled) {
+        if (throwable != null || result == null) {
+            Bukkit.getConsoleSender().sendMessage("§b[sRandomRTP] §8- §cError when checking new plugin version: §6"
+                    + safe(throwable == null ? null : throwable.getMessage()));
+            return;
+        }
+
+        if (result.getStatus() == Status.ERROR) {
+            Bukkit.getConsoleSender().sendMessage("§b[sRandomRTP] §8- §cError when checking new plugin version: §6"
+                    + safe(result.getErrorMessage()));
+            return;
+        }
+
+        if (result.isUpdateAvailable()) {
+            if (consoleEnabled) {
+                sendLines(Bukkit.getConsoleSender(), LoadMessages.newVersionMessage,
+                        "%new-CommandVersion%", result.getLatestVersion(),
+                        "%old-CommandVersion%", result.getCurrentVersion());
+            }
+            if (playersEnabled) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player != null && player.isOnline()) {
+                        sendLines(player, LoadMessages.newVersionMessage,
+                                "%new-CommandVersion%", result.getLatestVersion(),
+                                "%old-CommandVersion%", result.getCurrentVersion());
+                    }
+                }
+            }
+        }
+
+        maybeWarnSeverelyOutdated(result);
+    }
+
+    private void runSync(Runnable runnable) {
+        if (runnable == null) {
+            return;
+        }
+        if (Variables.getFoliaLib() != null) {
+            Variables.getFoliaLib().getImpl().runNextTick(task -> runnable.run());
+            return;
+        }
+        if (Bukkit.isPrimaryThread()) {
+            runnable.run();
+        }
+    }
+
     private void sendLines(CommandSender sender, List<String> lines, String... replacements) {
         if (sender == null || lines == null) {
             return;
@@ -310,7 +330,11 @@ public class ReleaseCheckService {
                     () -> messageService.send(player, lines, replacements));
             return;
         }
-        messageService.send(sender, lines, replacements);
+        if (Bukkit.isPrimaryThread()) {
+            messageService.send(sender, lines, replacements);
+        } else {
+            runSync(() -> messageService.send(sender, lines, replacements));
+        }
     }
 
     static final class ReleaseCheckResult {

@@ -39,6 +39,9 @@ public class CommandArgs implements CommandExecutor {
         m.put("cancel",  CommandCancel::commandRtpCancel);
         m.put("back",    CommandBack::handleBackCommand);
         m.put("version", CommandVersion::commandVersion);
+        m.put("doctor",  CommandDiagnostics::doctor);
+        m.put("dump",    CommandDiagnostics::dump);
+        m.put("stats",   CommandDiagnostics::stats);
         SIMPLE_COMMANDS = Collections.unmodifiableMap(m);
     }
 
@@ -59,6 +62,9 @@ public class CommandArgs implements CommandExecutor {
         try {
             RuntimeStateRegistry state = Variables.getRuntimeState();
             if (args.length == 0) {
+                if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.RTP)) {
+                    return true;
+                }
                 Map<String, Map<String, Object>> commands = Variables.getInstance().getDescription().getCommands();
                 if (commands.containsKey(label.toLowerCase())) {
                     CommandRtp.commandRtp(sender);
@@ -72,6 +78,9 @@ public class CommandArgs implements CommandExecutor {
             // Simple no-arg commands: dispatch via map (eliminates 7 identical switch cases)
             Consumer<CommandSender> simple = SIMPLE_COMMANDS.get(subCommand);
             if (simple != null) {
+                if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.fromSubCommand(subCommand))) {
+                    return true;
+                }
                 if (args.length < 2) {
                     simple.accept(sender);
                 } else {
@@ -81,7 +90,12 @@ public class CommandArgs implements CommandExecutor {
             }
 
             switch (subCommand) {
+                case "settings":
+                    return CommandSettings.handle(sender, args);
                 case "biome":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.BIOME)) {
+                        return true;
+                    }
                     if (!requirePlayerSender(sender)) {
                         return false;
                     }
@@ -97,6 +111,9 @@ public class CommandArgs implements CommandExecutor {
                 case "msptbar":
                 case "allbars":
                     if (LocalFeatureGate.isLocalAdminBarsEnabled()) {
+                        if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.fromSubCommand(subCommand))) {
+                            return true;
+                        }
                         CommandAdminBar.handle(sender, args);
                     } else {
                         sendInvalidCommand(sender);
@@ -106,6 +123,9 @@ public class CommandArgs implements CommandExecutor {
                     PortalCommandSupport.handle(sender, args);
                     break;
                 case "chunky":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.CHUNKY)) {
+                        return true;
+                    }
                     if (args.length < 2) {
                         sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cUsage: /rtp chunky <radius> or /rtp chunky stop");
                     } else if (args.length == 2) {
@@ -119,8 +139,14 @@ public class CommandArgs implements CommandExecutor {
                     }
                     break;
                 case "near":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.NEAR)) {
+                        return true;
+                    }
                     return handleNearCommand(sender, args, state);
                 case "help":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.HELP)) {
+                        return true;
+                    }
                     if (!requirePlayerSender(sender)) {
                         return false;
                     }
@@ -131,12 +157,24 @@ public class CommandArgs implements CommandExecutor {
                     }
                     break;
                 case "deny":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.DENY)) {
+                        return true;
+                    }
                     return handleConfirmResponse(sender, args, state, false);
                 case "accept":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.ACCEPT)) {
+                        return true;
+                    }
                     return handleConfirmResponse(sender, args, state, true);
                 case "player":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.PLAYER)) {
+                        return true;
+                    }
                     return handlePlayerCommand(sender, args, state);
                 case "world":
+                    if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.WORLD)) {
+                        return true;
+                    }
                     return handleWorldCommand(sender, args, state);
                 default:
                     sendInvalidCommand(sender);

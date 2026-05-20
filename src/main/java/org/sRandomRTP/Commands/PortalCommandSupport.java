@@ -2,6 +2,7 @@ package org.sRandomRTP.Commands;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.sRandomRTP.DataPortals.PortalData;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Utils.ChatUtils;
@@ -12,13 +13,22 @@ import java.util.List;
 
 final class PortalCommandSupport {
 
-    private static final List<String> ACTIONS = Arrays.asList("set", "del", "list");
+    private static final List<String> ACTIONS = Arrays.asList("set", "del", "list", "check");
     private static final List<String> SHAPES = Arrays.asList("circle", "square");
 
     private PortalCommandSupport() {
     }
 
     static boolean handle(CommandSender sender, String[] args) {
+        if (args.length >= 2 && "check".equalsIgnoreCase(args[1])) {
+            handleCheck(sender);
+            return true;
+        }
+
+        if (!CommandFeatureFlag.ensureEnabled(sender, CommandFeatureFlag.PORTAL)) {
+            return true;
+        }
+
         if (!(sender instanceof Player)) {
             ChatUtils.sendPlayersOnly(sender);
             return true;
@@ -48,13 +58,24 @@ final class PortalCommandSupport {
             CommandListPortals.commandListPortals(sender, newArgs);
             return true;
         }
-
-        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cInvalid portal command! Use: set, del or list");
+        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cInvalid portal command! Use: set, del, list or check");
         return true;
     }
 
-    static List<String> actionSuggestions() {
-        return ACTIONS;
+    static List<String> actionSuggestions(CommandSender sender) {
+        java.util.ArrayList<String> suggestions = new java.util.ArrayList<>();
+        for (String action : ACTIONS) {
+            if ("check".equals(action)) {
+                if (CommandFeatureFlag.PORTAL_CHECK.isVisibleTo(sender)) {
+                    suggestions.add(action);
+                }
+                continue;
+            }
+            if (CommandFeatureFlag.PORTAL.isVisibleTo(sender)) {
+                suggestions.add(action);
+            }
+        }
+        return suggestions;
     }
 
     static List<String> shapeSuggestions() {
@@ -103,5 +124,38 @@ final class PortalCommandSupport {
             Variables.getMessageService().send(sender, LoadMessages.portalradius);
             return null;
         }
+    }
+
+    private static void handleCheck(CommandSender sender) {
+        if (!CommandFeatureFlag.ensurePermissionAndEnabled(sender, CommandFeatureFlag.PORTAL_CHECK)) {
+            return;
+        }
+        java.util.Map<String, java.util.Map<String, PortalData>> portals = Variables.getRuntimeState().getPlayerPortals();
+        java.util.Set<String> worldNameKeys = new java.util.HashSet<>();
+        int total = 0;
+        int missingWorlds = 0;
+        int duplicateWorldNames = 0;
+        for (java.util.Map<String, PortalData> playerPortals : portals.values()) {
+            if (playerPortals == null) {
+                continue;
+            }
+            for (PortalData portal : playerPortals.values()) {
+                if (portal == null) {
+                    continue;
+                }
+                total++;
+                if (org.bukkit.Bukkit.getWorld(portal.getWorldName()) == null) {
+                    missingWorlds++;
+                }
+                String key = portal.getWorldName() + ":" + portal.getPortalName().toLowerCase(java.util.Locale.ROOT);
+                if (!worldNameKeys.add(key)) {
+                    duplicateWorldNames++;
+                }
+            }
+        }
+        sender.sendMessage(ChatUtils.PLUGIN_NAME + " §6Portal check: §ftotal=" + total
+                + " §7missing_worlds=§f" + missingWorlds
+                + " §7duplicate_world_names=§f" + duplicateWorldNames
+                + " §7tasks=§f" + Variables.getRuntimeState().getPlayerPortalsTasks().size());
     }
 }

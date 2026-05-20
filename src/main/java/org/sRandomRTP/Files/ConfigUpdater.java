@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConstructor;
 import org.bukkit.configuration.file.YamlRepresenter;
 import org.bukkit.plugin.Plugin;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Services.ConfigChangeReporter;
 import org.sRandomRTP.Services.PluginVersionCatalog;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -15,6 +16,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class ConfigUpdater {
@@ -53,10 +56,50 @@ public class ConfigUpdater {
         String existingContent = new String(Files.readAllBytes(toUpdatePath), StandardCharsets.UTF_8);
         String updatedContent = value;
         if (!existingContent.equals(updatedContent)) {
+            createBackup(plugin, toUpdate);
+            List<String> addedKeys = collectAddedKeys(defaultConfig, currentConfig);
             Files.write(toUpdatePath, updatedContent.getBytes(StandardCharsets.UTF_8));
+            ConfigChangeReporter.record(resourceName, "auto-updated from bundled defaults", addedKeys);
             return true;
         }
         return false;
+    }
+
+    private static List<String> collectAddedKeys(FileConfiguration defaultConfig, FileConfiguration currentConfig) {
+        List<String> addedKeys = new ArrayList<>();
+        for (String key : defaultConfig.getKeys(true)) {
+            if (PluginVersionCatalog.CONFIG_VERSION_PATH.equals(key)) {
+                continue;
+            }
+            Object value = defaultConfig.get(key);
+            if (value instanceof ConfigurationSection) {
+                continue;
+            }
+            if (!currentConfig.contains(key)) {
+                addedKeys.add("added missing key: " + key);
+            }
+        }
+        if (addedKeys.isEmpty()) {
+            addedKeys.add("rewrote layout/comments or synchronized config-version");
+        }
+        return addedKeys;
+    }
+
+    private static void createBackup(Plugin plugin, File source) {
+        if (plugin == null || source == null || !source.exists()) {
+            return;
+        }
+        File backupRoot = new File(plugin.getDataFolder(), "Diagnostics/config-backups");
+        if (!backupRoot.exists() && !backupRoot.mkdirs()) {
+            return;
+        }
+        String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
+        File backupFile = new File(backupRoot, source.getName() + "." + stamp + ".bak");
+        try {
+            Files.copy(source.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to back up config " + source.getName() + ": " + e.getMessage());
+        }
     }
 
     private static void write(FileConfiguration defaultConfig, FileConfiguration currentConfig, BufferedWriter writer, Map<String, String> comments, Map<String, String> ignoredSectionsValues) throws IOException {

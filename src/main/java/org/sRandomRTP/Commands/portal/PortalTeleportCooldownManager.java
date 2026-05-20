@@ -38,6 +38,17 @@ public final class PortalTeleportCooldownManager {
         cooldowns.remove(playerId);
     }
 
+    public long getRemainingMillis(UUID playerId) {
+        Long expiresAt = cooldowns.get(playerId);
+        if (expiresAt == null) return 0L;
+        long remaining = expiresAt - System.currentTimeMillis();
+        if (remaining <= 0L) {
+            cooldowns.remove(playerId);
+            return 0L;
+        }
+        return remaining;
+    }
+
     /**
      * Removes all expired entries from the map.
      * Should be called periodically from a background task to prevent unbounded growth.

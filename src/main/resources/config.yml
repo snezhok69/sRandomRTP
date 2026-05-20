@@ -34,11 +34,15 @@
 # (sRandomRTP.Command.Deny - allows the use of the /rtp deny command (this command works exclusively with the /rtp player command!);
 # (sRandomRTP.Command.Accept - allows the use of the /rtp accept command (this command works exclusively with the /rtp player command!);
 # (sRandomRTP.Command.Portal - allows you to use the /rtp portal list/del/set command.;
+# (sRandomRTP.Command.Settings - allows you to use /rtp settings to toggle command gates in game.);
+# (sRandomRTP.Command.Doctor - allows you to use /rtp doctor startup/config diagnostics.);
+# (sRandomRTP.Command.Dump - allows you to create a support bundle with /rtp dump.);
+# (sRandomRTP.Command.Stats - allows you to use /rtp stats runtime diagnostics.);
 #
 #
 
 # Internal file version used for automatic config migrations.
-config-version: 3
+config-version: 4
 
 # debug to the console, which are displayed when using the /rtp command
 logs: false

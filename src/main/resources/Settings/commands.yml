@@ -1,0 +1,78 @@
+config-version: 4
+
+# Command gates are runtime switches for /rtp subcommands.
+# Permissions still apply: OP players receive admin permissions by default from plugin.yml.
+# If a command is disabled here, it is hidden from /rtp help, tab-complete and normal execution.
+#
+# /rtp settings opens an in-game clickable menu for these switches.
+# /rtp settings itself is protected from in-game toggles so admins do not lock themselves out by accident.
+#
+# Debug/support commands:
+# /rtp doctor       - startup/config health and local-admin-bars gate status.
+# /rtp dump         - creates a support zip in plugins/sRandomRTP/Diagnostics.
+# /rtp stats        - runtime RTP/search/chunk/portal metrics.
+# /rtp portal check - checks missing worlds, duplicate portal names and active portal tasks.
+#
+# Local admin bossbars:
+# /rtp tpsbar, /rtp rambar, /rtp msptbar and /rtp allbars are local-only.
+# They are listed in the same debug section as /rtp doctor, but still require the JVM/local gate.
+# Public builds keep them hidden even if the config below is true.
+
+commands:
+  player:
+    rtp:
+      enabled: true
+    near:
+      enabled: true
+    far:
+      enabled: true
+    middle:
+      enabled: true
+    base:
+      enabled: true
+    biome:
+      enabled: true
+    world:
+      enabled: true
+    back:
+      enabled: true
+    cancel:
+      enabled: true
+    accept:
+      enabled: true
+    deny:
+      enabled: true
+
+  admin:
+    player:
+      enabled: true
+    portal:
+      enabled: true
+    chunky:
+      enabled: true
+    version:
+      enabled: true
+    reload:
+      enabled: true
+    help:
+      enabled: true
+    settings:
+      enabled: true
+
+  debug:
+    doctor:
+      enabled: true
+    dump:
+      enabled: true
+    stats:
+      enabled: true
+    portal-check:
+      enabled: true
+    allbars:
+      enabled: true
+    tpsbar:
+      enabled: true
+    rambar:
+      enabled: true
+    msptbar:
+      enabled: true

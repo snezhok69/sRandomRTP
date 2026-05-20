@@ -79,7 +79,7 @@ class CooldownManagerTest {
     }
 
     @Test
-    void customCooldownPermissionIgnoresCaseAndRefreshesImmediately() {
+    void customCooldownPermissionUsesCacheUntilInvalidated() {
         PermissionAttachmentInfo fourSeconds = Mockito.mock(PermissionAttachmentInfo.class);
         when(fourSeconds.getValue()).thenReturn(true);
         when(fourSeconds.getPermission()).thenReturn("sRandomRtp.Cooldown.4");
@@ -92,6 +92,10 @@ class CooldownManagerTest {
         when(twoSeconds.getPermission()).thenReturn("srandomrtp.cooldown.2");
         when(player.getEffectivePermissions()).thenReturn(Collections.singleton(twoSeconds));
 
+        assertEquals(4, manager.resolveCustomCooldown(player, 60, false),
+                "cached cooldown should be reused until invalidated or expired");
+
+        manager.invalidatePermissionCache(playerId);
         assertEquals(2, manager.resolveCustomCooldown(player, 60, false));
     }
 

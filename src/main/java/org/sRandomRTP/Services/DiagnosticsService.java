@@ -69,7 +69,7 @@ public class DiagnosticsService {
         public void finishSuccess() {
             line("Finished: " + timestamp());
             line("Status: SUCCESS");
-            flush(false);   // respect logs flag — skip file write when logs: false
+            flush(true);
         }
 
         public void finishFailure(Throwable throwable) {

@@ -1,5 +1,5 @@
 # Chunk loading optimization settings
-config-version: 3
+config-version: 4
 
 chunk-loading:
   # Preload radius around teleport destinations (in chunks).

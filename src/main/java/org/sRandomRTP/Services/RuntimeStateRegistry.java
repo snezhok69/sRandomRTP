@@ -65,6 +65,7 @@ public final class RuntimeStateRegistry {
     /** Coherent portal-state sub-store (portals + blocks + tasks). */
     private final PortalStateStore portalState = new PortalStateStore();
     private final Map<UUID, World> targetWorlds = new ConcurrentHashMap<>();
+    private final Map<UUID, Location> lastRtpLocations = new ConcurrentHashMap<>();
     private final java.util.concurrent.atomic.AtomicInteger rtpCount = new java.util.concurrent.atomic.AtomicInteger(0);
 
     /** Returns the bar state sub-store (boss bars + admin bars). */
@@ -142,6 +143,10 @@ public final class RuntimeStateRegistry {
 
     public Map<UUID, World> getTargetWorlds() {
         return targetWorlds;
+    }
+
+    public Map<UUID, Location> getLastRtpLocations() {
+        return lastRtpLocations;
     }
 
     public java.util.concurrent.atomic.AtomicInteger getRtpCount() {
@@ -286,6 +291,7 @@ public final class RuntimeStateRegistry {
         initialPositions.remove(player);
         teleportTasks.remove(player);
         particleTasks.remove(player);
+        lastRtpLocations.remove(playerId);
         playerBarState.clearPlayer(player);
         org.sRandomRTP.Cooldowns.CooldownManager.instance().invalidatePermissionCache(playerId);
     }

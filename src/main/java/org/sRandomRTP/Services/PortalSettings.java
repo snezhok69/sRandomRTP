@@ -43,27 +43,27 @@ public final class PortalSettings {
     }
 
     public int getFloorParticleCount() {
-        return getInt("portal.particles.floor_count", 2);
+        return clampInt(getInt("portal.particles.floor_count", 2), 0, 20);
     }
 
     public int getBorderParticleCount() {
-        return getInt("portal.particles.border_count", 2);
+        return clampInt(getInt("portal.particles.border_count", 2), 0, 20);
     }
 
     public double getFloorParticleDensity() {
-        return getDouble("portal.particles.floor_density", 1.0D);
+        return clampDouble(getDouble("portal.particles.floor_density", 1.0D), 0.1D, 5.0D);
     }
 
     public double getBorderParticleDensity() {
-        return getDouble("portal.particles.border_density", 0.5D);
+        return clampDouble(getDouble("portal.particles.border_density", 0.5D), 0.1D, 5.0D);
     }
 
     public double getFloorParticleSpread() {
-        return getDouble("portal.particles.floor_spread", 0.0D);
+        return clampDouble(getDouble("portal.particles.floor_spread", 0.0D), 0.0D, 5.0D);
     }
 
     public double getBorderParticleSpread() {
-        return getDouble("portal.particles.border_spread", 0.0D);
+        return clampDouble(getDouble("portal.particles.border_spread", 0.0D), 0.0D, 5.0D);
     }
 
     public boolean isPermanentBorderParticlesEnabled() {
@@ -140,5 +140,16 @@ public final class PortalSettings {
             return fallback;
         }
         return particle;
+    }
+
+    private int clampInt(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private double clampDouble(double value, double min, double max) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return min;
+        }
+        return Math.max(min, Math.min(max, value));
     }
 }

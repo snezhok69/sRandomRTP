@@ -6,8 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.sRandomRTP.Commands.portal.PortalParticleManager;
-import org.sRandomRTP.Commands.portal.PortalTriggerHandler;
+import org.sRandomRTP.Commands.portal.PortalTaskScheduler;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
 import org.sRandomRTP.Utils.ConfigValueParser;
@@ -189,17 +188,12 @@ public class PortalSQLRepository {
                         WrappedTask particlesTask = null;
                         WrappedTask triggerTask   = null;
                         if (taskType.contains("particles")) {
-                            particlesTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                                    () -> PortalParticleManager.spawnParticles(center, finalRadius, finalShape),
+                            particlesTask = PortalTaskScheduler.scheduleParticles(center, finalRadius, finalShape,
                                     finalDelay, finalPeriod);
                         }
                         if (taskType.contains("trigger")) {
-                            PortalTriggerHandler triggerHandler = Variables.getPortalTriggerHandler();
-                            if (triggerHandler != null) {
-                                triggerTask = Variables.getFoliaLib().getImpl().runTimerAsync(
-                                        () -> triggerHandler.handlePortalTrigger(center, finalRadius, finalShape),
-                                        finalDelay, finalPeriod);
-                            }
+                            triggerTask = PortalTaskScheduler.scheduleTrigger(center, finalRadius, finalShape,
+                                    finalDelay, finalPeriod);
                         }
                         String combinedTaskIds = particlesTaskId + " <|||> " + triggerTaskId;
                         state.putPortalTask(portalName,

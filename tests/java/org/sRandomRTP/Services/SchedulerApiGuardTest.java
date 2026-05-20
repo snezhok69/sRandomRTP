@@ -38,6 +38,25 @@ class SchedulerApiGuardTest {
         assertTrue(violations.isEmpty(), "Forbidden scheduler API usage detected:\n" + String.join("\n", violations));
     }
 
+    @Test
+    void portalAndChunkWarmTasksDoNotUseAsyncTimersForBukkitApi() throws IOException {
+        String[] guardedFiles = {
+                "src/main/java/org/sRandomRTP/Chunk/ChunkWarmManager.java",
+                "src/main/java/org/sRandomRTP/Commands/CommandSetPortal.java",
+                "src/main/java/org/sRandomRTP/DataPortals/PortalSQLRepository.java",
+                "src/main/java/org/sRandomRTP/Commands/CommandReload.java"
+        };
+        List<String> violations = new ArrayList<String>();
+        for (String guardedFile : guardedFiles) {
+            Path path = Paths.get(guardedFile);
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            if (content.contains(".runTimerAsync(")) {
+                violations.add(guardedFile + " -> .runTimerAsync(");
+            }
+        }
+        assertTrue(violations.isEmpty(), "Unsafe async timer usage detected:\n" + String.join("\n", violations));
+    }
+
     private void collectViolations(Path path, List<String> violations) {
         try {
             String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
