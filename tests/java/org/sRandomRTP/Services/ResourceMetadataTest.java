@@ -55,6 +55,7 @@ class ResourceMetadataTest {
 
         assertFalse(pluginYml.contains("commands.rtp.aliases"),
                 "RTP aliases must stay configurable through config.yml, not plugin.yml");
+        assertEquals(ConfigDefaults.COMMAND_ALIASES_ENABLED, configYml.getBoolean("Command-Aliases-Enabled"));
         assertEquals(ConfigDefaults.COMMAND_ALIASES, configYml.getStringList("Command-Aliases"));
     }
 
