@@ -47,7 +47,7 @@ config-version: 4
 
 # Extra aliases for the main /rtp command.
 # Quick switch for all aliases below.
-Command-Aliases-Enabled: true
+Command-Aliases-Enabled: false
 # Set this to [] if you want only /rtp to work. Conflicting or invalid aliases are skipped.
 Command-Aliases:
   - randomtp
