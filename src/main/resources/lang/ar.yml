@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7اللغة: &f%language%'
       - '&7التكاملات: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7بوابة أشرطة المدير المحلية: &f%local_admin_bars_gate%'
       - '&7عمليات البحث النشطة: &f%active_searches% &8| &7مهام البوابات: &f%portal_tasks%'
       - '&7إصدارات الإعدادات: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6الإعدادات &7(%page%/%max_page%)'
     description: '&7يتم التحكم بأوامر التصحيح وأشرطة المدير المحلية هنا. تبقى الصلاحيات مطبقة.'
-    local-gate: '&7بوابة أشرطة المدير المحلية: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'لاعب'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7صلاحية: &f%permission% '
     status-on: '&a[مفعل]'
     status-off: '&c[معطل]'
-    status-local-gate-off: '&6[البوابة المحلية مغلقة]'
     status-locked: '&8[مقفل]'
     toggle-hover: '&7تبديل %command%'
     prev-button: '&a[< السابق]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cفشل حفظ Settings/commands.yml: %error%'
     changed:
       - '&a[sRandomRTP] &aأصبح الأمر %command% الآن %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7البوابة المحلية ما زالت مغلقة، لذلك يبقى هذا الأمر مخفيا في الإصدارات العامة.'
     usage:
       - '&a[sRandomRTP] &6الاستخدام:'
       - '&7/rtp settings [page]'

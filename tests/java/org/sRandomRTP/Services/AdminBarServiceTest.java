@@ -2,7 +2,6 @@ package org.sRandomRTP.Services;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,7 +17,6 @@ class AdminBarServiceTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        System.clearProperty(LocalFeatureGate.ADMIN_BARS_PROPERTY);
         YamlConfiguration adminBarsConfig = new YamlConfiguration();
         adminBarsConfig.set("admin-bars.enabled", true);
         adminBarsConfig.set("admin-bars.tpsbar.enabled", true);
@@ -36,14 +34,8 @@ class AdminBarServiceTest {
         field.set(null, pluginContext);
     }
 
-    @AfterEach
-    void tearDown() {
-        System.clearProperty(LocalFeatureGate.ADMIN_BARS_PROPERTY);
-    }
-
     @Test
     void shouldHideUnavailableMetricFromTab() {
-        System.setProperty(LocalFeatureGate.ADMIN_BARS_PROPERTY, "true");
         AdminBarService service = new AdminBarService(new MessageService(), new ServerMetricsProvider(() -> new Object()));
         Player player = Mockito.mock(Player.class);
         when(player.hasPermission("sRandomRTP.Command.TpsBar")).thenReturn(true);
@@ -53,7 +45,6 @@ class AdminBarServiceTest {
 
     @Test
     void shouldShowAllBarsWhenAtLeastOneMetricIsAvailable() {
-        System.setProperty(LocalFeatureGate.ADMIN_BARS_PROPERTY, "true");
         ServerMetricsProvider provider = new ServerMetricsProvider(() -> new Object() {
             @SuppressWarnings("unused")
             public double[] getTPS() {
@@ -71,7 +62,21 @@ class AdminBarServiceTest {
     }
 
     @Test
-    void shouldHideAdminBarsWhenLocalGateDisabled() {
+    void shouldHideAdminBarsWhenAdminBarsConfigDisabled() throws Exception {
+        YamlConfiguration adminBarsConfig = new YamlConfiguration();
+        adminBarsConfig.set("admin-bars.enabled", false);
+        adminBarsConfig.set("admin-bars.tpsbar.enabled", true);
+
+        ConfigRegistry configRegistry = Mockito.mock(ConfigRegistry.class);
+        when(configRegistry.getAdminBarsFile()).thenReturn(adminBarsConfig);
+
+        PluginContext pluginContext = Mockito.mock(PluginContext.class);
+        when(pluginContext.getConfigRegistry()).thenReturn(configRegistry);
+
+        Field field = Variables.class.getDeclaredField("pluginContext");
+        field.setAccessible(true);
+        field.set(null, pluginContext);
+
         ServerMetricsProvider provider = new ServerMetricsProvider(() -> new Object() {
             @SuppressWarnings("unused")
             public double[] getTPS() {

@@ -2,6 +2,7 @@ package org.sRandomRTP.Services;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
+import org.sRandomRTP.Commands.CommandFeatureFlag;
 import org.sRandomRTP.Commands.Permissions;
 
 import java.lang.reflect.Field;
@@ -41,6 +42,26 @@ class ResourceMetadataTest {
         for (String permission : permissionConstants()) {
             assertTrue(pluginYml.contains("permissions." + permission),
                     "plugin.yml is missing permission: " + permission);
+        }
+    }
+
+    @Test
+    void debugAndAdminBarCommandsAreDisabledByDefault() {
+        YamlConfiguration commands = YamlConfiguration.loadConfiguration(
+                Paths.get("src/main/resources/Settings/commands.yml").toFile());
+        for (CommandFeatureFlag flag : new CommandFeatureFlag[] {
+                CommandFeatureFlag.SETTINGS,
+                CommandFeatureFlag.DOCTOR,
+                CommandFeatureFlag.DUMP,
+                CommandFeatureFlag.STATS,
+                CommandFeatureFlag.PORTAL_CHECK,
+                CommandFeatureFlag.ALL_BARS,
+                CommandFeatureFlag.TPS_BAR,
+                CommandFeatureFlag.RAM_BAR,
+                CommandFeatureFlag.MSPT_BAR
+        }) {
+            assertEquals(false, flag.isDefaultEnabled(), flag.getId() + " code default must be disabled");
+            assertEquals(false, commands.getBoolean(flag.getConfigPath()), flag.getId() + " resource default must be disabled");
         }
     }
 

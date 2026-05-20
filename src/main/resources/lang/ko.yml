@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7언어: &f%language%'
       - '&7연동: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7로컬 관리자 bossbar 접근: &f%local_admin_bars_gate%'
       - '&7활성 검색: &f%active_searches% &8| &7포털 작업: &f%portal_tasks%'
       - '&7설정 버전: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6설정 &7(%page%/%max_page%)'
     description: '&7디버그 명령어와 로컬 관리자 bossbar를 여기서 제어합니다. 권한은 계속 적용됩니다.'
-    local-gate: '&7로컬 관리자 bossbar 접근: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: '플레이어'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7권한: &f%permission% '
     status-on: '&a[켜짐]'
     status-off: '&c[꺼짐]'
-    status-local-gate-off: '&6[로컬 접근 꺼짐]'
     status-locked: '&8[잠김]'
     toggle-hover: '&7%command% 전환'
     prev-button: '&a[< 이전]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cSettings/commands.yml 저장 실패: %error%'
     changed:
       - '&a[sRandomRTP] &a명령어 %command% 상태가 %state%&a 로 변경되었습니다.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7로컬 접근이 아직 닫혀 있어 이 명령어는 공개 빌드에서 숨겨집니다.'
     usage:
       - '&a[sRandomRTP] &6사용법:'
       - '&7/rtp settings [page]'

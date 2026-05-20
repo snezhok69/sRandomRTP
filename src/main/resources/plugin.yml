@@ -83,16 +83,16 @@ permissions:
     description: Allows /rtp portal check.
     default: op
   sRandomRTP.Command.AllBars:
-    description: Allows /rtp allbars when local admin bars are enabled.
+    description: Allows /rtp allbars when enabled in Settings/commands.yml.
     default: op
   sRandomRTP.Command.TpsBar:
-    description: Allows /rtp tpsbar when local admin bars are enabled.
+    description: Allows /rtp tpsbar when enabled in Settings/commands.yml.
     default: op
   sRandomRTP.Command.RamBar:
-    description: Allows /rtp rambar when local admin bars are enabled.
+    description: Allows /rtp rambar when enabled in Settings/commands.yml.
     default: op
   sRandomRTP.Command.MsptBar:
-    description: Allows /rtp msptbar when local admin bars are enabled.
+    description: Allows /rtp msptbar when enabled in Settings/commands.yml.
     default: op
   sRandomRTP.Command.bypass:
     description: Bypasses RTP cooldown checks.

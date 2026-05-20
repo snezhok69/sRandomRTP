@@ -42,8 +42,7 @@ public class AdminBarService {
     }
 
     public boolean shouldShowInTab(CommandSender sender, AdminBarType type) {
-        return LocalFeatureGate.isLocalAdminBarsEnabled()
-                && sender instanceof Player
+        return sender instanceof Player
                 && type != null
                 && isEnabled(type)
                 && isMetricAvailable(type)
@@ -51,8 +50,7 @@ public class AdminBarService {
     }
 
     public boolean shouldShowAllInTab(CommandSender sender) {
-        if (!LocalFeatureGate.isLocalAdminBarsEnabled()
-                || !(sender instanceof Player)
+        if (!(sender instanceof Player)
                 || !sender.hasPermission(ALL_BARS_PERMISSION)) {
             return false;
         }
@@ -61,8 +59,7 @@ public class AdminBarService {
 
     public boolean isEnabled(AdminBarType type) {
         FileConfiguration config = Variables.getPluginContext() != null ? Variables.getPluginContext().getConfigRegistry().getAdminBarsFile() : null;
-        return LocalFeatureGate.isLocalAdminBarsEnabled()
-                && type != null
+        return type != null
                 && config != null
                 && config.getBoolean("admin-bars.enabled", true)
                 && config.getBoolean(type.getConfigPath() + ".enabled", true);

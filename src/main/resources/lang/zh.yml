@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7语言: &f%language%'
       - '&7集成: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7本地管理员 bossbar 访问: &f%local_admin_bars_gate%'
       - '&7活动搜索: &f%active_searches% &8| &7传送门任务: &f%portal_tasks%'
       - '&7配置版本: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6设置 &7(%page%/%max_page%)'
     description: '&7调试命令和本地管理员 bossbar 在这里控制。权限检查仍然生效。'
-    local-gate: '&7本地管理员 bossbar 访问: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: '玩家'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7权限: &f%permission% '
     status-on: '&a[开启]'
     status-off: '&c[关闭]'
-    status-local-gate-off: '&6[本地访问关闭]'
     status-locked: '&8[已锁定]'
     toggle-hover: '&7切换 %command%'
     prev-button: '&a[< 上一页]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &c无法保存 Settings/commands.yml: %error%'
     changed:
       - '&a[sRandomRTP] &a命令 %command% 现在为 %state%&a。'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7本地访问仍未开启，因此此命令在公开版本中仍然隐藏。'
     usage:
       - '&a[sRandomRTP] &6用法:'
       - '&7/rtp settings [page]'

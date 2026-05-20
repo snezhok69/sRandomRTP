@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Idioma: &f%language%'
       - '&7Integraciones: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Acceso local a bossbars de admin: &f%local_admin_bars_gate%'
       - '&7Búsquedas activas: &f%active_searches% &8| &7Tareas de portales: &f%portal_tasks%'
       - '&7Versiones de configuración: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6Ajustes &7(%page%/%max_page%)'
     description: '&7Los comandos de depuración y las bossbars locales de admin se controlan aquí. Los permisos siguen aplicándose.'
-    local-gate: '&7Acceso local a bossbars de admin: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Jugador'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7permiso: &f%permission% '
     status-on: '&a[ACTIVO]'
     status-off: '&c[INACTIVO]'
-    status-local-gate-off: '&6[ACCESO LOCAL INACTIVO]'
     status-locked: '&8[bloqueado]'
     toggle-hover: '&7Cambiar %command%'
     prev-button: '&a[< Anterior]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cNo se pudo guardar Settings/commands.yml: %error%'
     changed:
       - '&a[sRandomRTP] &aEl comando %command% ahora está %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7El acceso local sigue cerrado, por eso este comando permanece oculto en builds públicos.'
     usage:
       - '&a[sRandomRTP] &6Uso:'
       - '&7/rtp settings [page]'

@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Ngôn ngữ: &f%language%'
       - '&7Tích hợp: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Quyền truy cập bossbar admin cục bộ: &f%local_admin_bars_gate%'
       - '&7Tìm kiếm đang chạy: &f%active_searches% &8| &7Tác vụ portal: &f%portal_tasks%'
       - '&7Phiên bản config: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6Cài đặt &7(%page%/%max_page%)'
     description: '&7Các lệnh chẩn đoán và bossbar admin cục bộ được điều khiển tại đây. Quyền vẫn được áp dụng.'
-    local-gate: '&7Quyền truy cập bossbar admin cục bộ: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Người chơi'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7quyền: &f%permission% '
     status-on: '&a[BẬT]'
     status-off: '&c[TẮT]'
-    status-local-gate-off: '&6[TRUY CẬP CỤC BỘ TẮT]'
     status-locked: '&8[đã khóa]'
     toggle-hover: '&7Bật/tắt %command%'
     prev-button: '&a[< Trước]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cKhông thể lưu Settings/commands.yml: %error%'
     changed:
       - '&a[sRandomRTP] &aLệnh %command% hiện là %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7Quyền truy cập cục bộ vẫn đóng, nên lệnh này vẫn bị ẩn trong bản public.'
     usage:
       - '&a[sRandomRTP] &6Cách dùng:'
       - '&7/rtp settings [page]'

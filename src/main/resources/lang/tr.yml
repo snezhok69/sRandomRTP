@@ -191,7 +191,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Dil: &f%language%'
       - '&7Entegrasyonlar: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Yerel admin bossbar erişimi: &f%local_admin_bars_gate%'
       - '&7Aktif aramalar: &f%active_searches% &8| &7Portal görevleri: &f%portal_tasks%'
       - '&7Config sürümleri: &f%config_versions%'
     stats-lines:
@@ -211,7 +210,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6Ayarlar &7(%page%/%max_page%)'
     description: '&7Hata ayıklama komutları ve yerel admin bossbarları buradan yönetilir. İzin kontrolleri geçerlidir.'
-    local-gate: '&7Yerel admin bossbar erişimi: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Oyuncu'
@@ -220,7 +218,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7izin: &f%permission% '
     status-on: '&a[AÇIK]'
     status-off: '&c[KAPALI]'
-    status-local-gate-off: '&6[YEREL ERİŞİM KAPALI]'
     status-locked: '&8[kilitli]'
     toggle-hover: '&7%command% komutunu değiştir'
     prev-button: '&a[< Önceki]'
@@ -239,8 +236,6 @@ messages:
       - '&a[sRandomRTP] &cSettings/commands.yml kaydedilemedi: %error%'
     changed:
       - '&a[sRandomRTP] &a%command% komutu artık %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7Yerel erişim hâlâ kapalı, bu yüzden bu komut herkese açık sürümlerde gizli kalır.'
     usage:
       - '&a[sRandomRTP] &6Kullanım:'
       - '&7/rtp settings [page]'

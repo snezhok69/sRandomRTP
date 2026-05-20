@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Język: &f%language%'
       - '&7Integracje: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Lokalny dostęp do bossbarów admina: &f%local_admin_bars_gate%'
       - '&7Aktywne wyszukiwania: &f%active_searches% &8| &7Zadania portali: &f%portal_tasks%'
       - '&7Wersje configów: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6Ustawienia &7(%page%/%max_page%)'
     description: '&7Komendy diagnostyczne i lokalne bossbary admina są sterowane tutaj. Uprawnienia nadal obowiązują.'
-    local-gate: '&7Lokalny dostęp do bossbarów admina: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Gracz'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7uprawnienie: &f%permission% '
     status-on: '&a[WŁ.]'
     status-off: '&c[WYŁ.]'
-    status-local-gate-off: '&6[DOSTĘP LOKALNY WYŁ.]'
     status-locked: '&8[zablokowane]'
     toggle-hover: '&7Przełącz %command%'
     prev-button: '&a[< Poprzednia]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cNie udało się zapisać Settings/commands.yml: %error%'
     changed:
       - '&a[sRandomRTP] &aKomenda %command% jest teraz %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7Lokalny dostęp jest nadal zamknięty, więc ta komenda pozostaje ukryta w publicznych buildach.'
     usage:
       - '&a[sRandomRTP] &6Użycie:'
       - '&7/rtp settings [page]'

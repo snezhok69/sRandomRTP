@@ -2,8 +2,8 @@ config-version: 4
 
 admin-bars:
   # Главный переключатель для всех admin bossbar-команд ниже.
-  # Эти команды local-only и скрыты, пока не включен локальный JVM gate.
-  # Видимость команд также можно менять в Settings/commands.yml или через /rtp settings.
+  # Видимость команд управляется в Settings/commands.yml или через /rtp settings.
+  # Переключатели /rtp tpsbar, /rtp rambar, /rtp msptbar и /rtp allbars выключены по умолчанию.
   enabled: true
 
   # Интервал обновления мониторинговых bossbar.

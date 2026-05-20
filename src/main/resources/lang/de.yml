@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Sprache: &f%language%'
       - '&7Integrationen: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Lokales Admin-Bossbar-Gate: &f%local_admin_bars_gate%'
       - '&7Aktive Suchen: &f%active_searches% &8| &7Portal-Aufgaben: &f%portal_tasks%'
       - '&7Konfig-Versionen: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6Einstellungen &7(%page%/%max_page%)'
     description: '&7Diagnosebefehle und lokale Admin-Bossbars werden hier gesteuert. Rechte gelten weiterhin.'
-    local-gate: '&7Lokales Admin-Bossbar-Gate: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Spieler'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7Recht: &f%permission% '
     status-on: '&a[AN]'
     status-off: '&c[AUS]'
-    status-local-gate-off: '&6[LOKALES GATE AUS]'
     status-locked: '&8[gesperrt]'
     toggle-hover: '&7%command% umschalten'
     prev-button: '&a[< Zurück]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cSettings/commands.yml konnte nicht gespeichert werden: %error%'
     changed:
       - '&a[sRandomRTP] &aBefehl %command% ist jetzt %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7Das lokale Gate ist noch geschlossen, daher bleibt dieser Befehl in öffentlichen Builds versteckt.'
     usage:
       - '&a[sRandomRTP] &6Nutzung:'
       - '&7/rtp settings [page]'

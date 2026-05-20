@@ -1,7 +1,6 @@
 package org.sRandomRTP.Files;
 
 import org.sRandomRTP.DifferentMethods.Variables;
-import org.sRandomRTP.Services.LocalFeatureGate;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,15 +12,9 @@ public class FilesCreate {
         File dataFolder = Variables.getInstance().getDataFolder();
 
         for (String fileName : ConfigPaths.UPDATABLE_FILES) {
-            if (shouldSkipLocalOnlyFile(fileName)) {
-                continue;
-            }
             createIfAbsent(dataFolder, fileName, createdFiles);
         }
         for (String fileName : ConfigPaths.CREATE_ONLY_FILES) {
-            if (shouldSkipLocalOnlyFile(fileName)) {
-                continue;
-            }
             createIfAbsent(dataFolder, fileName, createdFiles);
         }
         return createdFiles;
@@ -35,8 +28,4 @@ public class FilesCreate {
         }
     }
 
-    private boolean shouldSkipLocalOnlyFile(String fileName) {
-        return ConfigPaths.isLocalAdminBarsFile(fileName)
-                && !LocalFeatureGate.isLocalAdminBarsEnabled();
-    }
 }

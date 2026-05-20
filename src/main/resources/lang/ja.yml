@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7言語: &f%language%'
       - '&7連携: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7ローカル管理者 bossbar アクセス: &f%local_admin_bars_gate%'
       - '&7実行中の検索: &f%active_searches% &8| &7ポータルタスク: &f%portal_tasks%'
       - '&7設定バージョン: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6設定 &7(%page%/%max_page%)'
     description: '&7デバッグコマンドとローカル管理者 bossbar はここで管理します。権限は引き続き適用されます。'
-    local-gate: '&7ローカル管理者 bossbar アクセス: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'プレイヤー'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7権限: &f%permission% '
     status-on: '&a[有効]'
     status-off: '&c[無効]'
-    status-local-gate-off: '&6[ローカルアクセス無効]'
     status-locked: '&8[ロック]'
     toggle-hover: '&7%command% を切り替え'
     prev-button: '&a[< 前へ]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cSettings/commands.yml を保存できませんでした: %error%'
     changed:
       - '&a[sRandomRTP] &aコマンド %command% は現在 %state%&a です。'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7ローカルアクセスがまだ閉じているため、このコマンドは公開ビルドでは非表示のままです。'
     usage:
       - '&a[sRandomRTP] &6使い方:'
       - '&7/rtp settings [page]'

@@ -58,6 +58,7 @@ public class ConfigRegistry {
             PATH_PORTAL,
             PATH_CHUNK,
             PATH_COMMANDS,
+            PATH_ADMIN_BARS,
     };
 
     private final File dataFolder;
@@ -123,10 +124,6 @@ public class ConfigRegistry {
     }
 
     private List<String> getManagedConfigPaths() {
-        List<String> paths = new ArrayList<>(Arrays.asList(PUBLIC_MANAGED_CONFIG_PATHS));
-        if (LocalFeatureGate.isLocalAdminBarsEnabled()) {
-            paths.add(PATH_ADMIN_BARS);
-        }
-        return paths;
+        return new ArrayList<>(Arrays.asList(PUBLIC_MANAGED_CONFIG_PATHS));
     }
 }
