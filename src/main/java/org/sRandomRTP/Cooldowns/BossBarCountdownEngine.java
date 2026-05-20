@@ -17,6 +17,7 @@ import org.sRandomRTP.DifferentMethods.BossBars.SetBossBarProgress;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
+import org.sRandomRTP.Utils.ConfigValueParser;
 
 
 public final class BossBarCountdownEngine {
@@ -102,12 +103,12 @@ public final class BossBarCountdownEngine {
 
     private static void playSound(Player player) {
         if (!Variables.configCache.bossBarSoundEnabled) return;
-        try {
-            Sound sound = Sound.valueOf(Variables.configCache.bossBarSoundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, Variables.configCache.bossBarSoundVolume, Variables.configCache.bossBarSoundPitch);
-        } catch (IllegalArgumentException e) {
+        Sound sound = ConfigValueParser.parseSound(Variables.configCache.bossBarSoundName);
+        if (sound == null) {
             Bukkit.getConsoleSender().sendMessage("Invalid sound name in config: " + Variables.configCache.bossBarSoundName);
+            return;
         }
+        player.playSound(player.getLocation(), sound, Variables.configCache.bossBarSoundVolume, Variables.configCache.bossBarSoundPitch);
     }
 
     private static void updateBossBarAndActionBar(CommandSender sender, Player player,

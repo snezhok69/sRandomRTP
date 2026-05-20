@@ -6,6 +6,7 @@ import org.bukkit.plugin.Plugin;
 import org.sRandomRTP.DifferentMethods.LoggerUtility;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.BlockBiomes.BiomeFilterSnapshot;
+import org.sRandomRTP.Utils.ConfigValueParser;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,7 +90,7 @@ public class LoadBlockList {
         if (teleportfile.contains("teleport.bannedBlocks")) {
             List<String> blockNames = teleportfile.getStringList("teleport.bannedBlocks");
             for (String materialName : blockNames) {
-                Material material = Material.matchMaterial(materialName.toUpperCase());
+                Material material = ConfigValueParser.parseMaterial(materialName);
                 if (material != null) {
                     blocks.add(material);
                 }
@@ -101,11 +102,12 @@ public class LoadBlockList {
         Set<String> biomes = new HashSet<>(teleportfile.getStringList("teleport.bannedBiomes"));
         Set<Biome> bannedEnumSet = new HashSet<>();
         for (String biomeName : biomes) {
-            if (biomeName == null || biomeName.isBlank()) continue;
-            try {
-                bannedEnumSet.add(Biome.valueOf(biomeName.toUpperCase()));
-            } catch (IllegalArgumentException e) {
+            if (biomeName == null || biomeName.trim().isEmpty()) continue;
+            Biome biome = ConfigValueParser.parseBiome(biomeName);
+            if (biome == null) {
                 Variables.getInstance().getLogger().warning("Unknown biome in bannedBiomes config: '" + biomeName + "' — skipping");
+            } else {
+                bannedEnumSet.add(biome);
             }
         }
 
@@ -132,7 +134,7 @@ public class LoadBlockList {
             for (String itemString : requiredItems) {
                 String[] parts = itemString.split(": ");
                 if (parts.length < 2) continue;
-                Material material = Material.getMaterial(parts[0]);
+                Material material = ConfigValueParser.parseMaterial(parts[0]);
                 if (material == null) continue;
                 try {
                     items.put(material, Integer.parseInt(parts[1].trim()));

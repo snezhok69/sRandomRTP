@@ -7,6 +7,17 @@ teleport:
   # '' - write without this symbol. Write in a column as in blocks.
   bannedBiomes:
     - SWAMP
+  # Here you can specify the blocks to which the plugin will not teleport.
+  # These are default blocks, better not to change them!
+  # Otherwise, it might teleport you to water, even if it's forbidden because SEAGRASS is a SEPARATE BLOCK.
+  # Link to all blocks minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html.
+  bannedBlocks:
+    - LAVA
+    - WATER
+    - TALL_SEAGRASS
+    - SEAGRASS
+    - KELP_PLANT
+    - KELP
   # Minimum height (Y-coordinate) for teleportation
   # This prevents teleportation to caves and underground areas
   minY: 58
@@ -88,17 +99,6 @@ teleport:
   # If true – when someone tries to teleport you using the /rtp player command, you will see a message notifying you of the teleportation attempt.
   # If false – when someone tries to teleport you using the /rtp player command, you will not see a message notifying you of the teleportation attempt.
   rtp-player-messages: false
-  # Here you can specify the blocks to which the plugin will not teleport.
-  # These are default blocks, better not to change them!
-  # Otherwise, it might teleport you to water, even if it's forbidden because SEAGRASS is a SEPARATE BLOCK.
-  # Link to all blocks minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html.
-  bannedBlocks:
-    - LAVA
-    - WATER
-    - TALL_SEAGRASS
-    - SEAGRASS
-    - KELP_PLANT
-    - KELP
   # Off,on execution of commands upon successful teleportation.
   Commandsteleport:
     # Off,on execution of commands upon successful teleportation.

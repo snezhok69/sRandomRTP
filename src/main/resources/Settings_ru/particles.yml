@@ -7,7 +7,7 @@ teleport:
     # Если false, частицы видны всем.
     visibleToPlayerOnly: true
     # Все частицы https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
-    # Тип частицы. Например, FLAME, SMOKE, HEART и т.д.
+    # Тип частицы. Названия гибкие: FLAME, flame, minecraft:flame или номер enum.
     types:
     - HEART
     - FLAME

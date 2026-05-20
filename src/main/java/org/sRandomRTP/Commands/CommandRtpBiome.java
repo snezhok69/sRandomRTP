@@ -9,6 +9,7 @@ import org.sRandomRTP.BlockBiomes.BiomeBlockValidator;
 import org.sRandomRTP.DifferentMethods.Text.TranslateRGBColors;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Utils.ChatUtils;
+import org.sRandomRTP.Utils.ConfigValueParser;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Rtp.BiomeConfigurableRtpHandler;
 
@@ -63,13 +64,12 @@ public class CommandRtpBiome extends AbstractRtpCommand {
             if (seen.contains(normalized)) {
                 continue;
             }
-            Biome biome;
-            try {
-                biome = Biome.valueOf(normalized);
-            } catch (IllegalArgumentException ex) {
+            Biome biome = ConfigValueParser.parseBiome(token);
+            if (biome == null) {
                 sender.sendMessage(ChatUtils.PLUGIN_NAME + " §cBiome '" + token + "' not found.");
                 return null;
             }
+            normalized = biome.name();
 
             if (BiomeBlockValidator.isBiomeBanned(biome)) {
                 sendBannedBiomeMessage(sender, biome);

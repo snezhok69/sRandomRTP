@@ -1,8 +1,9 @@
 teleport:
   # Включает или отключает эффекты после телепортации.
   Enabled: true
-  # Здесь вы можете указать эффект, который будет применяться по умолчанию (11 - сопротивление)
-  # Проверьте номера эффектов здесь: https://www.digminecraft.com/lists/effect_list_pc.php
+  # Здесь можно указывать эффекты числом или названием.
+  # Примеры: "11", "RESISTANCE", "resistance", "jump boost", "minecraft:speed".
+  # Номера эффектов можно посмотреть здесь: https://www.digminecraft.com/lists/effect_list_pc.php
   Effect:
   - "11"
   - "12"

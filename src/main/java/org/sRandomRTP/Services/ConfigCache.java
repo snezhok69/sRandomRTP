@@ -3,6 +3,7 @@ package org.sRandomRTP.Services;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.sRandomRTP.Utils.ConfigValueParser;
 
 import java.util.Collections;
 import java.util.List;
@@ -347,9 +348,10 @@ public final class ConfigCache {
             b.particleExtra               = particles.getDouble("teleport.particles.extra", 0.01);
             List<Particle> particleList = new java.util.ArrayList<>();
             for (String type : particles.getStringList("teleport.particles.types")) {
-                try {
-                    particleList.add(Particle.valueOf(type.toUpperCase()));
-                } catch (IllegalArgumentException ignored) {}
+                Particle particle = ConfigValueParser.parseParticle(type);
+                if (particle != null) {
+                    particleList.add(particle);
+                }
             }
             b.particleTypes = Collections.unmodifiableList(particleList);
         }
@@ -456,11 +458,6 @@ public final class ConfigCache {
 
     /** Parses a Bukkit {@link Sound} from its name; returns {@code null} if blank or unknown. */
     private static Sound parseSound(String name) {
-        if (name == null || name.trim().isEmpty()) return null;
-        try {
-            return Sound.valueOf(name.trim().toUpperCase());
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
+        return ConfigValueParser.parseSound(name);
     }
 }

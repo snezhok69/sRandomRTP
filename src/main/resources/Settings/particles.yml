@@ -9,7 +9,7 @@ teleport:
     # If false, the particles are for everyone.
     visibleToPlayerOnly: true
     # All particles https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
-    # Particle type. For example, FLAME, SMOKE, HEART, etc.
+    # Particle type. Names are flexible: FLAME, flame, minecraft:flame, or the enum number.
     types:
     - HEART
     - FLAME

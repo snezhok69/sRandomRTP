@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ConfigValueParser;
 
 import java.util.List;
 
@@ -18,11 +19,11 @@ public class EffectGivePlayer {
             Variables.getFoliaLib().getImpl().runAtEntity(player, (s) -> {
                 for (String effect : effectGive) {
                     try {
-                        PotionEffectType effectType = PotionEffectType.getByName(effect.toUpperCase());
+                        PotionEffectType effectType = ConfigValueParser.parsePotionEffectType(effect);
                         if (effectType == null) {
                             if (loggingEnabled) {
                                 Bukkit.getConsoleSender().sendMessage(
-                                        "Invalid effect name: '" + effect + "'. Use names like SPEED, JUMP_BOOST. Numeric IDs are no longer supported.");
+                                        "Invalid effect in config: '" + effect + "'. Use names like SPEED, RESISTANCE, JUMP_BOOST, or legacy numeric IDs like 11.");
                             }
                             continue;
                         }

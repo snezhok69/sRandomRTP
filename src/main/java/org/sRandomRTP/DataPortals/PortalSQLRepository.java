@@ -10,6 +10,7 @@ import org.sRandomRTP.Commands.portal.PortalParticleManager;
 import org.sRandomRTP.Commands.portal.PortalTriggerHandler;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
+import org.sRandomRTP.Utils.ConfigValueParser;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -120,11 +121,16 @@ public class PortalSQLRepository {
                             int x = Integer.parseInt(coords[0]);
                             int y = Integer.parseInt(coords[1]);
                             int z = Integer.parseInt(coords[2]);
-                            Material.valueOf(parts[2]); // validate early
+                            Material material = ConfigValueParser.parseMaterial(parts[2]);
+                            if (material == null) {
+                                Variables.getInstance().getLogger().warning(
+                                        "Skipping portal block with unknown material: " + parts[2]);
+                                continue;
+                            }
                             World world = Bukkit.getWorld(worldName);
                             if (world != null) {
                                 String key = playerName + ":" + portalName + ":" + worldName + ":" + x + ":" + y + ":" + z;
-                                state.putPortalBlock(key, new PortalDataBlocks(playerName, worldName, x, y, z, parts[2], portalName));
+                                state.putPortalBlock(key, new PortalDataBlocks(playerName, worldName, x, y, z, material.name(), portalName));
                             }
                         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
                             Variables.getInstance().getLogger().warning("Skipping corrupt portal block row: " + e.getMessage());
