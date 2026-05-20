@@ -89,6 +89,9 @@ public class ConfigUpdater {
         if (plugin == null || source == null || !source.exists()) {
             return;
         }
+        if (!org.sRandomRTP.DifferentMethods.Variables.isDiagnosticEnabled()) {
+            return;
+        }
         File backupRoot = new File(plugin.getDataFolder(), "Diagnostics/config-backups");
         if (!backupRoot.exists() && !backupRoot.mkdirs()) {
             return;

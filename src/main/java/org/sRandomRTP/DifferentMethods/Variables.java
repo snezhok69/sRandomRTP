@@ -43,18 +43,22 @@ public class Variables {
     }
 
     /**
-     * Returns {@code true} when debug logging is enabled.
+     * Returns {@code true} when diagnostics are enabled.
      * Reads from the atomic {@link #configCache} snapshot — no live YAML access.
      * Falls back to the live config only before the first config load (startup).
      */
-    public static boolean isLoggingEnabled() {
+    public static boolean isDiagnosticEnabled() {
         if (configCache != null && configCache != org.sRandomRTP.Services.ConfigCache.DEFAULT) {
             return configCache.loggingEnabled;
         }
         // Pre-load fallback — only reached during plugin startup
         if (instance == null) return false;
         org.bukkit.configuration.file.FileConfiguration cfg = instance.getConfig();
-        return cfg != null && cfg.getBoolean("logs", false);
+        return org.sRandomRTP.Services.ConfigCache.readDiagnosticEnabled(cfg);
+    }
+
+    public static boolean isLoggingEnabled() {
+        return isDiagnosticEnabled();
     }
 
     //

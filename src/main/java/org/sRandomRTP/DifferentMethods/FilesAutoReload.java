@@ -2,7 +2,10 @@ package org.sRandomRTP.DifferentMethods;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.sRandomRTP.Commands.ConfiguredCommandAliases;
 import org.sRandomRTP.DifferentMethods.Text.LoadLanguageFile;
+import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
+import org.sRandomRTP.Services.ConfigCache;
 import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadKeys;
 import org.sRandomRTP.Files.LoadMessages;
@@ -118,19 +121,23 @@ public class FilesAutoReload {
         Map<String, Consumer<Path>> map = new HashMap<>();
         map.put("config.yml", p -> {
             Variables.getInstance().reloadConfig();
+            reloadRegistryAndCache();
             LoadKeys.loadKeys(Variables.getInstance().getConfig());
+            LoadLanguageFile loadLanguageFile = new LoadLanguageFile();
+            loadLanguageFile.loadLanguageFile();
+            LoadMessages.loadMessages(loadLanguageFile.getLangFile());
             if (Variables.getPluginContext() != null) {
                 Variables.getReleaseCheckService().restartAutoChecks();
             }
+            FoliaSchedulerFacade.runLater(() -> ConfiguredCommandAliases.apply(Variables.getInstance()), 1L);
         });
         Consumer<Path> standardReload = p -> {
-            if (Variables.getPluginContext() != null)
-                Variables.getPluginContext().getConfigRegistry().reload();
+            reloadRegistryAndCache();
         };
         for (String name : Arrays.asList(
                 "teleport.yml", "sound.yml", "bossbar.yml", "near.yml", "title.yml",
                 "economy.yml", "effects.yml", "particles.yml", "far.yml", "middle.yml",
-                "biome.yml", "portal.yml", "chunk-loading.yml")) {
+                "biome.yml", "portal.yml", "chunk-loading.yml", "commands.yml")) {
             map.put(name, standardReload);
         }
         map.put("admin-bars.yml", p -> {
@@ -139,6 +146,16 @@ public class FilesAutoReload {
             }
         });
         RELOAD_ACTIONS = Collections.unmodifiableMap(map);
+    }
+
+    private static void reloadRegistryAndCache() {
+        if (Variables.getPluginContext() == null) {
+            return;
+        }
+        Variables.getPluginContext().getConfigRegistry().reload();
+        Variables.configCache = ConfigCache.buildFrom(
+                Variables.getPluginContext().getConfigRegistry(),
+                Variables.getInstance() != null ? Variables.getInstance().getConfig() : null);
     }
 
     private static void reloadFile(Path filePath) {

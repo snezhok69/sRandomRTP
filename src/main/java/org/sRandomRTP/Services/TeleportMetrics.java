@@ -94,7 +94,7 @@ public class TeleportMetrics {
     }
 
     public void logSummaryIfEnabled() {
-        if (plugin == null || !plugin.getConfig().getBoolean("logs", false)) {
+        if (plugin == null || !org.sRandomRTP.DifferentMethods.Variables.isDiagnosticEnabled()) {
             return;
         }
         Bukkit.getLogger().info("[sRandomRTP] RTP metrics summary: coordinate avg="

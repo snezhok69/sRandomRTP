@@ -4,6 +4,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.sRandomRTP.Commands.CommandFeatureFlag;
 import org.sRandomRTP.Commands.Permissions;
+import org.sRandomRTP.Files.LoadMessages;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -57,6 +58,35 @@ class ResourceMetadataTest {
                 "RTP aliases must stay configurable through config.yml, not plugin.yml");
         assertEquals(ConfigDefaults.COMMAND_ALIASES_ENABLED, configYml.getBoolean("Command-Aliases-Enabled"));
         assertEquals(ConfigDefaults.COMMAND_ALIASES, configYml.getStringList("Command-Aliases"));
+    }
+
+    @Test
+    void diagnosticsUseRenamedConfigFlag() {
+        YamlConfiguration configYml = YamlConfiguration.loadConfiguration(
+                Paths.get("src/main/resources/config.yml").toFile());
+
+        assertTrue(configYml.contains("diagnostic"), "config.yml must expose diagnostic");
+        assertFalse(configYml.getBoolean("diagnostic"), "diagnostic must be disabled by default");
+        assertFalse(configYml.contains("logs"), "legacy logs key must not be present in config.yml");
+        assertFalse(configYml.contains("diagnostics.enabled"), "legacy diagnostics.enabled key must not be present in config.yml");
+    }
+
+    @Test
+    void russianHelpLinesAreLocalized() {
+        YamlConfiguration ru = YamlConfiguration.loadConfiguration(
+                Paths.get("src/main/resources/lang/ru.yml").toFile());
+        try {
+            LoadMessages.loadMessages(ru);
+
+            String rtp = LoadMessages.commandHelpLine("rtp", 3, "fallback");
+            String far = LoadMessages.commandHelpLine("far", -1, "fallback");
+            assertTrue(rtp.contains("рандомная"), "Russian /rtp help line must not fall back to English");
+            assertTrue(far.contains("дальше"), "Russian /rtp far help line must be localized");
+            assertFalse(rtp.contains("random teleportation"), "Russian help must not mix English text");
+        } finally {
+            LoadMessages.loadMessages(YamlConfiguration.loadConfiguration(
+                    Paths.get("src/main/resources/lang/en.yml").toFile()));
+        }
     }
 
     @Test

@@ -51,8 +51,11 @@ public class CommandReload {
                     Variables.getPluginContext().getBootstrapCoordinator().synchronizeFiles();
             if (!summary.isSuccessful()) {
                 reloadReport.stepFail("files-sync", summary.getFailure());
+                String hint = Variables.isDiagnosticEnabled()
+                        ? "Check Diagnostics/latest-reload-report.txt and LogsErrors/latest-error.log"
+                        : "Check LogsErrors/latest-error.log or enable diagnostic: true for reload reports";
                 Variables.getMessageService().send(sender, Collections.singletonList(
-                        "&cReload failed during file synchronization. Check Diagnostics/latest-reload-report.txt and LogsErrors/latest-error.log"));
+                        "&cReload failed during file synchronization. " + hint));
                 reloadReport.finishFailure(summary.getFailure());
                 isReloading.set(false);
                 return;

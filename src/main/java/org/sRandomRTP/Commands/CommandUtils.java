@@ -56,7 +56,7 @@ public final class CommandUtils {
                         + "in the configuration (checkinginregions: false).");
             }
             sender.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, "
-                    + "enable logs in the configuration (logs: true) and try teleportation again.");
+                    + "enable diagnostics in the configuration (diagnostic: true) and try teleportation again.");
             return false;
         }
         return true;

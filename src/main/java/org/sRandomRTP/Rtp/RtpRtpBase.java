@@ -49,7 +49,7 @@ public class RtpRtpBase {
                 if (loggingEnabled) {
                     Bukkit.getConsoleSender().sendMessage("RegionManager is null for world: " + world.getName());
                 }
-                player.sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cError getting regions. Please check logs.");
+                player.sendMessage(ChatUtils.PLUGIN_NAME + " §8- §cError getting regions. Please check diagnostics.");
                 TeleportRequestManager.cancelRequest(player.getUniqueId(), loggingEnabled, "no region manager");
                 Variables.getRuntimeState().setPlayerSearching(player, false);
                 return false;

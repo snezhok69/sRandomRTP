@@ -66,8 +66,8 @@ public final class RequirementChecker {
                             "Or disable the economy function (Money: enabled: false)");
                 }
                 payer.sendMessage(ChatColor.RED +
-                        "Check the console. If there is nothing in the console, enable logs " +
-                        "in the configuration (logs: true) and try teleportation again.");
+                        "Check the console. If there is nothing in the console, enable diagnostics " +
+                        "in the configuration (diagnostic: true) and try teleportation again.");
                 return -1;
             }
             if (Variables.getPluginContext().getEconomy() == null) {

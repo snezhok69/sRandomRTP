@@ -28,6 +28,9 @@ public final class ConfigDefaults {
     // ── Slow-request threshold ────────────────────────────────────────────────
     public static final long    SLOW_REQUEST_THRESHOLD_MS           = 3000L;
 
+    // ── Diagnostics ──────────────────────────────────────────────────────────
+    public static final boolean DIAGNOSTIC_ENABLED                  = false;
+
     // ── Main command aliases ─────────────────────────────────────────────────
     public static final boolean COMMAND_ALIASES_ENABLED = false;
     public static final List<String> COMMAND_ALIASES = Collections.unmodifiableList(

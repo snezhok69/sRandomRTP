@@ -156,6 +156,6 @@ public abstract class AbstractRtpCommand {
                     + "in the configuration (checkinginregions: false).");
         }
         player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, "
-                + "enable logs in the configuration (logs: true) and try teleportation again.");
+                + "enable diagnostics in the configuration (diagnostic: true) and try teleportation again.");
     }
 }

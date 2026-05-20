@@ -614,7 +614,7 @@ public abstract class AbstractRtpHandler {
             if (loggingEnabled) {
                 Bukkit.getConsoleSender().sendMessage("Install the WorldGuard plugin or disable checking regions in the configuration (checkinginregions: false).");
             }
-            player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable logs in the configuration (logs: true) and try teleportation again.");
+            player.sendMessage(ChatColor.RED + "Check the console. If there is nothing in the console, enable diagnostics in the configuration (diagnostic: true) and try teleportation again.");
             TeleportRequestManager.cancelRequest(player.getUniqueId(), loggingEnabled, "missing WorldGuard");
             Variables.getRuntimeState().setPlayerSearching(player, false);
             return;
