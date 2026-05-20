@@ -79,6 +79,9 @@ permissions:
   sRandomRTP.Command.Stats:
     description: Allows /rtp stats.
     default: op
+  sRandomRTP.Command.Portal.Check:
+    description: Allows /rtp portal check.
+    default: op
   sRandomRTP.Command.AllBars:
     description: Allows /rtp allbars when local admin bars are enabled.
     default: op

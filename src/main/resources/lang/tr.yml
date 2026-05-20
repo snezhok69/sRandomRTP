@@ -183,6 +183,80 @@ messages:
     - '&a&e%portal%&a portalına ışınlandınız.'
   portal-delete-success:
     - '&a&e%portal% &aportali ve tüm blokları başarıyla silindi.'
+  diagnostics:
+    doctor-lines:
+      - '&a[sRandomRTP] &6Doctor'
+      - '&7Plugin: &f%plugin_version% &8| &7Java: &f%java_version%'
+      - '&7Server: &f%server_version%'
+      - '&7Folia: &f%folia%'
+      - '&7Language: &f%language%'
+      - '&7Integrations: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
+      - '&7Local admin bars gate: &f%local_admin_bars_gate%'
+      - '&7Active searches: &f%active_searches% &8| &7Portal tasks: &f%portal_tasks%'
+      - '&7Config versions: &f%config_versions%'
+    stats-lines:
+      - '&a[sRandomRTP] &6Runtime stats'
+      - '&7Active searches: &f%active_searches%'
+      - '&7Total RTP uses: &f%rtp_uses%'
+      - '&7Cooldowns: &f%cooldowns% &8| &7Biome cooldowns: &f%biome_cooldowns%'
+      - '&7Portal tasks: &f%portal_tasks% &8| &7Portal blocks: &f%portal_blocks%'
+      - '&7Completed/cancelled/refunds: &f%completed%&7/&f%cancelled%&7/&f%refunds%'
+      - '&7Avg coordinate/safeY/chunk ms: &f%coordinate_avg%&7/&f%safe_y_avg%&7/&f%chunk_avg%'
+    dump-created:
+      - '&a[sRandomRTP] &aSupport dump created: &f%path%'
+    dump-failed:
+      - '&a[sRandomRTP] &cFailed to create support dump: %error%'
+    portal-check:
+      - '&a[sRandomRTP] &6Portal check: &ftotal=%total% &7missing_worlds=&f%missing_worlds% &7duplicate_world_names=&f%duplicate_world_names% &7tasks=&f%tasks%'
+  settings:
+    header: '&a[sRandomRTP] &6Settings &7(%page%/%max_page%)'
+    description: '&7Debug commands and local admin bossbars are controlled here. Permissions still apply.'
+    local-gate: '&7Local admin bars gate: &f%state%'
+    category: '&8- &e%category%'
+    categories:
+      player: 'Player'
+      admin: 'Admin'
+      debug: 'Debug'
+    flag-line: '  &7%command% &8(%id%) &7perm: &f%permission% '
+    status-on: '&a[ON]'
+    status-off: '&c[OFF]'
+    status-local-gate-off: '&6[LOCAL GATE OFF]'
+    status-locked: '&8[locked]'
+    toggle-hover: '&7Toggle %command%'
+    prev-button: '&a[< Previous]'
+    prev-disabled: '&8[< Previous]'
+    prev-hover: '&7Open previous settings page'
+    next-button: '&a[Next >]'
+    next-disabled: '&8[Next >]'
+    next-hover: '&7Open next settings page'
+    unknown:
+      - '&a[sRandomRTP] &cUnknown setting: &f%id%'
+    locked:
+      - '&a[sRandomRTP] &e%command% is protected from in-game toggles.'
+    invalid-mode:
+      - '&a[sRandomRTP] &cUse: /rtp settings toggle %id% [on|off]'
+    save-failed:
+      - '&a[sRandomRTP] &cFailed to save Settings/commands.yml: %error%'
+    changed:
+      - '&a[sRandomRTP] &a%command% command is now %state%&a.'
+    local-gate-hidden:
+      - '&a[sRandomRTP] &7Local gate is still closed, so this command stays hidden in public builds.'
+    usage:
+      - '&a[sRandomRTP] &6Usage:'
+      - '&7/rtp settings [page]'
+      - '&7/rtp settings toggle <id> [on|off]'
+    command-disabled:
+      - '&a[sRandomRTP] &cThis command is disabled in &fSettings/commands.yml&c: &e%id%'
+  command-help:
+    settings: '&a/rtp settings - &6opens command toggles.'
+    doctor: '&a/rtp doctor - &6shows startup/config health.'
+    stats: '&a/rtp stats - &6shows runtime metrics.'
+    dump: '&a/rtp dump - &6creates a support bundle.'
+    portal-check: '&a/rtp portal check - &6checks portal health.'
+    tpsbar: '&a/rtp tpsbar - &6toggles the TPS admin bossbar.'
+    rambar: '&a/rtp rambar - &6toggles the RAM admin bossbar.'
+    msptbar: '&a/rtp msptbar - &6toggles the MSPT admin bossbar.'
+    allbars: '&a/rtp allbars - &6toggles all admin bossbars.'
   redirect-world:
     - '&a[sRandomRTP] &6&e%from_world% &4dünyasından ışınlanma yasaklandı. &6&e%to_world% &6dünyasına ışınlanacaksınız'
   banned-world-sender:

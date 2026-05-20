@@ -38,6 +38,7 @@
 # (sRandomRTP.Command.Doctor - allows you to use /rtp doctor startup/config diagnostics.);
 # (sRandomRTP.Command.Dump - allows you to create a support bundle with /rtp dump.);
 # (sRandomRTP.Command.Stats - allows you to use /rtp stats runtime diagnostics.);
+# (sRandomRTP.Command.Portal.Check - allows you to use /rtp portal check diagnostics.);
 #
 #
 

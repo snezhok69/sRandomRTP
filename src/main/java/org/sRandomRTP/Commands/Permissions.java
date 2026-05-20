@@ -27,6 +27,7 @@ public final class Permissions {
     public static final String DOCTOR     = "sRandomRTP.Command.Doctor";
     public static final String DUMP       = "sRandomRTP.Command.Dump";
     public static final String STATS      = "sRandomRTP.Command.Stats";
+    public static final String PORTAL_CHECK = "sRandomRTP.Command.Portal.Check";
     public static final String ALL_BARS       = "sRandomRTP.Command.AllBars";
     public static final String TPS_BAR        = "sRandomRTP.Command.TpsBar";
     public static final String RAM_BAR        = "sRandomRTP.Command.RamBar";

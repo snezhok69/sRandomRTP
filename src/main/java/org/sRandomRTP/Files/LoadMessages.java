@@ -88,6 +88,47 @@ public class LoadMessages {
     public static volatile String portal_space;
     public static volatile List<String> portal_teleport_success;
     public static volatile List<String> portal_delete_success;
+    public static volatile List<String> diagnostics_doctor_lines = Collections.emptyList();
+    public static volatile List<String> diagnostics_stats_lines = Collections.emptyList();
+    public static volatile List<String> diagnostics_dump_created = Collections.emptyList();
+    public static volatile List<String> diagnostics_dump_failed = Collections.emptyList();
+    public static volatile List<String> diagnostics_portal_check = Collections.emptyList();
+    public static volatile String settings_header = "&a[sRandomRTP] &6Settings &7(%page%/%max_page%)";
+    public static volatile String settings_description = "&7Debug commands and local admin bossbars are controlled here. Permissions still apply.";
+    public static volatile String settings_local_gate = "&7Local admin bars gate: &f%state%";
+    public static volatile String settings_category = "&8- &e%category%";
+    public static volatile String settings_category_player = "Player";
+    public static volatile String settings_category_admin = "Admin";
+    public static volatile String settings_category_debug = "Debug";
+    public static volatile String settings_flag_line = "  &7%command% &8(%id%) &7perm: &f%permission% ";
+    public static volatile String settings_status_on = "&a[ON]";
+    public static volatile String settings_status_off = "&c[OFF]";
+    public static volatile String settings_status_local_gate_off = "&6[LOCAL GATE OFF]";
+    public static volatile String settings_status_locked = "&8[locked]";
+    public static volatile String settings_toggle_hover = "&7Toggle %command%";
+    public static volatile String settings_prev_button = "&a[< Previous]";
+    public static volatile String settings_prev_disabled = "&8[< Previous]";
+    public static volatile String settings_prev_hover = "&7Open previous settings page";
+    public static volatile String settings_next_button = "&a[Next >]";
+    public static volatile String settings_next_disabled = "&8[Next >]";
+    public static volatile String settings_next_hover = "&7Open next settings page";
+    public static volatile List<String> settings_unknown = Collections.emptyList();
+    public static volatile List<String> settings_locked = Collections.emptyList();
+    public static volatile List<String> settings_invalid_mode = Collections.emptyList();
+    public static volatile List<String> settings_save_failed = Collections.emptyList();
+    public static volatile List<String> settings_changed = Collections.emptyList();
+    public static volatile List<String> settings_local_gate_hidden = Collections.emptyList();
+    public static volatile List<String> settings_usage = Collections.emptyList();
+    public static volatile List<String> settings_command_disabled = Collections.emptyList();
+    public static volatile String commandhelp_settings = "&a/rtp settings - &6opens command toggles.";
+    public static volatile String commandhelp_doctor = "&a/rtp doctor - &6shows startup/config health.";
+    public static volatile String commandhelp_stats = "&a/rtp stats - &6shows runtime metrics.";
+    public static volatile String commandhelp_dump = "&a/rtp dump - &6creates a support bundle.";
+    public static volatile String commandhelp_portal_check = "&a/rtp portal check - &6checks portal health.";
+    public static volatile String commandhelp_tpsbar = "&a/rtp tpsbar - &6toggles the TPS admin bossbar.";
+    public static volatile String commandhelp_rambar = "&a/rtp rambar - &6toggles the RAM admin bossbar.";
+    public static volatile String commandhelp_msptbar = "&a/rtp msptbar - &6toggles the MSPT admin bossbar.";
+    public static volatile String commandhelp_allbars = "&a/rtp allbars - &6toggles all admin bossbars.";
     public static volatile List<String> redirect_world;
     public static volatile List<String> banned_world_sender;
     public static volatile List<String> successMessage_chunky;
@@ -204,6 +245,76 @@ public class LoadMessages {
         if (portal_space == null) portal_space = "";
         portal_teleport_success = langFile.getStringList("messages.portal-teleport-success");
         portal_delete_success = langFile.getStringList("messages.portal-delete-success");
+        diagnostics_doctor_lines = withFallback(langFile.getStringList("messages.diagnostics.doctor-lines"),
+                "&a[sRandomRTP] &6Doctor",
+                "&7Plugin: &f%plugin_version% &8| &7Java: &f%java_version%",
+                "&7Server: &f%server_version%",
+                "&7Folia: &f%folia%",
+                "&7Language: &f%language%",
+                "&7Integrations: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%",
+                "&7Local admin bars gate: &f%local_admin_bars_gate%",
+                "&7Active searches: &f%active_searches% &8| &7Portal tasks: &f%portal_tasks%",
+                "&7Config versions: &f%config_versions%");
+        diagnostics_stats_lines = withFallback(langFile.getStringList("messages.diagnostics.stats-lines"),
+                "&a[sRandomRTP] &6Runtime stats",
+                "&7Active searches: &f%active_searches%",
+                "&7Total RTP uses: &f%rtp_uses%",
+                "&7Cooldowns: &f%cooldowns% &8| &7Biome cooldowns: &f%biome_cooldowns%",
+                "&7Portal tasks: &f%portal_tasks% &8| &7Portal blocks: &f%portal_blocks%",
+                "&7Completed/cancelled/refunds: &f%completed%&7/&f%cancelled%&7/&f%refunds%",
+                "&7Avg coordinate/safeY/chunk ms: &f%coordinate_avg%&7/&f%safe_y_avg%&7/&f%chunk_avg%");
+        diagnostics_dump_created = withFallback(langFile.getStringList("messages.diagnostics.dump-created"),
+                "&a[sRandomRTP] &aSupport dump created: &f%path%");
+        diagnostics_dump_failed = withFallback(langFile.getStringList("messages.diagnostics.dump-failed"),
+                "&a[sRandomRTP] &cFailed to create support dump: %error%");
+        diagnostics_portal_check = withFallback(langFile.getStringList("messages.diagnostics.portal-check"),
+                "&a[sRandomRTP] &6Portal check: &ftotal=%total% &7missing_worlds=&f%missing_worlds% &7duplicate_world_names=&f%duplicate_world_names% &7tasks=&f%tasks%");
+        settings_header = getString(langFile, "messages.settings.header", settings_header);
+        settings_description = getString(langFile, "messages.settings.description", settings_description);
+        settings_local_gate = getString(langFile, "messages.settings.local-gate", settings_local_gate);
+        settings_category = getString(langFile, "messages.settings.category", settings_category);
+        settings_category_player = getString(langFile, "messages.settings.categories.player", settings_category_player);
+        settings_category_admin = getString(langFile, "messages.settings.categories.admin", settings_category_admin);
+        settings_category_debug = getString(langFile, "messages.settings.categories.debug", settings_category_debug);
+        settings_flag_line = getString(langFile, "messages.settings.flag-line", settings_flag_line);
+        settings_status_on = getString(langFile, "messages.settings.status-on", settings_status_on);
+        settings_status_off = getString(langFile, "messages.settings.status-off", settings_status_off);
+        settings_status_local_gate_off = getString(langFile, "messages.settings.status-local-gate-off", settings_status_local_gate_off);
+        settings_status_locked = getString(langFile, "messages.settings.status-locked", settings_status_locked);
+        settings_toggle_hover = getString(langFile, "messages.settings.toggle-hover", settings_toggle_hover);
+        settings_prev_button = getString(langFile, "messages.settings.prev-button", settings_prev_button);
+        settings_prev_disabled = getString(langFile, "messages.settings.prev-disabled", settings_prev_disabled);
+        settings_prev_hover = getString(langFile, "messages.settings.prev-hover", settings_prev_hover);
+        settings_next_button = getString(langFile, "messages.settings.next-button", settings_next_button);
+        settings_next_disabled = getString(langFile, "messages.settings.next-disabled", settings_next_disabled);
+        settings_next_hover = getString(langFile, "messages.settings.next-hover", settings_next_hover);
+        settings_unknown = withFallback(langFile.getStringList("messages.settings.unknown"),
+                "&a[sRandomRTP] &cUnknown setting: &f%id%");
+        settings_locked = withFallback(langFile.getStringList("messages.settings.locked"),
+                "&a[sRandomRTP] &e%command% is protected from in-game toggles.");
+        settings_invalid_mode = withFallback(langFile.getStringList("messages.settings.invalid-mode"),
+                "&a[sRandomRTP] &cUse: /rtp settings toggle %id% [on|off]");
+        settings_save_failed = withFallback(langFile.getStringList("messages.settings.save-failed"),
+                "&a[sRandomRTP] &cFailed to save Settings/commands.yml: %error%");
+        settings_changed = withFallback(langFile.getStringList("messages.settings.changed"),
+                "&a[sRandomRTP] &a%command% command is now %state%&a.");
+        settings_local_gate_hidden = withFallback(langFile.getStringList("messages.settings.local-gate-hidden"),
+                "&a[sRandomRTP] &7Local gate is still closed, so this command stays hidden in public builds.");
+        settings_usage = withFallback(langFile.getStringList("messages.settings.usage"),
+                "&a[sRandomRTP] &6Usage:",
+                "&7/rtp settings [page]",
+                "&7/rtp settings toggle <id> [on|off]");
+        settings_command_disabled = withFallback(langFile.getStringList("messages.settings.command-disabled"),
+                "&a[sRandomRTP] &cThis command is disabled in &fSettings/commands.yml&c: &e%id%");
+        commandhelp_settings = getString(langFile, "messages.command-help.settings", commandhelp_settings);
+        commandhelp_doctor = getString(langFile, "messages.command-help.doctor", commandhelp_doctor);
+        commandhelp_stats = getString(langFile, "messages.command-help.stats", commandhelp_stats);
+        commandhelp_dump = getString(langFile, "messages.command-help.dump", commandhelp_dump);
+        commandhelp_portal_check = getString(langFile, "messages.command-help.portal-check", commandhelp_portal_check);
+        commandhelp_tpsbar = getString(langFile, "messages.command-help.tpsbar", commandhelp_tpsbar);
+        commandhelp_rambar = getString(langFile, "messages.command-help.rambar", commandhelp_rambar);
+        commandhelp_msptbar = getString(langFile, "messages.command-help.msptbar", commandhelp_msptbar);
+        commandhelp_allbars = getString(langFile, "messages.command-help.allbars", commandhelp_allbars);
         redirect_world = langFile.getStringList("messages.redirect-world");
         banned_world_sender = langFile.getStringList("messages.banned-world-sender");
         successMessage_chunky = langFile.getStringList("messages.successMessage-chunky");
@@ -222,7 +333,19 @@ public class LoadMessages {
         longteleportwait = langFile.getStringList("messages.long-teleport-wait");
     }
 
-    private static List<String> withFallback(List<String> messages, String fallback) {
-        return messages == null || messages.isEmpty() ? Collections.singletonList(fallback) : messages;
+    private static String getString(YamlConfiguration langFile, String path, String fallback) {
+        String value = langFile.getString(path);
+        return value == null ? fallback : value;
+    }
+
+    private static List<String> withFallback(List<String> messages, String... fallback) {
+        if (messages != null && !messages.isEmpty()) {
+            return messages;
+        }
+        java.util.ArrayList<String> defaults = new java.util.ArrayList<>();
+        if (fallback != null) {
+            Collections.addAll(defaults, fallback);
+        }
+        return defaults;
     }
 }
