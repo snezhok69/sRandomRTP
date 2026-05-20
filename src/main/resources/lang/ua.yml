@@ -192,7 +192,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Мова: &f%language%'
       - '&7Інтеграції: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Локальний доступ до адмінських bossbar: &f%local_admin_bars_gate%'
       - '&7Активні пошуки: &f%active_searches% &8| &7Завдання порталів: &f%portal_tasks%'
       - '&7Версії конфігів: &f%config_versions%'
     stats-lines:
@@ -212,7 +211,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6Налаштування &7(%page%/%max_page%)'
     description: '&7Команди налагодження та локальні адмінські bossbar налаштовуються тут. Права все одно перевіряються.'
-    local-gate: '&7Локальний доступ до адмінських bossbar: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Гравець'
@@ -221,7 +219,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7право: &f%permission% '
     status-on: '&a[УВІМК]'
     status-off: '&c[ВИМК]'
-    status-local-gate-off: '&6[ЛОКАЛЬНИЙ ДОСТУП ВИМК.]'
     status-locked: '&8[закрито]'
     toggle-hover: '&7Перемкнути %command%'
     prev-button: '&a[< Назад]'
@@ -240,8 +237,6 @@ messages:
       - '&a[sRandomRTP] &cНе вдалося зберегти Settings/commands.yml: %error%'
     changed:
       - '&a[sRandomRTP] &aКоманда %command% тепер %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7Локальний доступ ще закритий, тому ця команда прихована у публічних збірках.'
     usage:
       - '&a[sRandomRTP] &6Використання:'
       - '&7/rtp settings [page]'

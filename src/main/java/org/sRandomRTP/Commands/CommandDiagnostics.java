@@ -7,7 +7,6 @@ import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadKeys;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.ConfigRegistry;
-import org.sRandomRTP.Services.LocalFeatureGate;
 import org.sRandomRTP.Services.PluginVersionCatalog;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
 import org.sRandomRTP.Services.TeleportMetrics;
@@ -82,7 +81,6 @@ public final class CommandDiagnostics {
                     "%vault%", String.valueOf(isPluginEnabled("Vault")),
                     "%chunky%", String.valueOf(isPluginEnabled("Chunky")),
                     "%placeholderapi%", String.valueOf(isPluginEnabled("PlaceholderAPI")),
-                    "%local_admin_bars_gate%", String.valueOf(LocalFeatureGate.isLocalAdminBarsEnabled()),
                     "%active_searches%", String.valueOf(state.getPlayerSearchStatus().size()),
                     "%portal_tasks%", String.valueOf(state.getPlayerPortalsTasks().size()),
                     "%config_versions%", configVersionSummary()));

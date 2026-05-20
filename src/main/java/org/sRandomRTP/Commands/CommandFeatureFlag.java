@@ -7,7 +7,6 @@ import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.ConfigCache;
 import org.sRandomRTP.Services.ConfigRegistry;
-import org.sRandomRTP.Services.LocalFeatureGate;
 import org.sRandomRTP.Services.PluginVersionCatalog;
 
 import java.io.File;
@@ -17,34 +16,34 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public enum CommandFeatureFlag {
-    RTP("rtp", "Player", "commands.player.rtp.enabled", "/rtp", Permissions.RTP, true, false, true),
-    NEAR("near", "Player", "commands.player.near.enabled", "/rtp near", Permissions.NEAR, true, false, true),
-    FAR("far", "Player", "commands.player.far.enabled", "/rtp far", Permissions.FAR, true, false, true),
-    MIDDLE("middle", "Player", "commands.player.middle.enabled", "/rtp middle", Permissions.MIDDLE, true, false, true),
-    BASE("base", "Player", "commands.player.base.enabled", "/rtp base", Permissions.BASE, true, false, true),
-    BIOME("biome", "Player", "commands.player.biome.enabled", "/rtp biome", Permissions.RTP_BIOME, true, false, true),
-    WORLD("world", "Player", "commands.player.world.enabled", "/rtp world", Permissions.WORLD, true, false, true),
-    BACK("back", "Player", "commands.player.back.enabled", "/rtp back", Permissions.BACK, true, false, true),
-    CANCEL("cancel", "Player", "commands.player.cancel.enabled", "/rtp cancel", Permissions.CANCEL, true, false, true),
-    ACCEPT("accept", "Player", "commands.player.accept.enabled", "/rtp accept", Permissions.ACCEPT, true, false, true),
-    DENY("deny", "Player", "commands.player.deny.enabled", "/rtp deny", Permissions.DENY, true, false, true),
+    RTP("rtp", "Player", "commands.player.rtp.enabled", "/rtp", Permissions.RTP, true, true),
+    NEAR("near", "Player", "commands.player.near.enabled", "/rtp near", Permissions.NEAR, true, true),
+    FAR("far", "Player", "commands.player.far.enabled", "/rtp far", Permissions.FAR, true, true),
+    MIDDLE("middle", "Player", "commands.player.middle.enabled", "/rtp middle", Permissions.MIDDLE, true, true),
+    BASE("base", "Player", "commands.player.base.enabled", "/rtp base", Permissions.BASE, true, true),
+    BIOME("biome", "Player", "commands.player.biome.enabled", "/rtp biome", Permissions.RTP_BIOME, true, true),
+    WORLD("world", "Player", "commands.player.world.enabled", "/rtp world", Permissions.WORLD, true, true),
+    BACK("back", "Player", "commands.player.back.enabled", "/rtp back", Permissions.BACK, true, true),
+    CANCEL("cancel", "Player", "commands.player.cancel.enabled", "/rtp cancel", Permissions.CANCEL, true, true),
+    ACCEPT("accept", "Player", "commands.player.accept.enabled", "/rtp accept", Permissions.ACCEPT, true, true),
+    DENY("deny", "Player", "commands.player.deny.enabled", "/rtp deny", Permissions.DENY, true, true),
 
-    PLAYER("player", "Admin", "commands.admin.player.enabled", "/rtp player", Permissions.PLAYER, true, false, true),
-    PORTAL("portal", "Admin", "commands.admin.portal.enabled", "/rtp portal set/del/list", Permissions.PORTAL, true, false, true),
-    CHUNKY("chunky", "Admin", "commands.admin.chunky.enabled", "/rtp chunky", Permissions.CHUNKY, true, false, true),
-    VERSION("version", "Admin", "commands.admin.version.enabled", "/rtp version", Permissions.VERSION, true, false, true),
-    RELOAD("reload", "Admin", "commands.admin.reload.enabled", "/rtp reload", Permissions.RELOAD, true, false, true),
-    HELP("help", "Admin", "commands.admin.help.enabled", "/rtp help", Permissions.HELP, true, false, true),
-    SETTINGS("settings", "Admin", "commands.admin.settings.enabled", "/rtp settings", Permissions.SETTINGS, true, false, false),
+    PLAYER("player", "Admin", "commands.admin.player.enabled", "/rtp player", Permissions.PLAYER, true, true),
+    PORTAL("portal", "Admin", "commands.admin.portal.enabled", "/rtp portal set/del/list", Permissions.PORTAL, true, true),
+    CHUNKY("chunky", "Admin", "commands.admin.chunky.enabled", "/rtp chunky", Permissions.CHUNKY, true, true),
+    VERSION("version", "Admin", "commands.admin.version.enabled", "/rtp version", Permissions.VERSION, true, true),
+    RELOAD("reload", "Admin", "commands.admin.reload.enabled", "/rtp reload", Permissions.RELOAD, true, true),
+    HELP("help", "Admin", "commands.admin.help.enabled", "/rtp help", Permissions.HELP, true, true),
+    SETTINGS("settings", "Admin", "commands.admin.settings.enabled", "/rtp settings", Permissions.SETTINGS, false, false),
 
-    DOCTOR("doctor", "Debug", "commands.debug.doctor.enabled", "/rtp doctor", Permissions.DOCTOR, true, false, true),
-    DUMP("dump", "Debug", "commands.debug.dump.enabled", "/rtp dump", Permissions.DUMP, true, false, true),
-    STATS("stats", "Debug", "commands.debug.stats.enabled", "/rtp stats", Permissions.STATS, true, false, true),
-    PORTAL_CHECK("portal-check", "Debug", "commands.debug.portal-check.enabled", "/rtp portal check", Permissions.PORTAL_CHECK, true, false, true),
-    ALL_BARS("allbars", "Debug", "commands.debug.allbars.enabled", "/rtp allbars", Permissions.ALL_BARS, true, true, true),
-    TPS_BAR("tpsbar", "Debug", "commands.debug.tpsbar.enabled", "/rtp tpsbar", Permissions.TPS_BAR, true, true, true),
-    RAM_BAR("rambar", "Debug", "commands.debug.rambar.enabled", "/rtp rambar", Permissions.RAM_BAR, true, true, true),
-    MSPT_BAR("msptbar", "Debug", "commands.debug.msptbar.enabled", "/rtp msptbar", Permissions.MSPT_BAR, true, true, true);
+    DOCTOR("doctor", "Debug", "commands.debug.doctor.enabled", "/rtp doctor", Permissions.DOCTOR, false, true),
+    DUMP("dump", "Debug", "commands.debug.dump.enabled", "/rtp dump", Permissions.DUMP, false, true),
+    STATS("stats", "Debug", "commands.debug.stats.enabled", "/rtp stats", Permissions.STATS, false, true),
+    PORTAL_CHECK("portal-check", "Debug", "commands.debug.portal-check.enabled", "/rtp portal check", Permissions.PORTAL_CHECK, false, true),
+    ALL_BARS("allbars", "Debug", "commands.debug.allbars.enabled", "/rtp allbars", Permissions.ALL_BARS, false, true),
+    TPS_BAR("tpsbar", "Debug", "commands.debug.tpsbar.enabled", "/rtp tpsbar", Permissions.TPS_BAR, false, true),
+    RAM_BAR("rambar", "Debug", "commands.debug.rambar.enabled", "/rtp rambar", Permissions.RAM_BAR, false, true),
+    MSPT_BAR("msptbar", "Debug", "commands.debug.msptbar.enabled", "/rtp msptbar", Permissions.MSPT_BAR, false, true);
 
     private static final Map<String, CommandFeatureFlag> BY_ID;
     private static final Map<String, CommandFeatureFlag> BY_SUB_COMMAND;
@@ -68,18 +67,16 @@ public enum CommandFeatureFlag {
     private final String commandLabel;
     private final String permission;
     private final boolean defaultEnabled;
-    private final boolean localOnly;
     private final boolean toggleable;
 
     CommandFeatureFlag(String id, String category, String configPath, String commandLabel, String permission,
-                       boolean defaultEnabled, boolean localOnly, boolean toggleable) {
+                       boolean defaultEnabled, boolean toggleable) {
         this.id = id;
         this.category = category;
         this.configPath = configPath;
         this.commandLabel = commandLabel;
         this.permission = permission;
         this.defaultEnabled = defaultEnabled;
-        this.localOnly = localOnly;
         this.toggleable = toggleable;
     }
 
@@ -107,16 +104,8 @@ public enum CommandFeatureFlag {
         return defaultEnabled;
     }
 
-    public boolean isLocalOnly() {
-        return localOnly;
-    }
-
     public boolean isToggleable() {
         return toggleable;
-    }
-
-    public boolean isLocalGateOpen() {
-        return !localOnly || LocalFeatureGate.isLocalAdminBarsEnabled();
     }
 
     public boolean isConfiguredEnabled() {
@@ -125,7 +114,7 @@ public enum CommandFeatureFlag {
     }
 
     public boolean isEnabled() {
-        return isConfiguredEnabled() && isLocalGateOpen();
+        return isConfiguredEnabled();
     }
 
     public boolean isVisibleTo(CommandSender sender) {

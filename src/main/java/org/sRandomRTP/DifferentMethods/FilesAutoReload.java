@@ -6,7 +6,6 @@ import org.sRandomRTP.DifferentMethods.Text.LoadLanguageFile;
 import org.sRandomRTP.Utils.ChatUtils;
 import org.sRandomRTP.Files.LoadKeys;
 import org.sRandomRTP.Files.LoadMessages;
-import org.sRandomRTP.Services.LocalFeatureGate;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 
@@ -135,7 +134,7 @@ public class FilesAutoReload {
             map.put(name, standardReload);
         }
         map.put("admin-bars.yml", p -> {
-            if (LocalFeatureGate.isLocalAdminBarsEnabled() && Variables.getPluginContext() != null) {
+            if (Variables.getPluginContext() != null) {
                 Variables.getPluginContext().getConfigRegistry().reload();
             }
         });

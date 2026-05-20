@@ -78,8 +78,4 @@ public final class ConfigPaths {
             "Settings_ru/teleport.yml",
             "Settings_ru/title.yml",
     };
-
-    public static boolean isLocalAdminBarsFile(String fileName) {
-        return ADMIN_BARS_FILE.equals(fileName) || ADMIN_BARS_RU_FILE.equals(fileName);
-    }
 }

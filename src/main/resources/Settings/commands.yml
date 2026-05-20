@@ -5,18 +5,18 @@ config-version: 4
 # If a command is disabled here, it is hidden from /rtp help, tab-complete and normal execution.
 #
 # /rtp settings opens an in-game clickable menu for these switches.
-# /rtp settings itself is protected from in-game toggles so admins do not lock themselves out by accident.
+# It is disabled by default in public builds. Enable commands.admin.settings.enabled manually
+# if you want to manage these switches from inside the game.
 #
 # Debug/support commands:
-# /rtp doctor       - startup/config health and local-admin-bars gate status.
+# /rtp doctor       - startup/config health.
 # /rtp dump         - creates a support zip in plugins/sRandomRTP/Diagnostics.
 # /rtp stats        - runtime RTP/search/chunk/portal metrics.
 # /rtp portal check - checks missing worlds, duplicate portal names and active portal tasks.
 #
-# Local admin bossbars:
-# /rtp tpsbar, /rtp rambar, /rtp msptbar and /rtp allbars are local-only.
-# They are listed in the same debug section as /rtp doctor, but still require the JVM/local gate.
-# Public builds keep them hidden even if the config below is true.
+# Admin bossbars:
+# /rtp tpsbar, /rtp rambar, /rtp msptbar and /rtp allbars are normal debug switches now.
+# They are disabled by default and can be enabled here or through /rtp settings after that menu is enabled.
 
 commands:
   player:
@@ -57,22 +57,22 @@ commands:
     help:
       enabled: true
     settings:
-      enabled: true
+      enabled: false
 
   debug:
     doctor:
-      enabled: true
+      enabled: false
     dump:
-      enabled: true
+      enabled: false
     stats:
-      enabled: true
+      enabled: false
     portal-check:
-      enabled: true
+      enabled: false
     allbars:
-      enabled: true
+      enabled: false
     tpsbar:
-      enabled: true
+      enabled: false
     rambar:
-      enabled: true
+      enabled: false
     msptbar:
-      enabled: true
+      enabled: false

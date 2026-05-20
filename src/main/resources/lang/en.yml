@@ -193,7 +193,6 @@ messages:
       - '&7Folia: &f%folia%'
       - '&7Language: &f%language%'
       - '&7Integrations: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%'
-      - '&7Local admin bars gate: &f%local_admin_bars_gate%'
       - '&7Active searches: &f%active_searches% &8| &7Portal tasks: &f%portal_tasks%'
       - '&7Config versions: &f%config_versions%'
     stats-lines:
@@ -213,7 +212,6 @@ messages:
   settings:
     header: '&a[sRandomRTP] &6Settings &7(%page%/%max_page%)'
     description: '&7Debug commands and local admin bossbars are controlled here. Permissions still apply.'
-    local-gate: '&7Local admin bars gate: &f%state%'
     category: '&8- &e%category%'
     categories:
       player: 'Player'
@@ -222,7 +220,6 @@ messages:
     flag-line: '  &7%command% &8(%id%) &7perm: &f%permission% '
     status-on: '&a[ON]'
     status-off: '&c[OFF]'
-    status-local-gate-off: '&6[LOCAL GATE OFF]'
     status-locked: '&8[locked]'
     toggle-hover: '&7Toggle %command%'
     prev-button: '&a[< Previous]'
@@ -241,8 +238,6 @@ messages:
       - '&a[sRandomRTP] &cFailed to save Settings/commands.yml: %error%'
     changed:
       - '&a[sRandomRTP] &a%command% command is now %state%&a.'
-    local-gate-hidden:
-      - '&a[sRandomRTP] &7Local gate is still closed, so this command stays hidden in public builds.'
     usage:
       - '&a[sRandomRTP] &6Usage:'
       - '&7/rtp settings [page]'

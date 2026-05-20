@@ -6,7 +6,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.CommandSender;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
-import org.sRandomRTP.Services.LocalFeatureGate;
 
 import java.io.IOException;
 
@@ -75,9 +74,6 @@ public final class CommandSettings {
         Variables.getMessageService().send(sender, LoadMessages.settings_changed,
                 "%command%", flag.getCommandLabel(),
                 "%state%", newValue ? LoadMessages.settings_status_on : LoadMessages.settings_status_off);
-        if (flag.isLocalOnly() && !LocalFeatureGate.isLocalAdminBarsEnabled()) {
-            Variables.getMessageService().send(sender, LoadMessages.settings_local_gate_hidden);
-        }
         sendPage(sender, pageFor(flag));
     }
 
@@ -93,9 +89,6 @@ public final class CommandSettings {
                 "%page%", String.valueOf(page),
                 "%max_page%", String.valueOf(maxPage)));
         sender.sendMessage(format(LoadMessages.settings_description));
-        sender.sendMessage(format(LoadMessages.settings_local_gate,
-                "%state%", String.valueOf(LocalFeatureGate.isLocalAdminBarsEnabled())));
-
         String lastCategory = "";
         for (int i = start; i < end; i++) {
             CommandFeatureFlag flag = flags[i];
@@ -157,11 +150,6 @@ public final class CommandSettings {
     }
 
     private static String statusLabel(CommandFeatureFlag flag) {
-        if (flag.isLocalOnly() && !flag.isLocalGateOpen()) {
-            return format(flag.isConfiguredEnabled()
-                    ? LoadMessages.settings_status_local_gate_off
-                    : LoadMessages.settings_status_off);
-        }
         return format(flag.isConfiguredEnabled()
                 ? LoadMessages.settings_status_on
                 : LoadMessages.settings_status_off);

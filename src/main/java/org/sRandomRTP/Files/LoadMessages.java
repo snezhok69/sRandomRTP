@@ -95,7 +95,6 @@ public class LoadMessages {
     public static volatile List<String> diagnostics_portal_check = Collections.emptyList();
     public static volatile String settings_header = "&a[sRandomRTP] &6Settings &7(%page%/%max_page%)";
     public static volatile String settings_description = "&7Debug commands and local admin bossbars are controlled here. Permissions still apply.";
-    public static volatile String settings_local_gate = "&7Local admin bars gate: &f%state%";
     public static volatile String settings_category = "&8- &e%category%";
     public static volatile String settings_category_player = "Player";
     public static volatile String settings_category_admin = "Admin";
@@ -103,7 +102,6 @@ public class LoadMessages {
     public static volatile String settings_flag_line = "  &7%command% &8(%id%) &7perm: &f%permission% ";
     public static volatile String settings_status_on = "&a[ON]";
     public static volatile String settings_status_off = "&c[OFF]";
-    public static volatile String settings_status_local_gate_off = "&6[LOCAL GATE OFF]";
     public static volatile String settings_status_locked = "&8[locked]";
     public static volatile String settings_toggle_hover = "&7Toggle %command%";
     public static volatile String settings_prev_button = "&a[< Previous]";
@@ -117,7 +115,6 @@ public class LoadMessages {
     public static volatile List<String> settings_invalid_mode = Collections.emptyList();
     public static volatile List<String> settings_save_failed = Collections.emptyList();
     public static volatile List<String> settings_changed = Collections.emptyList();
-    public static volatile List<String> settings_local_gate_hidden = Collections.emptyList();
     public static volatile List<String> settings_usage = Collections.emptyList();
     public static volatile List<String> settings_command_disabled = Collections.emptyList();
     public static volatile String commandhelp_settings = "&a/rtp settings - &6opens command toggles.";
@@ -252,7 +249,6 @@ public class LoadMessages {
                 "&7Folia: &f%folia%",
                 "&7Language: &f%language%",
                 "&7Integrations: &fWorldGuard=%worldguard%, Vault=%vault%, Chunky=%chunky%, PlaceholderAPI=%placeholderapi%",
-                "&7Local admin bars gate: &f%local_admin_bars_gate%",
                 "&7Active searches: &f%active_searches% &8| &7Portal tasks: &f%portal_tasks%",
                 "&7Config versions: &f%config_versions%");
         diagnostics_stats_lines = withFallback(langFile.getStringList("messages.diagnostics.stats-lines"),
@@ -271,7 +267,6 @@ public class LoadMessages {
                 "&a[sRandomRTP] &6Portal check: &ftotal=%total% &7missing_worlds=&f%missing_worlds% &7duplicate_world_names=&f%duplicate_world_names% &7tasks=&f%tasks%");
         settings_header = getString(langFile, "messages.settings.header", settings_header);
         settings_description = getString(langFile, "messages.settings.description", settings_description);
-        settings_local_gate = getString(langFile, "messages.settings.local-gate", settings_local_gate);
         settings_category = getString(langFile, "messages.settings.category", settings_category);
         settings_category_player = getString(langFile, "messages.settings.categories.player", settings_category_player);
         settings_category_admin = getString(langFile, "messages.settings.categories.admin", settings_category_admin);
@@ -279,7 +274,6 @@ public class LoadMessages {
         settings_flag_line = getString(langFile, "messages.settings.flag-line", settings_flag_line);
         settings_status_on = getString(langFile, "messages.settings.status-on", settings_status_on);
         settings_status_off = getString(langFile, "messages.settings.status-off", settings_status_off);
-        settings_status_local_gate_off = getString(langFile, "messages.settings.status-local-gate-off", settings_status_local_gate_off);
         settings_status_locked = getString(langFile, "messages.settings.status-locked", settings_status_locked);
         settings_toggle_hover = getString(langFile, "messages.settings.toggle-hover", settings_toggle_hover);
         settings_prev_button = getString(langFile, "messages.settings.prev-button", settings_prev_button);
@@ -298,8 +292,6 @@ public class LoadMessages {
                 "&a[sRandomRTP] &cFailed to save Settings/commands.yml: %error%");
         settings_changed = withFallback(langFile.getStringList("messages.settings.changed"),
                 "&a[sRandomRTP] &a%command% command is now %state%&a.");
-        settings_local_gate_hidden = withFallback(langFile.getStringList("messages.settings.local-gate-hidden"),
-                "&a[sRandomRTP] &7Local gate is still closed, so this command stays hidden in public builds.");
         settings_usage = withFallback(langFile.getStringList("messages.settings.usage"),
                 "&a[sRandomRTP] &6Usage:",
                 "&7/rtp settings [page]",
