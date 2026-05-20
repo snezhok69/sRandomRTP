@@ -1,8 +1,8 @@
-# sRandomRTP 3.1 — стабильность, приватные админ bossbar и более безопасный RTP
+# sRandomRTP 3.1 — стабильность, админские debug-инструменты и более безопасный RTP
 
-Приватные локальные админ-инструменты!
+Админские debug-инструменты!
 
-1. Следующие команды админ-мониторинга теперь существуют только как приватные/локальные инструменты и по умолчанию выключены в публичных установках:
+1. Следующие команды админ-мониторинга являются debug-инструментами и по умолчанию выключены в публичных установках через Settings/commands.yml:
 
 /rtp tpsbar
 /rtp rambar
@@ -10,25 +10,25 @@
 /rtp allbars
 
 1.1. /rtp tpsbar — показывает или скрывает админский bossbar с текущим TPS сервера.
-Пермишион при включённом локальном gate: sRandomRTP.Command.TpsBar
+Пермишион: sRandomRTP.Command.TpsBar
 
 1.2. /rtp rambar — показывает или скрывает админский bossbar с использованием RAM.
-Пермишион при включённом локальном gate: sRandomRTP.Command.RamBar
+Пермишион: sRandomRTP.Command.RamBar
 
 1.3. /rtp msptbar — показывает или скрывает админский bossbar с текущим MSPT.
-Пермишион при включённом локальном gate: sRandomRTP.Command.MsptBar
+Пермишион: sRandomRTP.Command.MsptBar
 
 1.4. /rtp allbars — включает или выключает все админские bossbar сразу.
-Пермишион при включённом локальном gate: sRandomRTP.Command.AllBars
+Пермишион: sRandomRTP.Command.AllBars
 
-1.5. На публичных серверах эти команды не появляются в tab completion и /rtp help, а admin-bars.yml не создаётся и не загружается, пока не включён приватный локальный gate.
+1.5. На публичных серверах эти команды не появляются в tab completion и /rtp help, пока они не включены в Settings/commands.yml или через /rtp settings.
 
 
-Приватные возможности админ-мониторинга!
+Возможности админ-мониторинга!
 
-1. Добавлены настраиваемые bossbar для TPS, RAM и MSPT для приватного/локального мониторинга сервера.
+1. Добавлены настраиваемые bossbar для TPS, RAM и MSPT для мониторинга сервера.
 
-2. Для каждого локального bossbar можно отдельно настроить заголовок, цвет, стиль, формат обновления, пороги и состояние включения в admin-bars.yml.
+2. Для каждого bossbar можно отдельно настроить заголовок, цвет, стиль, формат обновления, пороги и состояние включения в admin-bars.yml.
 
 3. Команды и tab completion учитывают пермишионы, состояние конфига и поддержку метрик на сервере.
 
@@ -60,7 +60,7 @@
 
 1. Добавлены новые конфиги:
 
-admin-bars.yml — приватные/локальные настройки bossbar для TPS/RAM/MSPT; файл создаётся и загружается только при включённом локальном admin gate.
+admin-bars.yml — настройки bossbar для TPS/RAM/MSPT. Команды по умолчанию выключены в Settings/commands.yml.
 biome.yml — отдельные радиусы и настройки поиска для /rtp biome, включая per-world параметры и двухфазный поиск.
 
 2. В конфигах появились управляемые config-version, синхронизация дефолтных ключей и миграции при запуске.
@@ -73,7 +73,7 @@ biome.yml — отдельные радиусы и настройки поиск
 
 6. Сообщение о неизвестной команде теперь можно менять через ключ локализации invalid-command.
 
-7. Английская и русская локализации расширены сообщениями для локальных admin bossbar, invalid command и обновлёнными подсказками команд. Публичный /rtp help скрывает локальные админ-команды, пока gate выключен.
+7. Английская и русская локализации расширены сообщениями для admin bossbar, invalid command и обновлёнными подсказками команд. Публичный /rtp help скрывает debug-админ команды, пока их command-switch выключен.
 
 
 Архитектура и диагностика!
@@ -132,13 +132,15 @@ biome.yml — отдельные радиусы и настройки поиск
 
 6. Добавлен Settings/commands.yml и /rtp settings — кликабельное меню прямо в игре для включения/выключения RTP-подкоманд без удаления их permission-проверок.
 
-7. Команды отладки/поддержки получили более понятные gate-настройки: /rtp doctor, /rtp dump, /rtp stats, /rtp portal check и local admin bossbar-команды теперь переключаются из одной debug-секции.
+7. Команды отладки/поддержки получили более понятные переключатели: /rtp doctor, /rtp dump, /rtp stats, /rtp portal check и admin bossbar-команды теперь переключаются из одной debug-секции.
 
 8. /rtp portal check относится к debug/support-командам и теперь имеет отдельную permission-ноду: sRandomRTP.Command.Portal.Check.
 
-9. Вывод новых debug/settings-команд теперь локализуется через lang/*.yml, включая /rtp doctor, /rtp dump, /rtp stats, /rtp settings, /rtp portal check и help-строки local admin bossbar.
+9. Вывод новых debug/settings-команд теперь локализуется через lang/*.yml, включая /rtp doctor, /rtp dump, /rtp stats, /rtp settings, /rtp portal check и help-строки admin bossbar.
 
-10. Local admin bossbar-команды остаются в плагине, но в публичной сборке всё ещё скрыты за local-only gate; когда gate открыт, через /rtp settings можно отдельно переключать видимость /rtp tpsbar, /rtp rambar, /rtp msptbar и /rtp allbars.
+10. Admin bossbar-команды остаются в плагине, но в публичной сборке выключены по умолчанию через Settings/commands.yml; после включения /rtp settings можно отдельно переключать видимость /rtp tpsbar, /rtp rambar, /rtp msptbar и /rtp allbars.
+
+11. /randomtp и /randomteleport перенесены из plugin.yml в config.yml → Command-Aliases, поэтому владелец сервера может включать, удалять или менять RTP-алиасы без правки metadata плагина.
 
 
 Примечания

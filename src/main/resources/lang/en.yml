@@ -211,7 +211,7 @@ messages:
       - '&a[sRandomRTP] &6Portal check: &ftotal=%total% &7missing_worlds=&f%missing_worlds% &7duplicate_world_names=&f%duplicate_world_names% &7tasks=&f%tasks%'
   settings:
     header: '&a[sRandomRTP] &6Settings &7(%page%/%max_page%)'
-    description: '&7Debug commands and local admin bossbars are controlled here. Permissions still apply.'
+    description: '&7Debug commands and admin bossbars are controlled here. Permissions still apply.'
     category: '&8- &e%category%'
     categories:
       player: 'Player'

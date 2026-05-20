@@ -178,7 +178,7 @@ messages:
       - '&a[sRandomRTP] &6Проверка порталов: &fвсего=%total% &7отсутствующие_миры=&f%missing_worlds% &7дубли_имён=&f%duplicate_world_names% &7задачи=&f%tasks%'
   settings:
     header: '&a[sRandomRTP] &6Настройки &7(%page%/%max_page%)'
-    description: '&7Команды отладки и локальные админские bossbar настраиваются здесь. Права всё равно проверяются.'
+    description: '&7Команды отладки и админские bossbar настраиваются здесь. Права всё равно проверяются.'
     category: '&8- &e%category%'
     categories:
       player: 'Игрок'

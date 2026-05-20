@@ -86,6 +86,7 @@ public class CommandReload {
                                 Variables.getPluginContext().getConfigRegistry().reload();
                             }
                             LoadKeys.loadKeys(Variables.getInstance().getConfig());
+                            ConfiguredCommandAliases.apply(Variables.getInstance());
                             org.sRandomRTP.Cooldowns.CooldownManager.instance().clearPermissionCache();
                             LoadBlockList.loadBlockList();
                             // Reset in-flight counter so pre-reload drift doesn't throttle searches

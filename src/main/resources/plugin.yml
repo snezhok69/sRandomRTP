@@ -14,7 +14,6 @@ commands:
   rtp:
     description: Random teleport and sRandomRTP admin command.
     usage: /rtp [help|near|far|middle|biome|portal|player|world|chunky|settings|doctor|dump|stats]
-    aliases: [randomtp, randomteleport]
 permissions:
   sRandomRTP.Command.Rtp:
     description: Allows /rtp.

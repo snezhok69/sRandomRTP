@@ -107,6 +107,7 @@ public class MigrationRunner {
         boolean modified = false;
         String fileName = file.getName();
         if ("config.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "Command-Aliases", ConfigDefaults.COMMAND_ALIASES);
             modified |= setIfMissing(yaml, "metrics.rtp.slow-request-threshold-ms", ConfigDefaults.SLOW_REQUEST_THRESHOLD_MS);
             modified |= setIfMissing(yaml, "diagnostics.enabled", true);
         } else if ("teleport.yml".equalsIgnoreCase(fileName)) {

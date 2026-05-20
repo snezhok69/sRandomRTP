@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResourceMetadataTest {
@@ -43,6 +44,18 @@ class ResourceMetadataTest {
             assertTrue(pluginYml.contains("permissions." + permission),
                     "plugin.yml is missing permission: " + permission);
         }
+    }
+
+    @Test
+    void rtpAliasesAreConfiguredOutsidePluginYml() {
+        YamlConfiguration pluginYml = YamlConfiguration.loadConfiguration(
+                Paths.get("src/main/resources/plugin.yml").toFile());
+        YamlConfiguration configYml = YamlConfiguration.loadConfiguration(
+                Paths.get("src/main/resources/config.yml").toFile());
+
+        assertFalse(pluginYml.contains("commands.rtp.aliases"),
+                "RTP aliases must stay configurable through config.yml, not plugin.yml");
+        assertEquals(ConfigDefaults.COMMAND_ALIASES, configYml.getStringList("Command-Aliases"));
     }
 
     @Test

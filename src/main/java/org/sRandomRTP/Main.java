@@ -10,6 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.sRandomRTP.BlockBiomes.LoadBlockList;
 import org.sRandomRTP.Checkings.*;
 import org.sRandomRTP.Commands.CommandArgs;
+import org.sRandomRTP.Commands.ConfiguredCommandAliases;
 import org.sRandomRTP.Commands.OnTabCompletes;
 import org.sRandomRTP.Chunk.ChunkWarmManager;
 import org.sRandomRTP.Data.RtpCountDataStore;
@@ -273,6 +274,7 @@ public class Main extends JavaPlugin {
                 pluginCommand.setTabCompleter(new OnTabCompletes());
             }
         }
+        ConfiguredCommandAliases.apply(this);
     }
 
     private void startBackgroundTasks(Metrics metrics) {
@@ -326,6 +328,7 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         RtpCountDataStore.saveIfDirty();
+        org.sRandomRTP.Commands.ConfiguredCommandAliases.unregister(this);
         Variables.getPluginContext().cancelBackgroundTasks();
         org.bukkit.event.HandlerList.unregisterAll(this);
         TeleportRequestContext.shutdownTimeoutScheduler();

@@ -210,7 +210,7 @@ messages:
       - '&a[sRandomRTP] &6Перевірка порталів: &fусього=%total% &7відсутні_світи=&f%missing_worlds% &7дублі_імен=&f%duplicate_world_names% &7завдання=&f%tasks%'
   settings:
     header: '&a[sRandomRTP] &6Налаштування &7(%page%/%max_page%)'
-    description: '&7Команди налагодження та локальні адмінські bossbar налаштовуються тут. Права все одно перевіряються.'
+    description: '&7Команди налагодження та адмінські bossbar налаштовуються тут. Права все одно перевіряються.'
     category: '&8- &e%category%'
     categories:
       player: 'Гравець'
