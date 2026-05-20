@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ConfigValueParser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -554,12 +555,8 @@ public class AdminBarService {
 
     /** Parses an enum constant by name; returns {@code fallback} if blank or unknown. */
     private static <E extends Enum<E>> E parseEnum(Class<E> type, String value, E fallback) {
-        if (value == null || value.trim().isEmpty()) return fallback;
-        try {
-            return Enum.valueOf(type, value.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ignored) {
-            return fallback;
-        }
+        E parsed = ConfigValueParser.parseEnum(type, value);
+        return parsed == null ? fallback : parsed;
     }
 
     private BarColor parseBarColor(String value, BarColor fallback) {

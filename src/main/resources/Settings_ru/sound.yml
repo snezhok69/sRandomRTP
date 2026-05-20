@@ -4,7 +4,8 @@ teleport:
     # Если true, будут воспроизводиться звуки при истечении таймера босс-бара.
     # Если false, звуки таймера босс-бара не будут воспроизводиться.
     enabled: true
-    # Звук, который будет воспроизводиться. Ссылка на все звуки: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
+    # Звук, который будет воспроизводиться. Названия гибкие: BLOCK_NOTE_BLOCK_BIT, block note block bit, minecraft:block_note_block_bit или номер enum.
+    # Ссылка на все звуки: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
     sound: 'BLOCK_NOTE_BLOCK_BIT'
     # Изменение тона звука.
     pitch: 1.0
@@ -15,7 +16,8 @@ teleport:
     # Если true, будут воспроизводиться звуки при истечении таймера босс-бара.
     # Если false, звуки таймера босс-бара не будут воспроизводиться.
     enabled: true
-    # Звук, который будет воспроизводиться. Ссылка на все звуки: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
+    # Звук, который будет воспроизводиться. Названия гибкие: BLOCK_NOTE_BLOCK_XYLOPHONE, block note block xylophone, minecraft:block_note_block_xylophone или номер enum.
+    # Ссылка на все звуки: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html.
     sound: 'BLOCK_NOTE_BLOCK_XYLOPHONE'
     # Изменение тона звука.
     pitch: 1.0

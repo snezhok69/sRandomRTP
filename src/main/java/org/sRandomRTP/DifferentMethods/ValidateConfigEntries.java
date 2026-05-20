@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.sRandomRTP.Utils.ConfigValueParser;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +18,8 @@ public class ValidateConfigEntries {
         List<String> bannedBlocks = config.getStringList("teleport.bannedBlocks");
         List<String> invalidBlocks = new ArrayList<>();
         for (String block : bannedBlocks) {
-            try {
-                Material.valueOf(block.toUpperCase());
-            } catch (IllegalArgumentException e) {
+            Material material = ConfigValueParser.parseMaterial(block);
+            if (material == null) {
                 invalidBlocks.add(block);
             }
         }
@@ -30,9 +30,8 @@ public class ValidateConfigEntries {
         List<String> bannedBiomes = config.getStringList("teleport.bannedBiomes");
         List<String> invalidBiomes = new ArrayList<>();
         for (String biome : bannedBiomes) {
-            try {
-                Biome.valueOf(biome.toUpperCase());
-            } catch (IllegalArgumentException e) {
+            Biome parsedBiome = ConfigValueParser.parseBiome(biome);
+            if (parsedBiome == null) {
                 invalidBiomes.add(biome);
             }
         }

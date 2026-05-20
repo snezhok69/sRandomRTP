@@ -18,7 +18,8 @@ portal:
   # If true, the portal blocks cannot be broken.
   protect_blocks: true
   # Portal materials
-  # Link to all blocks minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+    # Link to all blocks minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+    # Names are flexible: GLASS, glass, glass block, minecraft:glass, or legacy numeric material IDs where Bukkit supports them.
   materials:
     # Blocks under the portal
     floor: "GLASS"
@@ -28,6 +29,7 @@ portal:
   particles:
     # Particles for the portal floor
     # All particles https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+    # Names are flexible: PORTAL, portal, minecraft:portal, or the enum number.
     floor: "PORTAL"
     # Number of particles created at each point
     floor_count: 2
@@ -37,6 +39,7 @@ portal:
     floor_spread: 0.1
     # The particles that will be on the edges of the portal
     # All particles https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+    # Names are flexible: FLAME, flame, minecraft:flame, or the enum number.
     border: "FLAME"
     # Number of particles created at each point
     border_count: 5

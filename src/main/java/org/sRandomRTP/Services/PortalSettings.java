@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.sRandomRTP.DifferentMethods.Variables;
+import org.sRandomRTP.Utils.ConfigValueParser;
 
 /**
  * Lightweight typed view over {@code Settings/portal.yml}.
@@ -121,23 +122,23 @@ public final class PortalSettings {
 
     private Material material(String path, Material fallback, String label) {
         String materialName = getString(path, fallback.name());
-        try {
-            return Material.valueOf(materialName.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        Material material = ConfigValueParser.parseMaterial(materialName);
+        if (material == null) {
             Bukkit.getLogger().warning("[sRandomRTP] Invalid material for " + label + " in config: "
                     + materialName + ". " + fallback.name() + " is used.");
             return fallback;
         }
+        return material;
     }
 
     private Particle particle(String path, Particle fallback, String label) {
         String particleName = getString(path, fallback.name());
-        try {
-            return Particle.valueOf(particleName.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        Particle particle = ConfigValueParser.parseParticle(particleName);
+        if (particle == null) {
             Bukkit.getLogger().warning("[sRandomRTP] Invalid particle for " + label + " in config: "
                     + particleName + ". " + fallback.name() + " is used.");
             return fallback;
         }
+        return particle;
     }
 }

@@ -3,8 +3,9 @@ config-version: 3
 teleport:
   # Enables or disables effects after teleportation.
   Enabled: true
-  # Here you can specify the effect that will be given by default (11-resistance)
-  # Check the effect numbers here: https://www.digminecraft.com/lists/effect_list_pc.php
+  # Here you can specify effects by legacy number or by name.
+  # Examples: "11", "RESISTANCE", "resistance", "jump boost", "minecraft:speed".
+  # Check effect numbers here: https://www.digminecraft.com/lists/effect_list_pc.php
   Effect:
   - "11"
   - "12"

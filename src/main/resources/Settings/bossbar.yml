@@ -10,11 +10,11 @@ teleport:
   # If true, the actionbar is on.
   # If false, the actionbar is off.
   actionBarEnabled: true
-  # Determines the color of the boss bar.
+  # Determines the color of the boss bar. Names are flexible: BLUE, blue, or the enum number.
   # The value can be one of the predefined colors, for example:
   # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
   bar-color: BLUE
-  # Determines the style of the boss bar.
+  # Determines the style of the boss bar. Names are flexible: SOLID, segmented 10, SEGMENTED_10, or the enum number.
   # The value can be one of the predefined styles, for example:
   # SOLID (solid) means that the boss's health progress will be displayed
   # as a continuous bar or filled color.

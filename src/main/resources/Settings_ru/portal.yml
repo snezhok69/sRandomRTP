@@ -16,6 +16,7 @@ portal:
   # Если true, блоки портала нельзя ломать.
   protect_blocks: true
   # Материалы портала
+  # Названия гибкие: GLASS, glass, glass block, minecraft:glass или старые числовые ID, если Bukkit их поддерживает.
   # Ссылка на все блоки minecraft - https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
   materials:
     # Блоки под порталом
@@ -26,6 +27,7 @@ portal:
   particles:
     # Частицы для пола портала
     # Все частицы https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+    # Названия гибкие: PORTAL, portal, minecraft:portal или номер enum.
     floor: "PORTAL"
     # Количество частиц, создаваемых в каждой точке
     floor_count: 2
@@ -35,6 +37,7 @@ portal:
     floor_spread: 0.1
     # Частицы, которые будут на краях портала
     # Все частицы https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+    # Названия гибкие: FLAME, flame, minecraft:flame или номер enum.
     border: "FLAME"
     # Количество частиц, создаваемых в каждой точке
     border_count: 5
