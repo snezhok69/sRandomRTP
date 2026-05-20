@@ -60,7 +60,7 @@
 
 Обновление конфигов и локализации!
 
-config.yml: добавлены Command-Aliases-Enabled, Command-Aliases, diagnostics.enabled, metrics.rtp.slow-request-threshold-ms и обновлённые комментарии по permissions.
+config.yml: добавлены diagnostic, Command-Aliases-Enabled, Command-Aliases, metrics.rtp.slow-request-threshold-ms и обновлённые комментарии по permissions.
 
 Settings/commands.yml: добавлены переключатели для /rtp settings, /rtp doctor, /rtp dump, /rtp stats, /rtp portal check и admin bossbar-команд. Эти debug/admin команды выключены по умолчанию.
 
@@ -94,7 +94,7 @@ Command-Aliases:
 
 3. При обновлении конфигов теперь создаются backup-файлы и пишется Diagnostics/config-changes.txt.
 
-4. Диагностика startup и reload пишется даже при выключенных обычных logs.
+4. Диагностика startup, reload, config-changes, backup и slow RTP теперь работает только при diagnostic: true.
 
 5. Улучшены хранение порталов, очистка порталов, частицы порталов и cooldown порталов.
 
@@ -103,6 +103,8 @@ Command-Aliases:
 7. Автотесты добавлены и перенесены в tests/java: Java 8 bytecode, config-version, permissions, migrations, cooldowns, portals, biome RTP и scheduler safety.
 
 8. .gitignore обновлён, чтобы IDE-файлы, локальные файлы агентов, runtime-базы, logs и build-артефакты не попадали в репозиторий.
+
+9. Auto-reload теперь применяет изменения языка/diagnostic/алиасов из config.yml и переключатели команд из Settings/commands.yml после сохранения файла.
 
 
 Примечания

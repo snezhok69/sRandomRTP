@@ -1,8 +1,10 @@
 package org.sRandomRTP.Files;
 
 import org.bukkit.configuration.file.YamlConfiguration;
+import java.util.HashMap;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class LoadMessages {
     public static volatile List<String> nopermissionreload;
@@ -30,6 +32,7 @@ public class LoadMessages {
     public static volatile List<String> noplayerworldnear;
     public static volatile List<String> noplayerservenear;
     public static volatile List<String> commandhelp;
+    private static volatile Map<String, String> commandHelpLines = Collections.emptyMap();
     public static volatile String actionBarMessage;
     public static volatile List<String> insufficient_funds;
     public static volatile List<String> error_withdrawing;
@@ -171,6 +174,7 @@ public class LoadMessages {
         noplayerservenear = langFile.getStringList("messages.noplayerservenear");
         noplayerworldnear = langFile.getStringList("messages.noplayerworldnear");
         commandhelp = langFile.getStringList("messages.commandhelp");
+        commandHelpLines = loadStringSection(langFile, "messages.command-help");
         actionBarMessage = langFile.getString("messages.actionBarMessage");
         if (actionBarMessage == null) actionBarMessage = "";
         insufficient_funds = langFile.getStringList("messages.insufficient_funds");
@@ -328,6 +332,35 @@ public class LoadMessages {
     private static String getString(YamlConfiguration langFile, String path, String fallback) {
         String value = langFile.getString(path);
         return value == null ? fallback : value;
+    }
+
+    public static String commandHelpLine(String key, int legacyIndex, String fallback) {
+        String value = commandHelpLines.get(key);
+        if (value != null && !value.trim().isEmpty()) {
+            return value;
+        }
+        if (commandhelp != null && legacyIndex >= 0 && commandhelp.size() > legacyIndex) {
+            value = commandhelp.get(legacyIndex);
+            if (value != null && !value.trim().isEmpty()) {
+                return value;
+            }
+        }
+        return fallback;
+    }
+
+    private static Map<String, String> loadStringSection(YamlConfiguration langFile, String path) {
+        org.bukkit.configuration.ConfigurationSection section = langFile.getConfigurationSection(path);
+        if (section == null) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> values = new HashMap<>();
+        for (String key : section.getKeys(false)) {
+            String value = section.getString(key);
+            if (value != null) {
+                values.put(key, value);
+            }
+        }
+        return Collections.unmodifiableMap(values);
     }
 
     private static List<String> withFallback(List<String> messages, String... fallback) {

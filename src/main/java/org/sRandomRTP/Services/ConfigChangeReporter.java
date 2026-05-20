@@ -21,6 +21,9 @@ public final class ConfigChangeReporter {
         if (Variables.getInstance() == null) {
             return;
         }
+        if (!Variables.isDiagnosticEnabled()) {
+            return;
+        }
         File diagnostics = new File(Variables.getInstance().getDataFolder(), "Diagnostics");
         if (!diagnostics.exists() && !diagnostics.mkdirs()) {
             return;

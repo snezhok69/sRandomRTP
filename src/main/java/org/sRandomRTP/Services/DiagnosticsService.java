@@ -69,7 +69,7 @@ public class DiagnosticsService {
         public void finishSuccess() {
             line("Finished: " + timestamp());
             line("Status: SUCCESS");
-            flush(true);
+            flush();
         }
 
         public void finishFailure(Throwable throwable) {
@@ -78,15 +78,15 @@ public class DiagnosticsService {
             }
             line("Finished: " + timestamp());
             line("Status: FAILURE");
-            flush(true);    // always write — critical failure
+            flush();
         }
 
         private void line(String value) {
             lines.add(value);
         }
 
-        private void flush(boolean force) {
-            if (!force && !org.sRandomRTP.DifferentMethods.Variables.isLoggingEnabled()) {
+        private void flush() {
+            if (!org.sRandomRTP.DifferentMethods.Variables.isDiagnosticEnabled()) {
                 return;
             }
             if (!diagnosticsFolder.exists()) {

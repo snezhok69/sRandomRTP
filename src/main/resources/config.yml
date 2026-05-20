@@ -53,8 +53,9 @@ Command-Aliases:
   - randomtp
   - randomteleport
 
-# debug to the console, which are displayed when using the /rtp command
-logs: false
+# Enables plugin diagnostics.
+# If false, the Diagnostics folder is not created automatically and diagnostic reports/log files are disabled.
+diagnostic: false
 # Determines whether to enable automatic notifications about new plugin versions for players.
 Auto-Checking-New-Version-Players-Enabled: true
 # Determines whether to enable automatic notifications about new plugin versions for the console.

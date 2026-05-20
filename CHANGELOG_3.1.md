@@ -60,7 +60,7 @@ New Stability Features!
 
 Configuration & Localization Update!
 
-config.yml: added Command-Aliases-Enabled, Command-Aliases, diagnostics.enabled, metrics.rtp.slow-request-threshold-ms, and updated permission comments.
+config.yml: added diagnostic, Command-Aliases-Enabled, Command-Aliases, metrics.rtp.slow-request-threshold-ms, and updated permission comments.
 
 Settings/commands.yml: added runtime switches for /rtp settings, /rtp doctor, /rtp dump, /rtp stats, /rtp portal check, and admin bossbar commands. These debug/admin commands are disabled by default.
 
@@ -94,7 +94,7 @@ Small Changes!
 
 3. Config updates now create backups and write Diagnostics/config-changes.txt.
 
-4. Startup and reload diagnostics are written even when normal logs are disabled.
+4. Startup, reload, config-change, backup, and slow RTP diagnostics now run only when diagnostic: true is enabled.
 
 5. Portal storage, portal cleanup, portal particles, and portal cooldown handling were improved.
 
@@ -103,6 +103,8 @@ Small Changes!
 7. Automated tests were added and moved into tests/java, including checks for Java 8 bytecode, config versions, permissions, migrations, cooldowns, portals, biome RTP, and scheduler safety.
 
 8. .gitignore was updated so IDE files, local agent files, runtime databases, logs, and build artifacts do not get into the repository.
+
+9. Auto-reload now applies config.yml language/diagnostic/alias changes and Settings/commands.yml command switches after saving the file.
 
 
 Notes

@@ -51,6 +51,7 @@ class MigrationRunnerTest {
 
         YamlConfiguration migrated = YamlConfiguration.loadConfiguration(configFile);
         assertEquals(PluginVersionCatalog.CONFIG_VERSION, migrated.getInt("config-version"));
+        assertFalse(migrated.getBoolean("diagnostic"));
         assertEquals(ConfigDefaults.SLOW_REQUEST_THRESHOLD_MS, migrated.getLong("metrics.rtp.slow-request-threshold-ms"));
         assertEquals(ConfigDefaults.COMMAND_ALIASES_ENABLED, migrated.getBoolean("Command-Aliases-Enabled"));
         assertEquals(ConfigDefaults.COMMAND_ALIASES, migrated.getStringList("Command-Aliases"));
@@ -84,6 +85,21 @@ class MigrationRunnerTest {
         assertEquals(ConfigDefaults.DEFAULT_COORDINATE_GENERATION, migrated.getString("teleport.coordinate-generation"));
         assertEquals(4500L, migratedConfig.getLong("metrics.rtp.slow-request-threshold-ms"));
         assertFalse(migrated.contains("teleport.prefer-generated-chunks.invalid"));
+    }
+
+    @Test
+    void runConfigMigrationsRenamesLegacyLogsFlag() throws IOException {
+        File configFile = new File(tempDir.toFile(), "config.yml");
+        configFile.getParentFile().mkdirs();
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("Language", "en");
+        yaml.set("logs", true);
+        yaml.save(configFile);
+
+        migrationRunner.runConfigMigrations();
+
+        YamlConfiguration migrated = YamlConfiguration.loadConfiguration(configFile);
+        assertTrue(migrated.getBoolean("diagnostic"));
     }
 
     @Test

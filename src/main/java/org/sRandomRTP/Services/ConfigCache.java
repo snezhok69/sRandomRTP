@@ -110,7 +110,7 @@ public final class ConfigCache {
 
     // ── Misc ─────────────────────────────────────────────────────────────────
     public final boolean rtpPlayerMessages;
-    /** Cached value of {@code config.yml → logs}. Updated atomically on every /reload. */
+    /** Cached value of {@code config.yml -> diagnostic}. Updated atomically on every reload. */
     public final boolean loggingEnabled;
 
     // ── Banned-world ─────────────────────────────────────────────────────────
@@ -361,9 +361,22 @@ public final class ConfigCache {
             b.bossBarTime      = bossbar.getInt("teleport.bossbar-time", 7);
         }
         if (mainConfig != null) {
-            b.loggingEnabled = mainConfig.getBoolean("logs", false);
+            b.loggingEnabled = readDiagnosticEnabled(mainConfig);
         }
         return new ConfigCache(b);
+    }
+
+    public static boolean readDiagnosticEnabled(org.bukkit.configuration.file.FileConfiguration config) {
+        if (config == null) {
+            return ConfigDefaults.DIAGNOSTIC_ENABLED;
+        }
+        if (config.contains("diagnostic")) {
+            return config.getBoolean("diagnostic", ConfigDefaults.DIAGNOSTIC_ENABLED);
+        }
+        if (config.contains("diagnostics.enabled")) {
+            return config.getBoolean("diagnostics.enabled", ConfigDefaults.DIAGNOSTIC_ENABLED);
+        }
+        return config.getBoolean("logs", ConfigDefaults.DIAGNOSTIC_ENABLED);
     }
 
     /** Default instance used before the first config load. */

@@ -170,7 +170,10 @@ public class Main extends JavaPlugin {
         BootstrapCoordinator.FileChangeSummary summary =
                 Variables.getPluginContext().getBootstrapCoordinator().synchronizeFiles();
         if (!summary.isSuccessful()) {
-            ChatUtils.logError("Failed to synchronize plugin files. Check LogsErrors/latest-error.log and Diagnostics/latest-startup-report.txt");
+            String hint = Variables.isDiagnosticEnabled()
+                    ? "Check LogsErrors/latest-error.log and Diagnostics/latest-startup-report.txt"
+                    : "Check LogsErrors/latest-error.log or enable diagnostic: true for startup reports";
+            ChatUtils.logError("Failed to synchronize plugin files. " + hint);
             return summary;
         }
         long createTime = System.currentTimeMillis();

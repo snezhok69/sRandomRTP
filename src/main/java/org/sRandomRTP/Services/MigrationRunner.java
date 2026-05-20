@@ -34,6 +34,7 @@ public class MigrationRunner {
 
     public void runConfigMigrations() {
         migrateLegacySlowRequestThreshold();
+        migrateLegacyDiagnosticFlag();
         for (File file : configRegistry.getManagedConfigFiles()) {
             if (!file.exists()) {
                 continue;
@@ -107,10 +108,10 @@ public class MigrationRunner {
         boolean modified = false;
         String fileName = file.getName();
         if ("config.yml".equalsIgnoreCase(fileName)) {
+            modified |= setIfMissing(yaml, "diagnostic", ConfigDefaults.DIAGNOSTIC_ENABLED);
             modified |= setIfMissing(yaml, "Command-Aliases-Enabled", ConfigDefaults.COMMAND_ALIASES_ENABLED);
             modified |= setIfMissing(yaml, "Command-Aliases", ConfigDefaults.COMMAND_ALIASES);
             modified |= setIfMissing(yaml, "metrics.rtp.slow-request-threshold-ms", ConfigDefaults.SLOW_REQUEST_THRESHOLD_MS);
-            modified |= setIfMissing(yaml, "diagnostics.enabled", true);
         } else if ("teleport.yml".equalsIgnoreCase(fileName)) {
             modified |= setIfMissing(yaml, "teleport.coordinate-generation",               ConfigDefaults.DEFAULT_COORDINATE_GENERATION);
             modified |= setIfMissing(yaml, "teleport.prefer-generated-chunks.enabled",     ConfigDefaults.PREFER_GENERATED_CHUNKS_ENABLED);
@@ -198,6 +199,32 @@ public class MigrationRunner {
             configYaml.save(configFile);
         } catch (IOException e) {
             logger.warning("Failed to migrate slow RTP threshold into config.yml: " + e.getMessage());
+        }
+    }
+
+    private void migrateLegacyDiagnosticFlag() {
+        File configFile = configRegistry.resolve("config.yml");
+        if (!configFile.exists()) {
+            return;
+        }
+
+        YamlConfiguration configYaml = YamlConfiguration.loadConfiguration(configFile);
+        if (configYaml.contains("diagnostic")) {
+            return;
+        }
+
+        if (configYaml.contains("logs")) {
+            configYaml.set("diagnostic", configYaml.getBoolean("logs", ConfigDefaults.DIAGNOSTIC_ENABLED));
+        } else if (configYaml.contains("diagnostics.enabled")) {
+            configYaml.set("diagnostic", configYaml.getBoolean("diagnostics.enabled", ConfigDefaults.DIAGNOSTIC_ENABLED));
+        } else {
+            return;
+        }
+
+        try {
+            configYaml.save(configFile);
+        } catch (IOException e) {
+            logger.warning("Failed to migrate diagnostic flag into config.yml: " + e.getMessage());
         }
     }
 }
