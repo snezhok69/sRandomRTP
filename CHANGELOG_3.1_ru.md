@@ -1,6 +1,7 @@
-# sRandomRTP 3.1 - стабильность, диагностика и поддержка Java 8. Update #11
+СОХРАНИТЕ ВСЕ ДАННЫЕ ПЛАГИНА (SRANDOMRTP)
+ПЕРЕД ОБНОВЛЕНИЕМ!!!!!!!!!!!!!!!!
 
-Поисковые теги: rtp, ртп, plugin, плагин, teleport, телепорт, random, рандом, randomtp, randomrtp, рандом тп, world
+
 
 Новые команды!
 
@@ -12,6 +13,7 @@
 /rtp stats
 /rtp portal check
 /rtp tpsbar
+
 /rtp rambar
 /rtp msptbar
 /rtp allbars
@@ -28,11 +30,11 @@
 Пермишион: sRandomRTP.Command.Dump
 По умолчанию: выключена в Settings/commands.yml
 
-1.4. /rtp stats - показывает живую статистику: активные поиски, общий RTP count, cooldowns, задачи порталов, completed/cancelled/refunds и среднее время поиска.
+1.4. /rtp stats - показывает живую статистику: активные поиски, общий RTP count, cooldowns, задачи порталов, completed/cancelled/refunded телепорты и среднее время поиска.
 Пермишион: sRandomRTP.Command.Stats
 По умолчанию: выключена в Settings/commands.yml
 
-1.5. /rtp portal check - проверяет порталы: отсутствующие миры, дубли world + portalName и активные portal tasks.
+1.5. /rtp portal check - проверяет порталы на отсутствующие миры, дубли world + portalName и активные portal tasks.
 Пермишион: sRandomRTP.Command.Portal.Check
 По умолчанию: выключена в Settings/commands.yml
 
@@ -49,15 +51,13 @@
 
 3. RTP через cooldown bypass теперь тоже корректно считается.
 
-4. Cooldown-пермишионы вроде sRandomRtp.Cooldown.4 теперь работают стабильнее и также влияют на bossbar-отсчёт.
+4. Cooldown-пермишионы вроде sRandomRtp.Cooldown.N теперь работают стабильнее и также влияют на bossbar-отсчёт.
 
 5. Reload теперь пишет сообщение об успешной перезагрузке после завершения reload.
 
 6. /rtp cancel, отмена при движении, повторные RTP-запросы, выход игрока во время телепорта и возврат денег после отмены стали безопаснее.
 
-7. Плагин остаётся совместимым с Java 8 bytecode и сохраняет минимальную Bukkit API-метку 1.16, поэтому серверы Minecraft 1.16+ всё ещё могут его загружать, а новые версии продолжают работать.
-
-8. Исправлено определение версии Minecraft для новой схемы Java Edition, включая 26.1, 26.1.1 и более новые 26.x сборки.
+7. Исправлено определение версии Minecraft для новой схемы Java Edition, включая 26.1, 26.1.1 и более новые 26.x сборки.
 
 
 Обновление конфигов и локализации!
@@ -68,7 +68,7 @@ Settings/commands.yml: добавлены переключатели для /rtp
 
 Settings/admin-bars.yml: добавлены настраиваемые bossbar для TPS, RAM и MSPT с заголовками, цветами, стилями, порогами и сообщениями.
 
-Settings/biome.yml: добавлен отдельный профиль для поиска через /rtp biome.
+Settings/biome.yml: добавлен отдельный профиль для поведения поиска через /rtp biome.
 
 Settings/teleport.yml: добавлены более безопасные настройки поиска и чанков, включая parallel-search и prefer-generated-chunks.
 
@@ -102,11 +102,7 @@ Command-Aliases:
 
 6. Добавлены PlaceholderAPI значения и публичные RTP/portal events для интеграций.
 
-7. Автотесты добавлены и перенесены в tests/java: Java 8 bytecode, config-version, permissions, migrations, cooldowns, portals, biome RTP и scheduler safety.
-
-8. .gitignore обновлён, чтобы IDE-файлы, локальные файлы агентов, runtime-базы, logs и build-артефакты не попадали в репозиторий.
-
-9. Auto-reload теперь применяет изменения языка/diagnostic/алиасов из config.yml и переключатели команд из Settings/commands.yml после сохранения файла.
+7. Auto-reload теперь применяет изменения языка/diagnostic/алиасов из config.yml и переключатели команд из Settings/commands.yml после сохранения файла.
 
 
 Важно для владельцев серверов!
