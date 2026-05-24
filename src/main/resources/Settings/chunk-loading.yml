@@ -22,8 +22,14 @@ chunk-loading:
   # Controls asynchronous chunk warming around spawn points and players.
   # This is a background preloading system that periodically loads nearby chunks
   # to reduce lag spikes when players move/teleport into new areas.
-  # Important: this is not a universal RTP accelerator.
-  # On busy servers it can add extra background chunk pressure, so profile before enabling it.
+  #
+  # Important: this is NOT a universal RTP accelerator.
+  # On busy servers it can add extra background chunk pressure, so profile before
+  # enabling it. If you already have teleport.parallel-search and
+  # teleport.prefer-generated-chunks turned on, leave this off unless you can
+  # observe measurable benefit in /rtp stats — those two features already cover
+  # most of the latency gain without the constant background load this system
+  # adds. Recommended for low/medium-traffic servers with stable TPS only.
 chunk-warming:
   # Enables the chunk warming system.
   enabled: false

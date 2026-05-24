@@ -67,13 +67,17 @@ teleport:
   # For example, if minradius is 500000, coordinates will be at least 500000 blocks from center
   use-absolute-coordinates: true
   # Settings for checking multiple RTP candidates in parallel.
-  # Conservative default: enabled=false, batch=2.
-  # Enable it on servers where you want faster RTP and have enough performance headroom.
-  # Going higher can increase chunk pressure without giving a noticeable speed gain.
+  # Safe default: enabled=true, batch=2.
+  # The plugin throttles parallel candidates automatically when TPS drops, MSPT
+  # rises above 40 ms, or the total in-flight chunk requests cross an internal
+  # threshold — so leaving this on is normally a win. Set enabled=false only if
+  # you want to fully serialize candidate checks for debugging.
+  # Going above batch=2 rarely helps because chunk pressure grows faster than
+  # the speed-up.
   parallel-search:
     # If true, the plugin checks more than one candidate per RTP attempt.
     # This usually speeds up RTP without changing safety checks.
-    enabled: false
+    enabled: true
     # How many candidates are checked per attempt.
     # Recommended value: 2.
     candidates-per-batch: 2
@@ -82,15 +86,19 @@ teleport:
     # Recommended value: 24.
     max-global-inflight: 24
   # Optional strategy: first try already-generated chunks for a short time before allowing new chunk generation.
-  # Disabled by default because normal RTP should search the whole allowed area equally, not prefer explored land.
-  # Enable this only if you specifically want faster RTP in already explored regions.
+  # Enabled by default — for the first ~1.5 seconds of a search the plugin only
+  # inspects chunks that already exist on disk, and falls back to generating new
+  # chunks afterwards. On most servers this dramatically reduces chunk-gen load
+  # during /rtp spikes without noticeably biasing the destination distribution.
+  # Disable this only if you specifically want a uniform raw-distribution search
+  # across the whole radius from the very first attempt.
   prefer-generated-chunks:
     # If true, RTP first checks only chunks that already exist, and only after that allows new chunk generation.
-    # Default: false.
-    enabled: false
+    # Default: true.
+    enabled: true
     # How long the "generated chunks only" phase lasts before normal search resumes.
     # Used only when enabled=true.
-    window-ms: 1000
+    window-ms: 1500
     # Maximum number of attempts that stay inside the "generated chunks only" phase.
     # Used only when enabled=true.
     max-attempts: 8
@@ -106,8 +114,12 @@ teleport:
     # The list of commands.
     Commands:
       - give %player% diamond 1
-  # How many attempts are needed for a successful teleportation.
-  maxtries: 1000
+  # Hard cap on the number of candidate attempts per /rtp request.
+  # When teleport-timeout.enabled is true (the default) the search usually
+  # finishes within a handful of attempts long before reaching this cap, so a
+  # very large value is just dead weight. Lowering it also acts as a safety net
+  # for users who disable teleport-timeout — a runaway search will still stop.
+  maxtries: 25
   # Command cooldown, specified in seconds.
   Cooldowns:
     # If true, a cooldown will be applied if you take damage.
