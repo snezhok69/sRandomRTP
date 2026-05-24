@@ -30,6 +30,7 @@ import org.sRandomRTP.Services.RuntimeStateRegistry;
 import org.sRandomRTP.Services.ServerMetricsProvider;
 import org.sRandomRTP.Services.TeleportMetrics;
 import org.sRandomRTP.Services.TeleportService;
+import org.sRandomRTP.Utils.ServerVersionParser;
     
 public class Variables {
     private static volatile RuntimeStateRegistry runtimeState;
@@ -192,12 +193,13 @@ public class Variables {
             throw new IllegalStateException("[sRandomRTP] PluginContext returned null RuntimeStateRegistry — check PluginContext initialization.");
         }
         runtimeState = contextRegistry;
-        // Cache server major version once at plugin startup
-        // Bukkit.getBukkitVersion() → "1.19.4-R0.1-SNAPSHOT" — split by [.\-] gives [1]="19" etc.
+        // Cache server compatibility version once at plugin startup.
+        // Examples: "1.19.4-R0.1-SNAPSHOT" -> 19, "26.1.1-R0.1-SNAPSHOT" -> 26.
         try {
-            String ver = Bukkit.getBukkitVersion(); // "1.19.4-R0.1-SNAPSHOT"
-            String[] parts = ver.split("[.\\-]");   // ["1","19","4","R0","1","SNAPSHOT"]
-            cachedServerMajorVersion = Integer.parseInt(parts[1]);
+            cachedServerMajorVersion = ServerVersionParser.parseCompatibilityNumber(Bukkit.getBukkitVersion());
+            if (cachedServerMajorVersion < 0) {
+                cachedServerMajorVersion = 17; // safe fallback — supports freeze
+            }
         } catch (Exception e) {
             cachedServerMajorVersion = 17; // safe fallback — supports freeze
         }
