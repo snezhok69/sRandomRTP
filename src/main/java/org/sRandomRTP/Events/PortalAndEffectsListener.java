@@ -10,12 +10,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.sRandomRTP.Chunk.ChunkWarmManager;
 import org.sRandomRTP.Commands.portal.PortalTriggerHandler;
 import org.sRandomRTP.Cooldowns.CooldownManager;
 import org.sRandomRTP.DifferentMethods.BossBars.RemoveAllBossBars;
 import org.sRandomRTP.DifferentMethods.EconomyPaymentManager;
 import org.sRandomRTP.DifferentMethods.Teleport.CleanupTasks;
 import org.sRandomRTP.DifferentMethods.Teleport.PerformTeleport;
+import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestManager;
 import org.sRandomRTP.DifferentMethods.Variables;
 import org.sRandomRTP.Files.LoadMessages;
 import org.sRandomRTP.Services.RuntimeStateRegistry;
@@ -128,5 +130,11 @@ public class PortalAndEffectsListener implements Listener {
         // Refund any pending economy charge if the player disconnects mid-search.
         // refund(UUID) is idempotent — no-ops if no pending payment exists.
         EconomyPaymentManager.refund(player.getUniqueId());
+        // Drop entries from the recent-chunk cache and active-request map so they
+        // do not accumulate UUID keys for players who never come back during a
+        // server uptime (a slow but real leak on high-churn servers).
+        TeleportRequestManager.clearForPlayer(player.getUniqueId());
+        // Same idea for the chunk-warm bookkeeping map.
+        ChunkWarmManager.removePlayer(player.getUniqueId());
     }
 }

@@ -79,6 +79,19 @@ public final class ChunkWarmManager implements Listener {
         }
     }
 
+    /**
+     * Drops any per-player chunk-warm tracking for the given UUID. Called by the
+     * quit listener so the lastWarmedPlayerChunk map does not retain entries for
+     * disconnected players. Safe to call when the manager is disabled or has
+     * never seen this player.
+     */
+    public static void removePlayer(UUID playerId) {
+        if (playerId == null || instance == null) {
+            return;
+        }
+        instance.lastWarmedPlayerChunk.remove(playerId);
+    }
+
     public synchronized void reload(FileConfiguration chunkfile) {
         FileConfiguration cfg = chunkfile;
         if (Variables.getPluginContext() != null

@@ -102,6 +102,17 @@ public final class TeleportRequestManager {
         RECENT_CACHE.remember(playerId, chunkX, chunkZ);
     }
 
+    /**
+     * Drops any per-player state held by this manager — used by the quit listener
+     * so that the recent-chunk cache and active-request map do not accumulate
+     * entries for players who have left the server.
+     */
+    public static void clearForPlayer(UUID playerId) {
+        if (playerId == null) return;
+        ACTIVE_REQUESTS.remove(playerId);
+        RECENT_CACHE.clear(playerId);
+    }
+
     public static void registerTask(Player player, WrappedTask task) {
         if (player == null || task == null) {
             return;
