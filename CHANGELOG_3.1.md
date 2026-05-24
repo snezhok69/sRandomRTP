@@ -57,6 +57,8 @@ New Stability Features!
 
 7. The plugin remains Java 8 bytecode compatible and keeps the minimum Bukkit API marker at 1.16, so Minecraft 1.16+ servers can still load it while newer servers keep working.
 
+8. Fixed Minecraft version detection for the new Java Edition version scheme, including 26.1, 26.1.1, and newer 26.x builds.
+
 
 Configuration & Localization Update!
 
