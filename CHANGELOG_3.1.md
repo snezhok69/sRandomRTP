@@ -107,6 +107,21 @@ Small Changes!
 9. Auto-reload now applies config.yml language/diagnostic/alias changes and Settings/commands.yml command switches after saving the file.
 
 
+Important for Server Owners!
+
+1. Player RTP commands stay enabled by default. The new support/debug commands and admin bossbars are disabled by default, even for OP, until you enable them in Settings/commands.yml or through /rtp settings after enabling that menu.
+
+2. /rtp settings is also disabled by default. To manage command switches in-game, first set commands.admin.settings.enabled: true in Settings/commands.yml.
+
+3. /rtp doctor, /rtp dump, /rtp stats, /rtp portal check, /rtp tpsbar, /rtp rambar, /rtp msptbar, and /rtp allbars are intended for server owners, administrators, and support/debug use. Regular players do not need them for normal RTP gameplay.
+
+4. diagnostic: false is the default. With this setting, the plugin will not create Diagnostics files automatically. Enable diagnostic: true only when you want full startup/reload/config-change/slow-RTP reports.
+
+5. Command aliases are also disabled by default. Enable Command-Aliases-Enabled: true in config.yml if you want /randomtp and /randomteleport.
+
+6. Existing configs are migrated without overwriting your custom values. As usual, make a backup before updating a production server.
+
+
 Notes
 
 Update 3.1 is mainly a stability, diagnostics, and compatibility update after the large 3.0 release. Most new admin/support commands are disabled by default, so normal players will keep using the plugin like before unless you enable those tools in Settings/commands.yml.
