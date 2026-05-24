@@ -1,6 +1,7 @@
-# sRandomRTP 3.1 - Stability, diagnostics, and Java 8 support. Update #11
+SAVE ALL YOUR PLUGIN(SRANDOMRTP)
+DATA BEFORE UPDATING!!!!!!!!!!!!!!!!
 
-Search tags: rtp, ртп, plugin, плагин, teleport, телепорт, random, рандом, randomtp, randomrtp, рандом тп, world
+
 
 New Commands Added!
 
@@ -12,6 +13,7 @@ New Commands Added!
 /rtp stats
 /rtp portal check
 /rtp tpsbar
+
 /rtp rambar
 /rtp msptbar
 /rtp allbars
@@ -49,15 +51,13 @@ New Stability Features!
 
 3. Cooldown-bypass teleports are counted correctly.
 
-4. Cooldown permissions such as sRandomRtp.Cooldown.4 now work more consistently and also affect the bossbar countdown.
+4. Cooldown permissions such as sRandomRtp.Cooldown.N now work more consistently and also affect the bossbar countdown.
 
 5. Reload now sends a successful reload message after the plugin finishes reloading.
 
 6. /rtp cancel, movement cancellation, duplicate RTP requests, player quit during teleport, and refund handling were made safer.
 
-7. The plugin remains Java 8 bytecode compatible and keeps the minimum Bukkit API marker at 1.16, so Minecraft 1.16+ servers can still load it while newer servers keep working.
-
-8. Fixed Minecraft version detection for the new Java Edition version scheme, including 26.1, 26.1.1, and newer 26.x builds.
+7. Fixed Minecraft version detection for the new Java Edition version scheme, including 26.1, 26.1.1, and newer 26.x builds.
 
 
 Configuration & Localization Update!
@@ -102,11 +102,7 @@ Small Changes!
 
 6. PlaceholderAPI values and public RTP/portal events were added for integrations.
 
-7. Automated tests were added and moved into tests/java, including checks for Java 8 bytecode, config versions, permissions, migrations, cooldowns, portals, biome RTP, and scheduler safety.
-
-8. .gitignore was updated so IDE files, local agent files, runtime databases, logs, and build artifacts do not get into the repository.
-
-9. Auto-reload now applies config.yml language/diagnostic/alias changes and Settings/commands.yml command switches after saving the file.
+7. Auto-reload now applies config.yml language/diagnostic/alias changes and Settings/commands.yml command switches after saving the file.
 
 
 Important for Server Owners!
