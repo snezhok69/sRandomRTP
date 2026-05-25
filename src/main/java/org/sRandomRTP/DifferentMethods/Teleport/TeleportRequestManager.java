@@ -102,6 +102,18 @@ public final class TeleportRequestManager {
         RECENT_CACHE.remember(playerId, chunkX, chunkZ);
     }
 
+    /**
+     * Drops any per-player state held by this manager so player UUID keys do not
+     * accumulate when players leave during long server uptimes.
+     */
+    public static void clearForPlayer(UUID playerId) {
+        if (playerId == null) {
+            return;
+        }
+        ACTIVE_REQUESTS.remove(playerId);
+        RECENT_CACHE.clear(playerId);
+    }
+
     public static void registerTask(Player player, WrappedTask task) {
         if (player == null || task == null) {
             return;

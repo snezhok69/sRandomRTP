@@ -5,7 +5,6 @@ import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.WorldBorder;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.sRandomRTP.BlockBiomes.BiomeBlockValidator;
@@ -16,6 +15,7 @@ import org.sRandomRTP.DifferentMethods.Teleport.FoliaSchedulerFacade;
 import org.sRandomRTP.DifferentMethods.Teleport.TeleportRequestContext;
 import org.sRandomRTP.Utils.AsyncChunkUtil;
 import org.sRandomRTP.Utils.WorldHeightSupport;
+import org.sRandomRTP.Utils.WorldUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -142,15 +142,9 @@ public class GetSafeYCoordinate {
             return future;
         }
 
-        WorldBorder border = world.getWorldBorder();
-        if (border != null) {
-            double halfSize = border.getSize() / 2.0D;
-            double centerX = border.getCenter().getX();
-            double centerZ = border.getCenter().getZ();
-            if (Math.abs(x - centerX) > halfSize || Math.abs(z - centerZ) > halfSize) {
-                future.complete(failure(x, z));
-                return future;
-            }
+        if (!WorldUtils.isWithinBorder(world.getWorldBorder(), x, z)) {
+            future.complete(failure(x, z));
+            return future;
         }
 
         if (Variables.getFoliaLib() != null && Variables.getFoliaLib().isFolia()) {
@@ -362,8 +356,8 @@ public class GetSafeYCoordinate {
         int relativeX = x & 0xF; // x % 16
         int relativeZ = z & 0xF; // z % 16
 
-        int surfaceY = world.getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES).getY();
-        int oceanFloorY = world.getHighestBlockAt(x, z, HeightMap.OCEAN_FLOOR).getY();
+        int surfaceY = world.getHighestBlockYAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+        int oceanFloorY = world.getHighestBlockYAt(x, z, HeightMap.OCEAN_FLOOR);
 
         if (surfaceY <= minY) {
             surfaceY = minY + 1;
@@ -594,8 +588,8 @@ public class GetSafeYCoordinate {
             int sampleX = chunkMinX + offset[0];
             int sampleZ = chunkMinZ + offset[1];
 
-            int surfaceY = world.getHighestBlockAt(sampleX, sampleZ, HeightMap.WORLD_SURFACE).getY();
-            int oceanFloorY = world.getHighestBlockAt(sampleX, sampleZ, HeightMap.OCEAN_FLOOR).getY();
+            int surfaceY = world.getHighestBlockYAt(sampleX, sampleZ, HeightMap.WORLD_SURFACE);
+            int oceanFloorY = world.getHighestBlockYAt(sampleX, sampleZ, HeightMap.OCEAN_FLOOR);
 
             if (surfaceY <= oceanFloorY) {
                 continue;

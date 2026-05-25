@@ -515,8 +515,7 @@ public abstract class AbstractRtpHandler {
             return new CandidateSearchTask(finalNewX, finalNewZ, searchStage, CompletableFuture.completedFuture(null));
         }
 
-        if (border != null && !border.isInside(new Location(world, finalNewX + 0.5,
-                WorldHeightSupport.getMinHeight(world), finalNewZ + 0.5))) {
+        if (!WorldUtils.isWithinBorder(border, finalNewX + 0.5, finalNewZ + 0.5)) {
             if (log) {
                 Bukkit.getConsoleSender().sendMessage("Generated coordinates outside world border: X=" + finalNewX + ", Z=" + finalNewZ);
             }
@@ -593,12 +592,12 @@ public abstract class AbstractRtpHandler {
         }
 
         WorldBorder border = world.getWorldBorder();
-        Location targetLocation = new Location(world, finalNewX + 0.5, newY, finalNewZ + 0.5);
-        if (border != null && !border.isInside(targetLocation)) {
+        double targetCenterX = finalNewX + 0.5;
+        double targetCenterZ = finalNewZ + 0.5;
+        if (!WorldUtils.isWithinBorder(border, targetCenterX, targetCenterZ)) {
             if (log) {
                 Bukkit.getConsoleSender().sendMessage("Attempted to teleport outside world border to coordinates: "
-                        + targetLocation.getBlockX() + ", " + targetLocation.getBlockY() + ", "
-                        + targetLocation.getBlockZ());
+                        + finalNewX + ", " + newY + ", " + finalNewZ);
             }
             if (attemptNumber >= maxAttempts) {
                 Variables.getMessageService().send(player, LoadMessages.worldborder_error);
@@ -620,13 +619,16 @@ public abstract class AbstractRtpHandler {
             return;
         }
 
-        if (checkingInRegions && pCtx != null && IsInProtectedRegion.isInProtectedRegion(targetLocation)) {
-            if (log) {
-                String regionName = GetProtectedRegionName.getProtectedRegionName(targetLocation);
-                Bukkit.getConsoleSender().sendMessage("Attempted to teleport into protected region: " + regionName);
+        if (checkingInRegions && pCtx != null) {
+            Location regionCheckLocation = new Location(world, targetCenterX, newY, targetCenterZ);
+            if (IsInProtectedRegion.isInProtectedRegion(regionCheckLocation)) {
+                if (log) {
+                    String regionName = GetProtectedRegionName.getProtectedRegionName(regionCheckLocation);
+                    Bukkit.getConsoleSender().sendMessage("Attempted to teleport into protected region: " + regionName);
+                }
+                handleFailedAttempt(player, loggingEnabled, attemptNumber, maxAttempts, retryCallback, context);
+                return;
             }
-            handleFailedAttempt(player, loggingEnabled, attemptNumber, maxAttempts, retryCallback, context);
-            return;
         }
 
         boolean safeSurface = resolution.isSafe();
@@ -641,9 +643,7 @@ public abstract class AbstractRtpHandler {
             UUID playerId = player.getUniqueId();
             TeleportRequestManager.rememberLocation(playerId, finalNewX >> 4, finalNewZ >> 4);
 
-            Location teleportLocation = new Location(world, finalNewX + 0.5, newY, finalNewZ + 0.5);
-
-            int teleportY = teleportLocation.getBlockY();
+            int teleportY = newY;
             int headY = teleportY + 1;
             int belowY = teleportY - 1;
             int worldMaxY = world.getMaxHeight() - 1;
@@ -670,8 +670,8 @@ public abstract class AbstractRtpHandler {
             }
 
             if (log) {
-                int chunkX = teleportLocation.getBlockX() >> 4;
-                int chunkZ = teleportLocation.getBlockZ() >> 4;
+                int chunkX = finalNewX >> 4;
+                int chunkZ = finalNewZ >> 4;
                 Bukkit.getLogger().info("Starting asynchronous chunk loading for blocks: "
                         + finalNewX + "," + finalNewZ + " (Chunk: " + chunkX + ", " + chunkZ
                         + ") in world " + world.getName());
@@ -771,9 +771,11 @@ public abstract class AbstractRtpHandler {
                     acquireResult.isGenerationAllowed(), acquireResult.getDurationNanos(), safeSearchNanos);
         }
 
-        Material targetBlockType = world.getBlockAt(x, y - 1, z).getType();
-        Material blockAboveType = world.getBlockAt(x, y, z).getType();
-        Material blockTwoAboveType = world.getBlockAt(x, y + 1, z).getType();
+        int relativeX = x & 0xF;
+        int relativeZ = z & 0xF;
+        Material targetBlockType = chunk.getBlock(relativeX, y - 1, relativeZ).getType();
+        Material blockAboveType = chunk.getBlock(relativeX, y, relativeZ).getType();
+        Material blockTwoAboveType = chunk.getBlock(relativeX, y + 1, relativeZ).getType();
         if (biome == null) {
             biome = world.getBiome(x, y, z);
         }
